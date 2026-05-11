@@ -104,7 +104,7 @@ class GameView(arcade.View):
         arcade.draw_text("Neighborhood Cleanup", 18, 560, arcade.color.WHITE, 20)
 
     def draw_hud(self) -> None:
-        arcade.draw_lrbt_rectangle_filled(12, 788, 582, 515, (20, 24, 34))
+        arcade.draw_lrbt_rectangle_filled(12, 788, 515, 582, (20, 24, 34))
         arcade.draw_line(12, 515, 788, 515, arcade.color.WHITE, 2)
         arcade.draw_line(788, 515, 788, 582, arcade.color.WHITE, 2)
         arcade.draw_line(788, 582, 12, 582, arcade.color.WHITE, 2)
