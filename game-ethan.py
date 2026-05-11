@@ -62,6 +62,7 @@ class GameView(arcade.View):
         self.building_names = ["North House", "Corner Lot", "Old Flat"]
         self.current_building = 0
         self.neighborhood_state = 0
+        self.round_started = False
 
     def on_show_view(self) -> None:
         arcade.set_background_color(self.background_color)
@@ -90,6 +91,7 @@ class GameView(arcade.View):
             self.friends.append(FriendNPC(friend_names[i], fx, fy))
 
         self.screen = "playing"
+        self.round_started = True
 
     def next_building(self) -> None:
         self.current_building = (self.current_building + 1) % len(self.building_names)
@@ -105,12 +107,15 @@ class GameView(arcade.View):
     def fail_round(self) -> None:
         self.screen = "failed"
         self.message = "The timer ran out. The block stays quiet for now."
+        self.round_started = False
 
     def on_key_press(self, key: int, modifiers: int) -> None:
         if key != arcade.key.SPACE:
             return
 
         if self.screen in {"title", "complete", "failed"}:
+            self.reset_round()
+        elif self.screen == "playing" and not self.round_started:
             self.reset_round()
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
@@ -307,6 +312,9 @@ class GameView(arcade.View):
             arcade.draw_text("Press SPACE to start", 400, 250, arcade.color.GOLD, 18, anchor_x="center")
             self.draw_hud()
             return
+
+        if self.screen == "playing" and not self.round_started:
+            self.reset_round()
 
         self.draw_scene()
         self.draw_hud()
