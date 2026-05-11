@@ -25,8 +25,8 @@ class Trash(arcade.SpriteSolidColor):
 
 
 class GameView(arcade.View):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, window: arcade.Window | None = None) -> None:
+        super().__init__(window=window)
         self.background_color = arcade.csscolor.DARK_SLATE_BLUE
         self.state = "ready"
         self.time_left = QUEST_TIME
@@ -153,7 +153,7 @@ class GameView(arcade.View):
 
 def main() -> None:
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    view = GameView()
+    view = GameView(window)
     window.show_view(view)
     arcade.run()
 
