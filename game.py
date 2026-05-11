@@ -91,11 +91,11 @@ class GameView(arcade.View):
             self.finish_quest(False)
 
     def draw_building(self) -> None:
-        arcade.draw_lrbt_rectangle_filled(140, 660, 470, 190, arcade.color.DIM_GRAY)
-        arcade.draw_lrbt_rectangle_filled(340, 470, 470, 270, arcade.color.GRAY)
-        arcade.draw_lrbt_rectangle_filled(385, 425, 360, 190, arcade.color.DARK_BROWN)
-        arcade.draw_lrbt_rectangle_filled(190, 250, 320, 260, arcade.color.LIGHT_GRAY)
-        arcade.draw_lrbt_rectangle_filled(550, 610, 320, 260, arcade.color.LIGHT_GRAY)
+        arcade.draw_lrbt_rectangle_filled(140, 660, 190, 470, arcade.color.DIM_GRAY)
+        arcade.draw_lrbt_rectangle_filled(340, 470, 270, 470, arcade.color.GRAY)
+        arcade.draw_lrbt_rectangle_filled(385, 425, 190, 360, arcade.color.DARK_BROWN)
+        arcade.draw_lrbt_rectangle_filled(190, 250, 260, 320, arcade.color.LIGHT_GRAY)
+        arcade.draw_lrbt_rectangle_filled(550, 610, 260, 320, arcade.color.LIGHT_GRAY)
         arcade.draw_circle_filled(95, 110, 26, arcade.color.GOLD)
         arcade.draw_line(140, 190, 660, 190, arcade.color.BLACK, 3)
         arcade.draw_line(660, 190, 660, 470, arcade.color.BLACK, 3)
