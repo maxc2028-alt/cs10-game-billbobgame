@@ -16,6 +16,8 @@ SCREEN_TITLE = "Neighborhood Cleanup: South Block"
 
 QUEST_TIME = 20.0
 MAX_UPGRADES = 3
+TRASH_SCORE = 4
+BUILDING_STAGES = 3
 
 
 class TrashSpot:
@@ -23,6 +25,7 @@ class TrashSpot:
         self.x = x
         self.y = y
         self.radius = 18
+        self.highlight = random.choice(["can", "bag", "box", "rubble"])
 
 
 class FriendNPC:
@@ -31,6 +34,14 @@ class FriendNPC:
         self.x = x
         self.y = y
         self.mood = random.choice(["curious", "hopeful", "quiet", "encouraging"])
+        self.line = random.choice(
+            [
+                "I didn’t think anyone would come back here.",
+                "This place used to feel different.",
+                "You’re making it easier to stay.",
+                "Maybe we can turn this around.",
+            ]
+        )
 
 
 class GameView(arcade.View):
@@ -44,11 +55,13 @@ class GameView(arcade.View):
         self.cleaned = 0
         self.upgrades = 0
         self.message = "Press SPACE to begin."
+        self.hint = "Clear every trash pile to move to the next building."
         self.trash_spots: list[TrashSpot] = []
         self.friends: list[FriendNPC] = []
         self.buildings_cleaned = 0
         self.building_names = ["North House", "Corner Lot", "Old Flat"]
         self.current_building = 0
+        self.neighborhood_state = 0
 
     def on_show_view(self) -> None:
         arcade.set_background_color(self.background_color)
@@ -57,6 +70,7 @@ class GameView(arcade.View):
         self.time_left = QUEST_TIME
         self.cleaned = 0
         self.message = "Click trash piles to clean the building."
+        self.hint = "Click trash near the broken windows, doors, and sidewalks."
         self.trash_spots = []
         self.friends = []
 
@@ -80,10 +94,12 @@ class GameView(arcade.View):
     def next_building(self) -> None:
         self.current_building = (self.current_building + 1) % len(self.building_names)
         self.buildings_cleaned += 1
-        self.money += 15
+        self.money += 15 + self.upgrades * 3
         self.friendship += 1
         self.upgrades = min(MAX_UPGRADES, self.upgrades + 1)
-        self.message = f"Neighborhood change spreads. {self.building_names[self.current_building]} is next."
+        self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
+        self.message = f"{self.building_names[self.current_building]} is next. The block looks a little brighter."
+        self.hint = "Fresh starts open up as you finish one building and move to the next."
         self.screen = "complete"
 
     def fail_round(self) -> None:
@@ -105,16 +121,19 @@ class GameView(arcade.View):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= trash.radius ** 2:
                 self.trash_spots.remove(trash)
                 self.cleaned += 1
-                self.money += 4
+                self.money += TRASH_SCORE + self.upgrades
                 self.message = random.choice(
                     [
                         "A friend nods. The hallway feels less empty.",
                         "Trash cleared. The building breathes a little easier.",
                         "Someone notices the work and starts to smile.",
+                        "You clear a path. The entrance feels safer.",
                     ]
                 )
                 if self.money % 12 == 0 and self.friendship < 5:
                     self.friendship += 1
+                if self.cleaned % 2 == 0:
+                    self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
                 break
 
         if not self.trash_spots:
@@ -136,6 +155,7 @@ class GameView(arcade.View):
         arcade.draw_circle_filled(140, 535, 24, arcade.color.GOLD)
         arcade.draw_circle_filled(700, 525, 22, arcade.color.LIGHT_BLUE)
         arcade.draw_circle_filled(735, 545, 30, arcade.color.WHITE)
+        arcade.draw_line(0, 120, 800, 120, (70, 80, 70), 2)
 
     def draw_building(self, left: float, right: float, base_y: float, height: float, roof_color, wall_color) -> None:
         top = base_y + height
@@ -148,9 +168,21 @@ class GameView(arcade.View):
     def draw_scene(self) -> None:
         self.draw_background()
 
-        self.draw_building(90, 320, 120, 220, arcade.color.SIENNA, arcade.color.DIM_GRAY)
-        self.draw_building(350, 590, 115, 235, arcade.color.MAROON, arcade.color.SLATE_GRAY)
-        self.draw_building(620, 770, 95, 195, arcade.color.OLIVE, arcade.color.GRAY)
+        building_colors = [
+            (arcade.color.SIENNA, arcade.color.DIM_GRAY),
+            (arcade.color.MAROON, arcade.color.SLATE_GRAY),
+            (arcade.color.OLIVE, arcade.color.GRAY),
+        ]
+        building_heights = [220, 235, 195]
+        building_positions = [(90, 320, 120), (350, 590, 115), (620, 770, 95)]
+
+        for index, (left, right, base_y) in enumerate(building_positions):
+            roof_color, wall_color = building_colors[index]
+            height = building_heights[index]
+            if index < self.neighborhood_state:
+                wall_color = arcade.color.DARK_SEA_GREEN
+                roof_color = arcade.color.FOREST_GREEN
+            self.draw_building(left, right, base_y, height, roof_color, wall_color)
 
         arcade.draw_lrbt_rectangle_filled(40, 760, 80, 105, (40, 42, 48))
         arcade.draw_line(0, 105, 800, 105, arcade.color.BLACK, 3)
@@ -159,17 +191,19 @@ class GameView(arcade.View):
             arcade.draw_rect_filled(205 + i * 70, 205, 28, 42, arcade.color.LIGHT_STEEL_BLUE)
             arcade.draw_rect_filled(520 + i * 60, 200, 28, 42, arcade.color.LIGHT_STEEL_BLUE)
         arcade.draw_rect_filled(700, 170, 32, 48, arcade.color.LIGHT_STEEL_BLUE)
+        arcade.draw_text("bus stop", 675, 138, arcade.color.WHITE, 10)
 
         for trash in self.trash_spots:
             arcade.draw_circle_filled(trash.x, trash.y, trash.radius, arcade.color.BROWN_NOSE)
             arcade.draw_circle_outline(trash.x, trash.y, trash.radius, arcade.color.BLACK, 2)
-            arcade.draw_text("trash", trash.x - 18, trash.y - 7, arcade.color.WHITE, 9)
+            arcade.draw_text(trash.highlight, trash.x - 18, trash.y - 7, arcade.color.WHITE, 9)
 
         for friend in self.friends:
             arcade.draw_circle_filled(friend.x, friend.y, 16, arcade.color.LIGHT_GREEN)
             arcade.draw_circle_outline(friend.x, friend.y, 16, arcade.color.BLACK, 2)
             arcade.draw_text(friend.name, friend.x - 20, friend.y + 22, arcade.color.WHITE, 10)
             arcade.draw_text(friend.mood, friend.x - 26, friend.y - 34, arcade.color.LIGHT_GRAY, 8)
+            arcade.draw_text(friend.line, friend.x - 70, friend.y + 38, arcade.color.WHITE, 8, width=140, multiline=True)
 
     def draw_hud(self) -> None:
         arcade.draw_lrbt_rectangle_filled(10, 790, 510, 590, (18, 22, 31))
@@ -182,7 +216,18 @@ class GameView(arcade.View):
         arcade.draw_text(f"Friendship: {self.friendship}", 260, 476, arcade.color.WHITE, 14)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 420, 500, arcade.color.WHITE, 14)
         arcade.draw_text(f"Time left: {self.time_left:0.1f}s", 640, 500, arcade.color.WHITE, 14)
+        arcade.draw_text(f"Neighborhood level: {self.neighborhood_state + 1}/{BUILDING_STAGES}", 640, 476, arcade.color.WHITE, 12)
         arcade.draw_text(self.message, 22, 450, arcade.color.AMAZON, 15)
+        arcade.draw_text(self.hint, 22, 424, arcade.color.LIGHT_GRAY, 11, width=720, multiline=True)
+
+        bar_left = 22
+        bar_right = 722
+        bar_bottom = 395
+        bar_top = 410
+        arcade.draw_lrbt_rectangle_filled(bar_left, bar_right, bar_bottom, bar_top, arcade.color.DARK_SLATE_GRAY)
+        filled = bar_left + (bar_right - bar_left) * max(0, self.time_left) / QUEST_TIME
+        arcade.draw_lrbt_rectangle_filled(bar_left, filled, bar_bottom, bar_top, arcade.color.GOLD)
+        arcade.draw_lrbt_rectangle_outline(bar_left, bar_right, bar_bottom, bar_top, arcade.color.WHITE)
 
         if self.screen == "title":
             arcade.draw_text(
@@ -220,6 +265,14 @@ class GameView(arcade.View):
                 16,
                 anchor_x="center",
             )
+            arcade.draw_text(
+                "Clearing more trash unlocks more trust and brighter buildings.",
+                400,
+                48,
+                arcade.color.LIGHT_GRAY,
+                11,
+                anchor_x="center",
+            )
 
     def on_draw(self) -> None:
         self.clear()
@@ -241,6 +294,14 @@ class GameView(arcade.View):
                 320,
                 arcade.color.LIGHT_GRAY,
                 14,
+                anchor_x="center",
+            )
+            arcade.draw_text(
+                "You are not just cleaning. You are making room for people to belong.",
+                400,
+                290,
+                arcade.color.LIGHT_GRAY,
+                12,
                 anchor_x="center",
             )
             arcade.draw_text("Press SPACE to start", 400, 250, arcade.color.GOLD, 18, anchor_x="center")
