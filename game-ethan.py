@@ -113,10 +113,15 @@ class GameView(arcade.View):
         if key != arcade.key.SPACE:
             return
 
-        if self.screen in {"title", "complete", "failed"}:
-            self.reset_round()
-        elif self.screen == "playing" and not self.round_started:
-            self.reset_round()
+        try:
+            if self.screen in {"title", "complete", "failed"}:
+                self.reset_round()
+            elif self.screen == "playing" and not self.round_started:
+                self.reset_round()
+        except Exception as exc:
+            self.screen = "failed"
+            self.message = f"Start error: {exc!r}"
+            raise
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
         if self.screen != "playing" or button != arcade.MOUSE_BUTTON_LEFT:
