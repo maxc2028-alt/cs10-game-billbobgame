@@ -94,17 +94,24 @@ class GameView(arcade.View):
 
     def draw_building(self) -> None:
         arcade.draw_lrtb_rectangle_filled(140, 660, 470, 190, arcade.color.DIM_GRAY)
-        arcade.draw_lrtb_rectangle_outline(140, 660, 470, 190, arcade.color.BLACK, 3)
         arcade.draw_lrtb_rectangle_filled(340, 470, 470, 270, arcade.color.GRAY)
         arcade.draw_lrtb_rectangle_filled(385, 425, 360, 190, arcade.color.DARK_BROWN)
         arcade.draw_lrtb_rectangle_filled(190, 250, 320, 260, arcade.color.LIGHT_GRAY)
         arcade.draw_lrtb_rectangle_filled(550, 610, 320, 260, arcade.color.LIGHT_GRAY)
         arcade.draw_circle_filled(95, 110, 26, arcade.color.GOLD)
+        arcade.draw_line(140, 190, 660, 190, arcade.color.BLACK, 3)
+        arcade.draw_line(660, 190, 660, 470, arcade.color.BLACK, 3)
+        arcade.draw_line(660, 470, 140, 470, arcade.color.BLACK, 3)
+        arcade.draw_line(140, 470, 140, 190, arcade.color.BLACK, 3)
         arcade.draw_text("Neighborhood Cleanup", 18, 560, arcade.color.WHITE, 20)
 
     def draw_hud(self) -> None:
         arcade.draw_lrtb_rectangle_filled(12, 788, 582, 515, (20, 24, 34))
-        arcade.draw_rectangle_outline(400, 548, 776, 52, arcade.color.WHITE, 2)
+        arcade.draw_rectangle_filled(400, 548, 776, 52, (20, 24, 34, 0))
+        arcade.draw_line(12, 515, 788, 515, arcade.color.WHITE, 2)
+        arcade.draw_line(788, 515, 788, 582, arcade.color.WHITE, 2)
+        arcade.draw_line(788, 582, 12, 582, arcade.color.WHITE, 2)
+        arcade.draw_line(12, 582, 12, 515, arcade.color.WHITE, 2)
 
         progress = f"Trash cleaned: {self.cleaned}/{TRASH_COUNT}"
         status = f"Money: ${self.money}   Friendship: {self.friendship}"
