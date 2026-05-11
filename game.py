@@ -19,9 +19,7 @@ TRASH_COUNT = 8
 
 class Trash(arcade.SpriteSolidColor):
     def __init__(self, x: float, y: float) -> None:
-        super().__init__(36, 36, arcade.color.BROWN_NOSE)
-        self.center_x = x
-        self.center_y = y
+        super().__init__(36, 36, center_x=x, center_y=y, color=arcade.color.BROWN_NOSE)
 
 
 class GameView(arcade.View):
