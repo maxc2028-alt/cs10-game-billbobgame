@@ -17,10 +17,6 @@ SCREEN_TITLE = "Neighborhood Cleanup"
 QUEST_TIME = 12.0
 TRASH_COUNT = 8
 
-class Trash(arcade.SpriteSolidColor):
-    def __init__(self, x: float, y: float) -> None:
-        super().__init__(36, 36, center_x=x, center_y=y, color=arcade.color.BROWN_NOSE)
-
 
 class GameView(arcade.View):
     def __init__(self, window: arcade.Window | None = None) -> None:
@@ -32,7 +28,7 @@ class GameView(arcade.View):
         self.friendship = 0
         self.cleaned = 0
         self.message = "Press SPACE to start the cleanup quest."
-        self.trash_list: list[Trash] = []
+        self.trash_list: list[tuple[float, float]] = []
 
     def on_show_view(self) -> None:
         arcade.set_background_color(self.background_color)
@@ -49,8 +45,7 @@ class GameView(arcade.View):
             x, y = random.choice(safe_zones)
             x += random.randint(-35, 35)
             y += random.randint(-35, 35)
-            trash = Trash(x, y)
-            self.trash_list.append(trash)
+            self.trash_list.append((x, y))
 
     def finish_quest(self, success: bool) -> None:
         self.state = "finished"
@@ -69,10 +64,9 @@ class GameView(arcade.View):
         if self.state != "playing" or button != arcade.MOUSE_BUTTON_LEFT:
             return
 
-        for trash in list(self.trash_list):
-            if trash.collides_with_point((x, y)):
-                trash.remove_from_sprite_lists()
-                self.trash_list.remove(trash)
+        for trash_x, trash_y in list(self.trash_list):
+            if (x - trash_x) ** 2 + (y - trash_y) ** 2 <= 18 ** 2:
+                self.trash_list.remove((trash_x, trash_y))
                 self.cleaned += 1
                 self.money += 3
                 self.message = "Trash cleaned. The building gets a little better."
@@ -142,9 +136,10 @@ class GameView(arcade.View):
         self.clear()
         self.draw_building()
 
-        for trash in self.trash_list:
-            trash.draw()
-            arcade.draw_text("trash", trash.center_x - 18, trash.center_y - 8, arcade.color.WHITE, 9)
+        for trash_x, trash_y in self.trash_list:
+            arcade.draw_circle_filled(trash_x, trash_y, 18, arcade.color.BROWN_NOSE)
+            arcade.draw_circle_outline(trash_x, trash_y, 18, arcade.color.BLACK, 2)
+            arcade.draw_text("trash", trash_x - 18, trash_y - 8, arcade.color.WHITE, 9)
 
         self.draw_hud()
 
