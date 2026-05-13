@@ -312,6 +312,46 @@ class GameView(arcade.View):
             arcade.draw_text(friend.name, friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
             arcade.draw_text(friend.mood, friend.x, friend.y - 34, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
 
+    def draw_house_interior(self) -> None:
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (34, 30, 40))
+        arcade.draw_lrbt_rectangle_filled(90, 710, 120, 470, (84, 75, 88))
+        arcade.draw_lrbt_rectangle_outline(90, 710, 120, 470, arcade.color.BLACK, 3)
+        arcade.draw_lrbt_rectangle_filled(90, 710, 80, 120, (96, 76, 55))
+        arcade.draw_line(90, 120, 710, 120, arcade.color.BLACK, 3)
+
+        arcade.draw_lrbt_rectangle_filled(165, 245, 315, 405, arcade.color.DARK_SLATE_BLUE)
+        arcade.draw_lrbt_rectangle_outline(165, 245, 315, 405, arcade.color.BLACK, 2)
+        arcade.draw_line(205, 315, 205, 405, arcade.color.BLACK, 2)
+        arcade.draw_line(165, 360, 245, 360, arcade.color.BLACK, 2)
+
+        arcade.draw_lrbt_rectangle_filled(540, 620, 315, 405, arcade.color.DARK_SLATE_BLUE)
+        arcade.draw_lrbt_rectangle_outline(540, 620, 315, 405, arcade.color.BLACK, 2)
+        arcade.draw_line(580, 315, 580, 405, arcade.color.BLACK, 2)
+        arcade.draw_line(540, 360, 620, 360, arcade.color.BLACK, 2)
+
+        arcade.draw_lrbt_rectangle_filled(360, 440, 120, 260, (83, 58, 42))
+        arcade.draw_lrbt_rectangle_outline(360, 440, 120, 260, arcade.color.BLACK, 2)
+        arcade.draw_circle_filled(425, 195, 4, arcade.color.GOLD)
+
+        arcade.draw_text(
+            f"Inside {self.building_names[self.current_building]}",
+            400,
+            485,
+            arcade.color.WHITE,
+            22,
+            anchor_x="center",
+        )
+
+        for spot in self.repair_spots:
+            if spot.fixed:
+                arcade.draw_circle_filled(spot.x, spot.y, 16, arcade.color.DARK_SEA_GREEN)
+                arcade.draw_text("fixed", spot.x, spot.y - 5, arcade.color.WHITE, 8, anchor_x="center")
+                continue
+
+            arcade.draw_circle_filled(spot.x, spot.y, spot.radius, spot.color)
+            arcade.draw_circle_outline(spot.x, spot.y, spot.radius, arcade.color.WHITE, 3)
+            arcade.draw_text(spot.label, spot.x, spot.y - 5, arcade.color.BLACK, 8, anchor_x="center")
+
     def draw_hud(self) -> None:
         arcade.draw_lrbt_rectangle_filled(10, 790, 388, 590, (18, 22, 31))
         arcade.draw_lrbt_rectangle_outline(10, 790, 388, 590, arcade.color.WHITE)
@@ -427,7 +467,10 @@ class GameView(arcade.View):
         if self.screen == "playing" and not self.round_started:
             self.reset_round()
 
-        self.draw_scene()
+        if self.screen == "repair":
+            self.draw_house_interior()
+        else:
+            self.draw_scene()
         self.draw_hud()
 
 
