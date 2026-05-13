@@ -154,21 +154,20 @@ class GameView(arcade.View):
         self.hint = "Fix the wall, floor, windows, and door to finish this house."
 
     def next_building(self) -> None:
+        finished_building = self.building_names[self.current_building]
         self.current_building = (self.current_building + 1) % len(self.building_names)
         self.buildings_cleaned += 1
         self.money += 15 + self.upgrades * 3
         self.friendship += 1
         self.upgrades = min(MAX_UPGRADES, self.upgrades + 1)
         self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
-        self.message = f"{self.building_names[self.current_building]} is next. The block looks a little brighter."
+        self.message = f"{finished_building} is repaired. {self.building_names[self.current_building]} is next."
         self.hint = "Fresh starts open up as you finish one building and move to the next."
         self.screen = "complete"
 
     def finish_repair(self) -> None:
         self.money += 10 + self.upgrades * 2
         self.friendship += 1
-        self.message = f"{self.building_names[self.current_building]} is repaired and ready for people again."
-        self.hint = "Press SPACE to move to the next building."
         self.next_building()
 
     def fail_round(self) -> None:
