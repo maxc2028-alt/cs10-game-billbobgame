@@ -242,73 +242,78 @@ class GameView(arcade.View):
             arcade.draw_text(friend.mood, friend.x, friend.y - 34, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
 
     def draw_hud(self) -> None:
-        arcade.draw_lrbt_rectangle_filled(10, 790, 510, 590, (18, 22, 31))
-        arcade.draw_lrbt_rectangle_outline(10, 790, 510, 590, arcade.color.WHITE)
+        arcade.draw_lrbt_rectangle_filled(10, 790, 388, 590, (18, 22, 31))
+        arcade.draw_lrbt_rectangle_outline(10, 790, 388, 590, arcade.color.WHITE)
 
-        arcade.draw_text("Neighborhood Cleanup", 22, 555, arcade.color.WHITE, 22)
-        arcade.draw_text(f"Building: {self.building_names[self.current_building]}", 22, 529, arcade.color.LIGHT_GRAY, 13)
-        arcade.draw_text(f"Trash cleaned: {self.cleaned}", 22, 500, arcade.color.WHITE, 14)
-        arcade.draw_text(f"Money: ${self.money}", 260, 500, arcade.color.WHITE, 14)
-        arcade.draw_text(f"Friendship: {self.friendship}", 260, 476, arcade.color.WHITE, 14)
-        arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 420, 500, arcade.color.WHITE, 14)
-        arcade.draw_text(f"Time left: {self.time_left:0.1f}s", 640, 500, arcade.color.WHITE, 14)
-        arcade.draw_text(f"Neighborhood level: {self.neighborhood_state + 1}/{BUILDING_STAGES}", 640, 476, arcade.color.WHITE, 12)
-        arcade.draw_text(self.message, 22, 450, arcade.color.AMAZON, 15)
-        arcade.draw_text(self.hint, 22, 424, arcade.color.LIGHT_GRAY, 11, width=720, multiline=True)
+        arcade.draw_text("Neighborhood Cleanup", 22, 562, arcade.color.WHITE, 22)
+        arcade.draw_text(f"Building: {self.building_names[self.current_building]}", 22, 536, arcade.color.LIGHT_GRAY, 13)
+        arcade.draw_text(f"Trash: {self.cleaned}", 22, 510, arcade.color.WHITE, 13)
+        arcade.draw_text(f"Money: ${self.money}", 150, 510, arcade.color.WHITE, 13)
+        arcade.draw_text(f"Friendship: {self.friendship}", 280, 510, arcade.color.WHITE, 13)
+        arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 430, 510, arcade.color.WHITE, 13)
+        arcade.draw_text(f"Time: {self.time_left:0.1f}s", 640, 510, arcade.color.WHITE, 13)
+        arcade.draw_text(f"Neighborhood level: {self.neighborhood_state + 1}/{BUILDING_STAGES}", 22, 490, arcade.color.LIGHT_GRAY, 12)
 
         bar_left = 22
-        bar_right = 722
-        bar_bottom = 395
-        bar_top = 410
+        bar_right = 778
+        bar_bottom = 462
+        bar_top = 476
         arcade.draw_lrbt_rectangle_filled(bar_left, bar_right, bar_bottom, bar_top, arcade.color.DARK_SLATE_GRAY)
         filled = bar_left + (bar_right - bar_left) * max(0, self.time_left) / QUEST_TIME
         arcade.draw_lrbt_rectangle_filled(bar_left, filled, bar_bottom, bar_top, arcade.color.GOLD)
         arcade.draw_lrbt_rectangle_outline(bar_left, bar_right, bar_bottom, bar_top, arcade.color.WHITE)
 
+        arcade.draw_text(self.message, 22, 436, arcade.color.AMAZON, 14, width=745, multiline=True)
+        arcade.draw_text(self.hint, 22, 410, arcade.color.LIGHT_GRAY, 11, width=745, multiline=True)
+
+        arcade.draw_lrbt_rectangle_filled(140, 660, 34, 86, (18, 22, 31))
+        arcade.draw_lrbt_rectangle_outline(140, 660, 34, 86, arcade.color.WHITE)
+
         if self.screen == "title":
             arcade.draw_text(
                 "Press SPACE to begin the first cleanup round.",
                 400,
-                70,
+                63,
                 arcade.color.WHITE,
-                16,
+                14,
                 anchor_x="center",
             )
         elif self.screen == "complete":
             arcade.draw_text(
                 "Press SPACE to move to the next building.",
                 400,
-                70,
+                63,
                 arcade.color.WHITE,
-                16,
+                14,
                 anchor_x="center",
             )
         elif self.screen == "failed":
             arcade.draw_text(
                 "Press SPACE to try again with a fresh round.",
                 400,
-                70,
+                63,
                 arcade.color.WHITE,
-                16,
+                14,
                 anchor_x="center",
             )
         else:
             arcade.draw_text(
                 "Click each trash pile before the timer runs out.",
                 400,
-                70,
+                63,
                 arcade.color.WHITE,
-                16,
+                14,
                 anchor_x="center",
             )
             arcade.draw_text(
                 "Clearing more trash unlocks more trust and brighter buildings.",
                 400,
-                48,
+                44,
                 arcade.color.LIGHT_GRAY,
                 11,
                 anchor_x="center",
             )
+        arcade.draw_text("Press ESC to quit.", 400, 24, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
 
     def on_draw(self) -> None:
         self.clear()
@@ -342,8 +347,10 @@ class GameView(arcade.View):
                 12,
                 anchor_x="center",
             )
-            arcade.draw_text("Press SPACE to start", 400, 250, arcade.color.GOLD, 18, anchor_x="center")
-            self.draw_hud()
+            arcade.draw_lrbt_rectangle_filled(180, 620, 190, 250, (18, 22, 31))
+            arcade.draw_lrbt_rectangle_outline(180, 620, 190, 250, arcade.color.WHITE)
+            arcade.draw_text("Press SPACE to start", 400, 222, arcade.color.GOLD, 18, anchor_x="center")
+            arcade.draw_text("Press ESC to quit.", 400, 198, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
             return
 
         if self.screen == "playing" and not self.round_started:
