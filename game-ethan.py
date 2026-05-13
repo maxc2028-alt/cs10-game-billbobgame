@@ -272,6 +272,26 @@ class GameView(arcade.View):
         arcade.draw_triangle_filled(left - 8, top, right + 8, top, roof_mid, top + 60, roof_color)
         arcade.draw_triangle_outline(left - 8, top, right + 8, top, roof_mid, top + 60, arcade.color.BLACK)
 
+        window_width = min(32, max(22, (right - left) / 5))
+        window_height = min(42, max(30, height / 5))
+        window_bottom = base_y + min(82, height - window_height - 24)
+        window_top = window_bottom + window_height
+        window_count = 2 if right - left < 180 else 3
+        gap = (right - left) / (window_count + 1)
+
+        for i in range(window_count):
+            center_x = left + gap * (i + 1)
+            window_left = center_x - window_width / 2
+            window_right = center_x + window_width / 2
+            arcade.draw_lrbt_rectangle_filled(
+                window_left,
+                window_right,
+                window_bottom,
+                window_top,
+                arcade.color.LIGHT_STEEL_BLUE,
+            )
+            arcade.draw_lrbt_rectangle_outline(window_left, window_right, window_bottom, window_top, arcade.color.BLACK)
+
     def draw_scene(self) -> None:
         self.draw_background()
 
@@ -294,10 +314,6 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(40, 760, 80, 105, (40, 42, 48))
         arcade.draw_line(0, 105, 800, 105, arcade.color.BLACK, 3)
 
-        for i in range(3):
-            arcade.draw_lbwh_rectangle_filled(205 + i * 70 - 14, 205 - 21, 28, 42, arcade.color.LIGHT_STEEL_BLUE)
-            arcade.draw_lbwh_rectangle_filled(520 + i * 60 - 14, 200 - 21, 28, 42, arcade.color.LIGHT_STEEL_BLUE)
-        arcade.draw_lbwh_rectangle_filled(700 - 16, 170 - 24, 32, 48, arcade.color.LIGHT_STEEL_BLUE)
         arcade.draw_text("bus stop", 675, 138, arcade.color.WHITE, 10)
 
         for trash in self.trash_spots:
