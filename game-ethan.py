@@ -47,6 +47,7 @@ class FriendNPC:
 class GameView(arcade.View):
     def __init__(self, window: arcade.Window | None = None) -> None:
         super().__init__(window=window)
+        self.camera: arcade.Camera2D | None = None
         self.background_color = arcade.csscolor.DARK_SLATE_BLUE
         self.screen = "title"
         self.time_left = QUEST_TIME
@@ -63,9 +64,25 @@ class GameView(arcade.View):
         self.current_building = 0
         self.neighborhood_state = 0
         self.round_started = False
+        self.configure_camera()
 
     def on_show_view(self) -> None:
         arcade.set_background_color(self.background_color)
+        self.configure_camera()
+
+    def configure_camera(self) -> None:
+        if self.window is None:
+            return
+
+        self.camera = arcade.Camera2D(
+            viewport=arcade.LBWH(0, 0, self.window.width, self.window.height),
+            projection=arcade.LBWH(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT),
+            position=(0, 0),
+            window=self.window,
+        )
+
+    def on_resize(self, width: int, height: int) -> None:
+        self.configure_camera()
 
     def reset_round(self) -> None:
         self.time_left = QUEST_TIME
@@ -110,6 +127,11 @@ class GameView(arcade.View):
         self.round_started = False
 
     def on_key_press(self, key: int, modifiers: int) -> None:
+        if key == arcade.key.ESCAPE:
+            if self.window is not None:
+                self.window.close()
+            return
+
         if key != arcade.key.SPACE:
             return
 
@@ -126,6 +148,11 @@ class GameView(arcade.View):
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
         if self.screen != "playing" or button != arcade.MOUSE_BUTTON_LEFT:
             return
+
+        if self.camera is not None:
+            world_position = self.camera.unproject((x, y))
+            x = world_position.x
+            y = world_position.y
 
         for trash in list(self.trash_spots):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= trash.radius ** 2:
@@ -286,6 +313,8 @@ class GameView(arcade.View):
 
     def on_draw(self) -> None:
         self.clear()
+        if self.camera is not None:
+            self.camera.use()
 
         if self.screen == "title":
             self.draw_background()
