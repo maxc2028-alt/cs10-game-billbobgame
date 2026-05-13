@@ -20,6 +20,7 @@ TRASH_SCORE = 4
 BUILDING_STAGES = 3
 BALL_SPEED = 220
 BALL_RADIUS = 16
+COLLECT_DISTANCE = 70
 
 
 class TrashSpot:
@@ -105,7 +106,7 @@ class GameView(arcade.View):
         self.cleaned = 0
         self.repair_spots = []
         self.message = "Click trash piles to clean the building."
-        self.hint = "After the outside is clean, you will go inside and repair the house."
+        self.hint = "Move the ball close to trash with WASD or arrows, then click to pick it up."
         self.trash_spots = []
         self.friends = []
 
@@ -251,6 +252,11 @@ class GameView(arcade.View):
 
         for trash in list(self.trash_spots):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= trash.radius ** 2:
+                if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
+                    self.message = "Move the ball closer to pick that up."
+                    self.hint = "Use WASD or arrow keys to get near the trash, then click it."
+                    return
+
                 self.trash_spots.remove(trash)
                 self.cleaned += 1
                 self.money += TRASH_SCORE + self.upgrades
@@ -272,6 +278,8 @@ class GameView(arcade.View):
             self.enter_house()
 
     def draw_ball(self) -> None:
+        if self.screen == "playing":
+            arcade.draw_circle_outline(self.ball_x, self.ball_y, COLLECT_DISTANCE, arcade.color.LIGHT_GRAY, 1)
         arcade.draw_circle_filled(self.ball_x + 4, self.ball_y - 5, BALL_RADIUS, (15, 18, 25, 120))
         arcade.draw_circle_filled(self.ball_x, self.ball_y, BALL_RADIUS, arcade.color.GOLD)
         arcade.draw_circle_outline(self.ball_x, self.ball_y, BALL_RADIUS, arcade.color.BLACK, 2)
@@ -515,7 +523,7 @@ class GameView(arcade.View):
             )
         else:
             arcade.draw_text(
-                "Move with WASD or arrows. Click each trash pile before time runs out.",
+                "Move close to trash with WASD or arrows, then click it.",
                 400,
                 63,
                 arcade.color.WHITE,
