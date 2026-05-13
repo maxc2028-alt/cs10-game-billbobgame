@@ -217,6 +217,44 @@ class GameView(arcade.View):
         self.message = "The timer ran out. The block stays quiet for now."
         self.round_started = False
 
+    def start_friend_quiz(self, friend: FriendNPC) -> None:
+        self.quiz_friend = friend
+        self.quiz_question = QUIZ_OPTIONS[(self.cleaned + self.friendship) % len(QUIZ_OPTIONS)]
+        self.screen = "quiz"
+        self.message = f"{friend.name} asks a question before becoming your friend."
+        self.hint = "Click the answer you think is best."
+
+    def answer_quiz(self, answer_index: int) -> None:
+        if self.quiz_friend is None:
+            return
+
+        if answer_index == self.quiz_question["correct"]:
+            self.friend_hints -= 1
+            self.friendship += 1
+            self.befriended_friends.add(self.quiz_friend.name)
+            self.message = f"Correct. {self.quiz_friend.name} became your friend."
+            self.hint = self.quiz_question["fact"]
+            self.quiz_friend = None
+            self.screen = "playing"
+            return
+
+        self.start_dark_game_over()
+
+    def start_dark_game_over(self) -> None:
+        self.screen = "dark"
+        self.game_over_ready = False
+        self.keys_down.clear()
+        self.ball_x = 90.0
+        self.ball_y = 300.0
+        self.message = "Wrong answer. Find the white entrance before the light fades."
+        self.hint = self.quiz_question["fact"]
+
+    def reached_entrance(self) -> bool:
+        return (
+            ENTRANCE_X - ENTRANCE_WIDTH / 2 <= self.ball_x <= ENTRANCE_X + ENTRANCE_WIDTH / 2
+            and ENTRANCE_Y - ENTRANCE_HEIGHT / 2 <= self.ball_y <= ENTRANCE_Y + ENTRANCE_HEIGHT / 2
+        )
+
     def try_befriend(self, x: float | None = None, y: float | None = None) -> bool:
         if self.screen != "playing":
             return False
@@ -238,11 +276,7 @@ class GameView(arcade.View):
                     self.hint = "Pick up trash to earn friend hints, then come back."
                     return True
 
-                self.friend_hints -= 1
-                self.friendship += 1
-                self.befriended_friends.add(friend.name)
-                self.message = f"{friend.name} became your friend."
-                self.hint = "Friendship grows when you use cleanup hints to connect with people."
+                self.start_friend_quiz(friend)
                 return True
 
         if x is None and y is None:
@@ -303,6 +337,15 @@ class GameView(arcade.View):
             world_position = self.camera.unproject((x, y))
             x = world_position.x
             y = world_position.y
+
+        if self.screen == "quiz":
+            for index in range(3):
+                top = 300 - index * 62
+                bottom = top - 46
+                if 130 <= x <= 670 and bottom <= y <= top:
+                    self.answer_quiz(index)
+                    return
+            return
 
         if self.screen == "repair":
             for spot in self.repair_spots:
