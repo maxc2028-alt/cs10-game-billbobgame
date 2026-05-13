@@ -313,6 +313,10 @@ class GameView(arcade.View):
             self.try_befriend()
             return
 
+        if self.screen == "quiz" and key in (arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3):
+            self.answer_quiz({arcade.key.KEY_1: 0, arcade.key.KEY_2: 1, arcade.key.KEY_3: 2}[key])
+            return
+
         if key != arcade.key.SPACE:
             return
 
@@ -565,6 +569,52 @@ class GameView(arcade.View):
 
         self.draw_ball()
 
+    def draw_quiz(self) -> None:
+        self.draw_background()
+        arcade.draw_lrbt_rectangle_filled(90, 710, 130, 500, (18, 22, 31))
+        arcade.draw_lrbt_rectangle_outline(90, 710, 130, 500, arcade.color.WHITE, 3)
+        arcade.draw_text("Community Question", 400, 460, arcade.color.GOLD, 24, anchor_x="center")
+        arcade.draw_text(
+            self.quiz_question["question"],
+            130,
+            405,
+            arcade.color.WHITE,
+            16,
+            width=540,
+            multiline=True,
+        )
+
+        for index, answer in enumerate(self.quiz_question["answers"]):
+            top = 300 - index * 62
+            bottom = top - 46
+            arcade.draw_lrbt_rectangle_filled(130, 670, bottom, top, (44, 58, 72))
+            arcade.draw_lrbt_rectangle_outline(130, 670, bottom, top, arcade.color.LIGHT_GRAY, 2)
+            arcade.draw_text(f"{index + 1}. {answer}", 150, bottom + 15, arcade.color.WHITE, 13, width=500)
+
+        arcade.draw_text("Pick carefully. A wrong answer changes the game.", 400, 152, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+
+    def draw_dark_challenge(self) -> None:
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, arcade.color.BLACK)
+        arcade.draw_circle_filled(self.ball_x, self.ball_y, 105, (255, 218, 74, 70))
+        arcade.draw_circle_filled(self.ball_x, self.ball_y, 58, (255, 226, 91, 115))
+        arcade.draw_lrbt_rectangle_filled(
+            ENTRANCE_X - ENTRANCE_WIDTH / 2,
+            ENTRANCE_X + ENTRANCE_WIDTH / 2,
+            ENTRANCE_Y - ENTRANCE_HEIGHT / 2,
+            ENTRANCE_Y + ENTRANCE_HEIGHT / 2,
+            arcade.color.WHITE,
+        )
+        arcade.draw_text("ENTRANCE", ENTRANCE_X, ENTRANCE_Y - 75, arcade.color.WHITE, 12, anchor_x="center")
+        self.draw_ball()
+        arcade.draw_text("Find the white entrance.", 400, 548, arcade.color.WHITE, 22, anchor_x="center")
+        arcade.draw_text("Wrong answers can make loneliness feel darker.", 400, 520, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+
+    def draw_game_over(self) -> None:
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, arcade.color.BLACK)
+        arcade.draw_text("GAME OVER", 400, 330, arcade.color.GOLD, 64, anchor_x="center")
+        arcade.draw_text("Press ESC to quit.", 400, 265, arcade.color.WHITE, 16, anchor_x="center")
+        arcade.draw_text(self.quiz_question["fact"], 170, 215, arcade.color.LIGHT_GRAY, 13, width=460, multiline=True)
+
     def draw_hud(self) -> None:
         arcade.draw_lrbt_rectangle_filled(10, 790, 388, 590, (18, 22, 31))
         arcade.draw_lrbt_rectangle_outline(10, 790, 388, 590, arcade.color.WHITE)
@@ -698,6 +748,18 @@ class GameView(arcade.View):
             arcade.draw_lrbt_rectangle_outline(180, 620, 190, 250, arcade.color.WHITE)
             arcade.draw_text("Press SPACE to start", 400, 222, arcade.color.GOLD, 18, anchor_x="center")
             arcade.draw_text("Press ESC to quit.", 400, 198, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+            return
+
+        if self.screen == "quiz":
+            self.draw_quiz()
+            return
+
+        if self.screen == "dark":
+            self.draw_dark_challenge()
+            return
+
+        if self.screen == "game_over":
+            self.draw_game_over()
             return
 
         if self.screen == "playing" and not self.round_started:
