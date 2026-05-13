@@ -200,13 +200,30 @@ class GameView(arcade.View):
             raise
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
-        if self.screen != "playing" or button != arcade.MOUSE_BUTTON_LEFT:
+        if button != arcade.MOUSE_BUTTON_LEFT:
             return
 
         if self.camera is not None:
             world_position = self.camera.unproject((x, y))
             x = world_position.x
             y = world_position.y
+
+        if self.screen == "repair":
+            for spot in self.repair_spots:
+                if spot.fixed:
+                    continue
+                if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= spot.radius ** 2:
+                    spot.fixed = True
+                    self.money += 3 + self.upgrades
+                    self.message = f"Fixed: {spot.label}."
+                    self.hint = "Keep repairing the marked spots until the house is ready."
+                    if all(repair.fixed for repair in self.repair_spots):
+                        self.finish_repair()
+                    return
+            return
+
+        if self.screen != "playing":
+            return
 
         for trash in list(self.trash_spots):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= trash.radius ** 2:
@@ -228,7 +245,7 @@ class GameView(arcade.View):
                 break
 
         if not self.trash_spots:
-            self.next_building()
+            self.enter_house()
 
     def on_update(self, delta_time: float) -> None:
         if self.screen != "playing":
