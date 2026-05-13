@@ -251,9 +251,9 @@ class GameView(arcade.View):
 
         for trash in list(self.trash_spots):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= trash.radius ** 2:
-                self.trash_spots.remove(trash)
-                self.cleaned += 1
-                self.money += TRASH_SCORE + self.upgrades
+            self.trash_spots.remove(trash)
+            self.cleaned += 1
+            self.money += TRASH_SCORE + self.upgrades
                 self.message = random.choice(
                     [
                         "A friend nods. The hallway feels less empty.",
@@ -271,7 +271,47 @@ class GameView(arcade.View):
         if not self.trash_spots:
             self.enter_house()
 
+    def draw_ball(self) -> None:
+        arcade.draw_circle_filled(self.ball_x + 4, self.ball_y - 5, BALL_RADIUS, (15, 18, 25, 120))
+        arcade.draw_circle_filled(self.ball_x, self.ball_y, BALL_RADIUS, arcade.color.GOLD)
+        arcade.draw_circle_outline(self.ball_x, self.ball_y, BALL_RADIUS, arcade.color.BLACK, 2)
+        arcade.draw_circle_filled(self.ball_x - 5, self.ball_y + 5, 5, arcade.color.WHITE)
+
+    def update_ball(self, delta_time: float) -> None:
+        if self.screen not in {"playing", "repair"}:
+            return
+
+        move_x = 0
+        move_y = 0
+        if arcade.key.A in self.keys_down or arcade.key.LEFT in self.keys_down:
+            move_x -= 1
+        if arcade.key.D in self.keys_down or arcade.key.RIGHT in self.keys_down:
+            move_x += 1
+        if arcade.key.W in self.keys_down or arcade.key.UP in self.keys_down:
+            move_y += 1
+        if arcade.key.S in self.keys_down or arcade.key.DOWN in self.keys_down:
+            move_y -= 1
+
+        if move_x and move_y:
+            move_x *= 0.707
+            move_y *= 0.707
+
+        self.ball_x += move_x * BALL_SPEED * delta_time
+        self.ball_y += move_y * BALL_SPEED * delta_time
+
+        if self.screen == "repair":
+            min_x, max_x = 90 + BALL_RADIUS, 710 - BALL_RADIUS
+            min_y, max_y = 80 + BALL_RADIUS, 470 - BALL_RADIUS
+        else:
+            min_x, max_x = BALL_RADIUS, SCREEN_WIDTH - BALL_RADIUS
+            min_y, max_y = 95 + BALL_RADIUS, 385 - BALL_RADIUS
+
+        self.ball_x = max(min_x, min(max_x, self.ball_x))
+        self.ball_y = max(min_y, min(max_y, self.ball_y))
+
     def on_update(self, delta_time: float) -> None:
+        self.update_ball(delta_time)
+
         if self.screen != "playing":
             return
 
