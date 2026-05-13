@@ -216,6 +216,11 @@ class GameView(arcade.View):
                 self.hint = "Friendship grows when you use cleanup hints to connect with people."
                 return True
 
+        if x is None and y is None:
+            self.message = "Move close to a blue ball before pressing F."
+            self.hint = "Pick up trash for hints, then use those hints near other balls."
+            return True
+
         return False
 
     def on_key_press(self, key: int, modifiers: int) -> None:
@@ -428,10 +433,12 @@ class GameView(arcade.View):
             arcade.draw_text(trash.highlight, trash.x, trash.y - 5, arcade.color.WHITE, 8, anchor_x="center")
 
         for friend in self.friends:
-            arcade.draw_circle_filled(friend.x, friend.y, 16, arcade.color.LIGHT_GREEN)
+            friend_color = arcade.color.LIGHT_GREEN if friend.name in self.befriended_friends else arcade.color.LIGHT_BLUE
+            arcade.draw_circle_filled(friend.x, friend.y, 16, friend_color)
             arcade.draw_circle_outline(friend.x, friend.y, 16, arcade.color.BLACK, 2)
             arcade.draw_text(friend.name, friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
-            arcade.draw_text(friend.mood, friend.x, friend.y - 34, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
+            label = "friend" if friend.name in self.befriended_friends else "press F"
+            arcade.draw_text(label, friend.x, friend.y - 34, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
 
         self.draw_ball()
 
@@ -485,8 +492,9 @@ class GameView(arcade.View):
         arcade.draw_text(f"Building: {self.building_names[self.current_building]}", 22, 536, arcade.color.LIGHT_GRAY, 13)
         arcade.draw_text(f"Trash: {self.cleaned}", 22, 510, arcade.color.WHITE, 13)
         arcade.draw_text(f"Money: ${self.money}", 150, 510, arcade.color.WHITE, 13)
-        arcade.draw_text(f"Friendship: {self.friendship}", 280, 510, arcade.color.WHITE, 13)
-        arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 430, 510, arcade.color.WHITE, 13)
+        arcade.draw_text(f"Friendship: {self.friendship}", 275, 510, arcade.color.WHITE, 13)
+        arcade.draw_text(f"Hints: {self.friend_hints}", 430, 510, arcade.color.WHITE, 13)
+        arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 540, 510, arcade.color.WHITE, 13)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 640, 510, arcade.color.WHITE, 13)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
@@ -556,7 +564,7 @@ class GameView(arcade.View):
             )
         else:
             arcade.draw_text(
-                "Move close to trash with WASD or arrows, then click it.",
+                "Move close to trash and click it. Press F near blue balls to make friends.",
                 400,
                 63,
                 arcade.color.WHITE,
