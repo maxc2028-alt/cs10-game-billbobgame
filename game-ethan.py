@@ -396,7 +396,7 @@ class GameView(arcade.View):
         arcade.draw_circle_filled(self.ball_x - 5, self.ball_y + 5, 5, arcade.color.WHITE)
 
     def update_ball(self, delta_time: float) -> None:
-        if self.screen not in {"playing", "repair"}:
+        if self.screen not in {"playing", "repair", "dark"}:
             return
 
         move_x = 0
@@ -420,6 +420,9 @@ class GameView(arcade.View):
         if self.screen == "repair":
             min_x, max_x = 90 + BALL_RADIUS, 710 - BALL_RADIUS
             min_y, max_y = 80 + BALL_RADIUS, 470 - BALL_RADIUS
+        elif self.screen == "dark":
+            min_x, max_x = BALL_RADIUS, SCREEN_WIDTH - BALL_RADIUS
+            min_y, max_y = BALL_RADIUS, SCREEN_HEIGHT - BALL_RADIUS
         else:
             min_x, max_x = BALL_RADIUS, SCREEN_WIDTH - BALL_RADIUS
             min_y, max_y = 95 + BALL_RADIUS, 385 - BALL_RADIUS
@@ -429,6 +432,12 @@ class GameView(arcade.View):
 
     def on_update(self, delta_time: float) -> None:
         self.update_ball(delta_time)
+
+        if self.screen == "dark" and self.reached_entrance():
+            self.screen = "game_over"
+            self.game_over_ready = True
+            self.keys_down.clear()
+            return
 
         if self.screen != "playing":
             return
