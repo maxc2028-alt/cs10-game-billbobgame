@@ -392,6 +392,8 @@ class GameView(arcade.View):
             arcade.draw_text(friend.name, friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
             arcade.draw_text(friend.mood, friend.x, friend.y - 34, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
 
+        self.draw_ball()
+
     def draw_house_interior(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (34, 30, 40))
         arcade.draw_lrbt_rectangle_filled(90, 710, 120, 470, (84, 75, 88))
@@ -431,6 +433,8 @@ class GameView(arcade.View):
             arcade.draw_circle_filled(spot.x, spot.y, spot.radius, spot.color)
             arcade.draw_circle_outline(spot.x, spot.y, spot.radius, arcade.color.WHITE, 3)
             arcade.draw_text(spot.label, spot.x, spot.y - 5, arcade.color.BLACK, 8, anchor_x="center")
+
+        self.draw_ball()
 
     def draw_hud(self) -> None:
         arcade.draw_lrbt_rectangle_filled(10, 790, 388, 590, (18, 22, 31))
@@ -494,7 +498,7 @@ class GameView(arcade.View):
             )
         elif self.screen == "repair":
             arcade.draw_text(
-                "Click the marked repair spots to fix this house.",
+                "Move with WASD or arrows. Click repair spots to fix this house.",
                 400,
                 63,
                 arcade.color.WHITE,
@@ -511,7 +515,7 @@ class GameView(arcade.View):
             )
         else:
             arcade.draw_text(
-                "Click each trash pile before the timer runs out.",
+                "Move with WASD or arrows. Click each trash pile before time runs out.",
                 400,
                 63,
                 arcade.color.WHITE,
