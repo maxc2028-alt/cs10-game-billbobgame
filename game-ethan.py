@@ -122,6 +122,37 @@ class GameView(arcade.View):
         self.screen = "playing"
         self.round_started = True
 
+    def enter_house(self) -> None:
+        repair_sets = [
+            [
+                (250, 295, "patch wall", arcade.color.LIGHT_STEEL_BLUE),
+                (400, 190, "fix floor", arcade.color.GOLD),
+                (545, 330, "repair window", arcade.color.LIGHT_BLUE),
+                (510, 225, "paint trim", arcade.color.DARK_SEA_GREEN),
+            ],
+            [
+                (230, 325, "repair window", arcade.color.LIGHT_BLUE),
+                (350, 200, "fix floor", arcade.color.GOLD),
+                (490, 300, "patch wall", arcade.color.LIGHT_STEEL_BLUE),
+                (585, 210, "fix door", arcade.color.SIENNA),
+            ],
+            [
+                (230, 215, "fix floor", arcade.color.GOLD),
+                (370, 335, "patch wall", arcade.color.LIGHT_STEEL_BLUE),
+                (520, 335, "repair window", arcade.color.LIGHT_BLUE),
+                (575, 220, "paint trim", arcade.color.DARK_SEA_GREEN),
+            ],
+        ]
+
+        self.repair_spots = [
+            RepairSpot(x, y, label, color)
+            for x, y, label, color in repair_sets[self.current_building]
+        ]
+        self.screen = "repair"
+        self.round_started = False
+        self.message = f"You enter {self.building_names[self.current_building]}. Click each repair spot."
+        self.hint = "Fix the wall, floor, windows, and door to finish this house."
+
     def next_building(self) -> None:
         self.current_building = (self.current_building + 1) % len(self.building_names)
         self.buildings_cleaned += 1
@@ -133,6 +164,13 @@ class GameView(arcade.View):
         self.hint = "Fresh starts open up as you finish one building and move to the next."
         self.screen = "complete"
 
+    def finish_repair(self) -> None:
+        self.money += 10 + self.upgrades * 2
+        self.friendship += 1
+        self.message = f"{self.building_names[self.current_building]} is repaired and ready for people again."
+        self.hint = "Press SPACE to move to the next building."
+        self.next_building()
+
     def fail_round(self) -> None:
         self.screen = "failed"
         self.message = "The timer ran out. The block stays quiet for now."
@@ -142,6 +180,10 @@ class GameView(arcade.View):
         if key == arcade.key.ESCAPE:
             if self.window is not None:
                 self.window.close()
+            return
+
+        if key == arcade.key.E and self.screen == "playing" and not self.trash_spots:
+            self.enter_house()
             return
 
         if key != arcade.key.SPACE:
