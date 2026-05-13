@@ -22,6 +22,32 @@ BALL_SPEED = 220
 BALL_RADIUS = 16
 COLLECT_DISTANCE = 70
 FRIEND_DISTANCE = 65
+ENTRANCE_X = 720
+ENTRANCE_Y = 300
+ENTRANCE_WIDTH = 55
+ENTRANCE_HEIGHT = 120
+QUIZ_OPTIONS = [
+    {
+        "question": "What is one helpful way an abandoned home could be used?",
+        "answers": [
+            "Turn it into safe housing or a youth center",
+            "Leave it empty so nobody notices it",
+            "Break more windows so it looks scary",
+        ],
+        "correct": 0,
+        "fact": "Empty homes can become safe housing, community rooms, gardens, or youth spaces when people repair them together.",
+    },
+    {
+        "question": "What can help teens who feel lonely?",
+        "answers": [
+            "A trusted friend, mentor, club, or safe place to meet",
+            "Being ignored until they stop talking",
+            "More empty places with nobody around",
+        ],
+        "correct": 0,
+        "fact": "Connection matters. Friends, mentors, teams, clubs, and safe community spaces can help teens feel less alone.",
+    },
+]
 
 
 class TrashSpot:
@@ -84,6 +110,9 @@ class GameView(arcade.View):
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.keys_down: set[int] = set()
+        self.quiz_friend: FriendNPC | None = None
+        self.quiz_question = QUIZ_OPTIONS[0]
+        self.game_over_ready = False
         self.configure_camera()
 
     def on_show_view(self) -> None:
