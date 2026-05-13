@@ -198,9 +198,9 @@ class GameView(arcade.View):
         arcade.draw_line(0, 105, 800, 105, arcade.color.BLACK, 3)
 
         for i in range(3):
-            arcade.draw_rect_filled(205 + i * 70, 205, 28, 42, arcade.color.LIGHT_STEEL_BLUE)
-            arcade.draw_rect_filled(520 + i * 60, 200, 28, 42, arcade.color.LIGHT_STEEL_BLUE)
-        arcade.draw_rect_filled(700, 170, 32, 48, arcade.color.LIGHT_STEEL_BLUE)
+            arcade.draw_lbwh_rectangle_filled(205 + i * 70 - 14, 205 - 21, 28, 42, arcade.color.LIGHT_STEEL_BLUE)
+            arcade.draw_lbwh_rectangle_filled(520 + i * 60 - 14, 200 - 21, 28, 42, arcade.color.LIGHT_STEEL_BLUE)
+        arcade.draw_lbwh_rectangle_filled(700 - 16, 170 - 24, 32, 48, arcade.color.LIGHT_STEEL_BLUE)
         arcade.draw_text("bus stop", 675, 138, arcade.color.WHITE, 10)
 
         for trash in self.trash_spots:
