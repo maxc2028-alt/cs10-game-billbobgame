@@ -363,7 +363,12 @@ class GameView(arcade.View):
         arcade.draw_text(f"Friendship: {self.friendship}", 280, 510, arcade.color.WHITE, 13)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 430, 510, arcade.color.WHITE, 13)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 640, 510, arcade.color.WHITE, 13)
-        arcade.draw_text(f"Neighborhood level: {self.neighborhood_state + 1}/{BUILDING_STAGES}", 22, 490, arcade.color.LIGHT_GRAY, 12)
+        fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
+        repair_total = len(self.repair_spots)
+        if self.screen == "repair" and repair_total:
+            arcade.draw_text(f"Repairs: {fixed_count}/{repair_total}", 22, 490, arcade.color.LIGHT_GRAY, 12)
+        else:
+            arcade.draw_text(f"Neighborhood level: {self.neighborhood_state + 1}/{BUILDING_STAGES}", 22, 490, arcade.color.LIGHT_GRAY, 12)
 
         bar_left = 22
         bar_right = 778
@@ -405,6 +410,23 @@ class GameView(arcade.View):
                 63,
                 arcade.color.WHITE,
                 14,
+                anchor_x="center",
+            )
+        elif self.screen == "repair":
+            arcade.draw_text(
+                "Click the marked repair spots to fix this house.",
+                400,
+                63,
+                arcade.color.WHITE,
+                14,
+                anchor_x="center",
+            )
+            arcade.draw_text(
+                "When every repair is finished, the next building unlocks.",
+                400,
+                44,
+                arcade.color.LIGHT_GRAY,
+                11,
                 anchor_x="center",
             )
         else:
