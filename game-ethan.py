@@ -251,9 +251,9 @@ class GameView(arcade.View):
 
         for trash in list(self.trash_spots):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= trash.radius ** 2:
-            self.trash_spots.remove(trash)
-            self.cleaned += 1
-            self.money += TRASH_SCORE + self.upgrades
+                self.trash_spots.remove(trash)
+                self.cleaned += 1
+                self.money += TRASH_SCORE + self.upgrades
                 self.message = random.choice(
                     [
                         "A friend nods. The hallway feels less empty.",
