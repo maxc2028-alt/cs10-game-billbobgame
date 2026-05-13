@@ -21,6 +21,7 @@ BUILDING_STAGES = 3
 BALL_SPEED = 220
 BALL_RADIUS = 16
 COLLECT_DISTANCE = 70
+FRIEND_DISTANCE = 65
 
 
 class TrashSpot:
@@ -66,6 +67,7 @@ class GameView(arcade.View):
         self.time_left = QUEST_TIME
         self.money = 0
         self.friendship = 0
+        self.friend_hints = 0
         self.cleaned = 0
         self.upgrades = 0
         self.message = "Press SPACE to begin."
@@ -73,6 +75,7 @@ class GameView(arcade.View):
         self.trash_spots: list[TrashSpot] = []
         self.repair_spots: list[RepairSpot] = []
         self.friends: list[FriendNPC] = []
+        self.befriended_friends: set[str] = set()
         self.buildings_cleaned = 0
         self.building_names = ["North House", "Corner Lot", "Old Flat"]
         self.current_building = 0
@@ -121,7 +124,7 @@ class GameView(arcade.View):
             self.trash_spots.append(TrashSpot(x, y))
 
         friend_names = ["Maya", "Jordan", "Ari"]
-        for i in range(min(self.friendship + 1, 3)):
+        for i in range(3):
             fx, fy = friend_positions[i]
             self.friends.append(FriendNPC(friend_names[i], fx, fy))
 
@@ -185,6 +188,36 @@ class GameView(arcade.View):
         self.message = "The timer ran out. The block stays quiet for now."
         self.round_started = False
 
+    def try_befriend(self, x: float | None = None, y: float | None = None) -> bool:
+        if self.screen != "playing":
+            return False
+
+        for friend in self.friends:
+            if friend.name in self.befriended_friends:
+                continue
+
+            clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 24 ** 2
+            near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
+
+            if clicked_friend or (x is None and near_ball):
+                if not near_ball:
+                    self.message = f"Move closer to {friend.name} first."
+                    self.hint = "Friend balls can only hear you when your ball is nearby."
+                    return True
+                if self.friend_hints <= 0:
+                    self.message = f"{friend.name} needs a hint from the cleanup first."
+                    self.hint = "Pick up trash to earn friend hints, then come back."
+                    return True
+
+                self.friend_hints -= 1
+                self.friendship += 1
+                self.befriended_friends.add(friend.name)
+                self.message = f"{friend.name} became your friend."
+                self.hint = "Friendship grows when you use cleanup hints to connect with people."
+                return True
+
+        return False
+
     def on_key_press(self, key: int, modifiers: int) -> None:
         if key == arcade.key.ESCAPE:
             if self.window is not None:
@@ -206,6 +239,10 @@ class GameView(arcade.View):
 
         if key == arcade.key.E and self.screen == "playing" and not self.trash_spots:
             self.enter_house()
+            return
+
+        if key == arcade.key.F:
+            self.try_befriend()
             return
 
         if key != arcade.key.SPACE:
@@ -250,6 +287,9 @@ class GameView(arcade.View):
         if self.screen != "playing":
             return
 
+        if self.try_befriend(x, y):
+            return
+
         for trash in list(self.trash_spots):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= trash.radius ** 2:
                 if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
@@ -260,16 +300,9 @@ class GameView(arcade.View):
                 self.trash_spots.remove(trash)
                 self.cleaned += 1
                 self.money += TRASH_SCORE + self.upgrades
-                self.message = random.choice(
-                    [
-                        "A friend nods. The hallway feels less empty.",
-                        "Trash cleared. The building breathes a little easier.",
-                        "Someone notices the work and starts to smile.",
-                        "You clear a path. The entrance feels safer.",
-                    ]
-                )
-                if self.money % 12 == 0 and self.friendship < 5:
-                    self.friendship += 1
+                self.friend_hints += 1
+                self.message = f"You found a friend hint in the cleanup. Hints: {self.friend_hints}."
+                self.hint = "Move near another ball and press F or click them to become friends."
                 if self.cleaned % 2 == 0:
                     self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
                 break
