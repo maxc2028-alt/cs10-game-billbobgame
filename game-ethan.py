@@ -18,6 +18,8 @@ QUEST_TIME = 20.0
 MAX_UPGRADES = 3
 TRASH_SCORE = 4
 BUILDING_STAGES = 3
+BALL_SPEED = 220
+BALL_RADIUS = 16
 
 
 class TrashSpot:
@@ -75,6 +77,9 @@ class GameView(arcade.View):
         self.current_building = 0
         self.neighborhood_state = 0
         self.round_started = False
+        self.ball_x = 400.0
+        self.ball_y = 155.0
+        self.keys_down: set[int] = set()
         self.configure_camera()
 
     def on_show_view(self) -> None:
@@ -119,6 +124,8 @@ class GameView(arcade.View):
             fx, fy = friend_positions[i]
             self.friends.append(FriendNPC(friend_names[i], fx, fy))
 
+        self.ball_x = 400.0
+        self.ball_y = 155.0
         self.screen = "playing"
         self.round_started = True
 
@@ -150,6 +157,8 @@ class GameView(arcade.View):
         ]
         self.screen = "repair"
         self.round_started = False
+        self.ball_x = 400.0
+        self.ball_y = 155.0
         self.message = f"You enter {self.building_names[self.current_building]}. Click each repair spot."
         self.hint = "Fix the wall, floor, windows, and door to finish this house."
 
@@ -181,6 +190,19 @@ class GameView(arcade.View):
                 self.window.close()
             return
 
+        if key in (
+            arcade.key.W,
+            arcade.key.A,
+            arcade.key.S,
+            arcade.key.D,
+            arcade.key.UP,
+            arcade.key.DOWN,
+            arcade.key.LEFT,
+            arcade.key.RIGHT,
+        ):
+            self.keys_down.add(key)
+            return
+
         if key == arcade.key.E and self.screen == "playing" and not self.trash_spots:
             self.enter_house()
             return
@@ -197,6 +219,9 @@ class GameView(arcade.View):
             self.screen = "failed"
             self.message = f"Start error: {exc!r}"
             raise
+
+    def on_key_release(self, key: int, modifiers: int) -> None:
+        self.keys_down.discard(key)
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
         if button != arcade.MOUSE_BUTTON_LEFT:
