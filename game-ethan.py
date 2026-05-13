@@ -233,14 +233,13 @@ class GameView(arcade.View):
         for trash in self.trash_spots:
             arcade.draw_circle_filled(trash.x, trash.y, trash.radius, arcade.color.BROWN_NOSE)
             arcade.draw_circle_outline(trash.x, trash.y, trash.radius, arcade.color.BLACK, 2)
-            arcade.draw_text(trash.highlight, trash.x - 18, trash.y - 7, arcade.color.WHITE, 9)
+            arcade.draw_text(trash.highlight, trash.x, trash.y - 5, arcade.color.WHITE, 8, anchor_x="center")
 
         for friend in self.friends:
             arcade.draw_circle_filled(friend.x, friend.y, 16, arcade.color.LIGHT_GREEN)
             arcade.draw_circle_outline(friend.x, friend.y, 16, arcade.color.BLACK, 2)
-            arcade.draw_text(friend.name, friend.x - 20, friend.y + 22, arcade.color.WHITE, 10)
-            arcade.draw_text(friend.mood, friend.x - 26, friend.y - 34, arcade.color.LIGHT_GRAY, 8)
-            arcade.draw_text(friend.line, friend.x - 70, friend.y + 38, arcade.color.WHITE, 8, width=140, multiline=True)
+            arcade.draw_text(friend.name, friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
+            arcade.draw_text(friend.mood, friend.x, friend.y - 34, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
 
     def draw_hud(self) -> None:
         arcade.draw_lrbt_rectangle_filled(10, 790, 510, 590, (18, 22, 31))
