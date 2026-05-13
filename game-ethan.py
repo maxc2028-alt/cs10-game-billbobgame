@@ -28,6 +28,16 @@ class TrashSpot:
         self.highlight = random.choice(["can", "bag", "box", "rubble"])
 
 
+class RepairSpot:
+    def __init__(self, x: float, y: float, label: str, color) -> None:
+        self.x = x
+        self.y = y
+        self.label = label
+        self.color = color
+        self.radius = 28
+        self.fixed = False
+
+
 class FriendNPC:
     def __init__(self, name: str, x: float, y: float) -> None:
         self.name = name
@@ -58,6 +68,7 @@ class GameView(arcade.View):
         self.message = "Press SPACE to begin."
         self.hint = "Clear every trash pile to move to the next building."
         self.trash_spots: list[TrashSpot] = []
+        self.repair_spots: list[RepairSpot] = []
         self.friends: list[FriendNPC] = []
         self.buildings_cleaned = 0
         self.building_names = ["North House", "Corner Lot", "Old Flat"]
@@ -87,8 +98,9 @@ class GameView(arcade.View):
     def reset_round(self) -> None:
         self.time_left = QUEST_TIME
         self.cleaned = 0
+        self.repair_spots = []
         self.message = "Click trash piles to clean the building."
-        self.hint = "Click trash near the broken windows, doors, and sidewalks."
+        self.hint = "After the outside is clean, you will go inside and repair the house."
         self.trash_spots = []
         self.friends = []
 
