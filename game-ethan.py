@@ -326,7 +326,7 @@ class GameView(arcade.View):
 
 
 def main() -> None:
-    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, fullscreen=True)
     view = GameView(window)
     window.show_view(view)
     arcade.run()
