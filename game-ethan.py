@@ -260,33 +260,55 @@ class GameView(arcade.View):
         return self.current_building in self.lesson_completed_buildings
 
     def current_target_friend_name(self) -> str:
-        return ["Maya", "Jordan", "Ari"][self.current_building % 3]
+        return FRIEND_NAMES[self.current_building % len(FRIEND_NAMES)]
 
     def known_name_letters(self, name: str) -> int:
         return min(len(name), self.friend_name_hints.get(name, 0))
 
     def friend_display_name(self, friend: FriendNPC) -> str:
-        return self.display_name_from_hint(friend.name)
+        if friend.name in self.guessed_friend_names or friend.name in self.befriended_friends:
+            return friend.name
+        return "???"
 
     def display_name_from_hint(self, name: str) -> str:
         known_letters = self.known_name_letters(name)
-        if known_letters >= len(name):
-            return name
-        if known_letters == 0:
-            return "???"
-        shown = list(name[:known_letters])
-        shown.extend("_" for _ in range(len(name) - known_letters))
-        return " ".join(shown)
+        return f"{known_letters}/{len(name)} clues"
+
+    def letter_clue(self, letter: str, position: int) -> str:
+        if letter == " ":
+            return f"spot {position} is a space between two words"
+
+        clue_words = {
+            "a": "apple",
+            "b": "ball",
+            "e": "empty",
+            "i": "inside",
+            "j": "jump",
+            "l": "light",
+            "m": "money",
+            "n": "neighbor",
+            "o": "open",
+            "x": "exit",
+            "y": "yard",
+        }
+        word = clue_words.get(letter.lower(), letter.upper())
+        return f"letter {position} is the first letter in '{word}'"
 
     def reveal_friend_name_hint(self) -> str:
         name = self.current_target_friend_name()
         known_letters = self.known_name_letters(name)
+        clues: list[str] = []
+        clues_per_pickup = 2 if len(name) > 6 else 1
         if known_letters < len(name):
-            known_letters += 1
+            for _ in range(clues_per_pickup):
+                if known_letters >= len(name):
+                    break
+                known_letters += 1
+                clues.append(self.letter_clue(name[known_letters - 1], known_letters))
             self.friend_name_hints[name] = known_letters
         if known_letters >= len(name):
-            return f"You figured out the name {name}. Press T near them to answer the quiz."
-        return f"Name hint found: {self.display_name_from_hint(name)}"
+            return f"Name clues complete: {'; '.join(clues)}. Press T near the person and guess the name."
+        return f"Name clue: {'; '.join(clues)}."
 
     def next_building(self) -> None:
         finished_building = self.building_names[self.current_building]
@@ -325,6 +347,28 @@ class GameView(arcade.View):
         self.screen = "quiz"
         self.message = f"You know {friend.name}'s name. Answer their question."
         self.hint = "You get 2 tries. Think carefully."
+
+    def start_name_guess(self, friend: FriendNPC) -> None:
+        self.guess_friend = friend
+        self.name_guess = ""
+        self.screen = "name_guess"
+        self.message = "Type the person's full name from the clues."
+        self.hint = "Press ENTER to guess. Use BACKSPACE to erase."
+
+    def submit_name_guess(self) -> None:
+        if self.guess_friend is None:
+            return
+
+        if self.name_guess.strip().lower() == self.guess_friend.name.lower():
+            friend = self.guess_friend
+            self.guessed_friend_names.add(friend.name)
+            self.guess_friend = None
+            self.name_guess = ""
+            self.start_friend_quiz(friend)
+            return
+
+        self.message = "That name is not right yet."
+        self.hint = "Use the letter clues from the bottom box, then try again."
 
     def answer_quiz(self, answer_index: int) -> None:
         if self.quiz_friend is None:
@@ -383,6 +427,9 @@ class GameView(arcade.View):
                     self.message = "You do not know this person's full name yet."
                     self.hint = "Pick up trash to find name hints, then come back when the name is complete."
                     return True
+                if friend.name not in self.guessed_friend_names:
+                    self.start_name_guess(friend)
+                    return True
 
                 self.start_friend_quiz(friend)
                 return True
@@ -440,6 +487,20 @@ class GameView(arcade.View):
         if key == arcade.key.T:
             self.try_befriend()
             return
+
+        if self.screen == "name_guess":
+            if key == arcade.key.ENTER:
+                self.submit_name_guess()
+                return
+            if key == arcade.key.BACKSPACE:
+                self.name_guess = self.name_guess[:-1]
+                return
+            if key == arcade.key.SPACE and self.name_guess and len(self.name_guess) < 16:
+                self.name_guess += " "
+                return
+            if arcade.key.A <= key <= arcade.key.Z and len(self.name_guess) < 16:
+                self.name_guess += chr(key).lower()
+                return
 
         number_keys = (arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3)
         if self.screen == "decorate" and key in number_keys:
