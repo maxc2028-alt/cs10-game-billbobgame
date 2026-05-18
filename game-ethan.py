@@ -585,29 +585,38 @@ class GameView(arcade.View):
         for index, (left, right, base_y) in enumerate(building_positions):
             roof_color, wall_color = building_colors[index]
             height = building_heights[index]
+            repaired = index in self.house_styles
             if index in self.house_styles:
                 roof_color, wall_color = self.house_styles[index]
             elif index < self.neighborhood_state:
                 wall_color = (76, 91, 86)
                 roof_color = (54, 77, 69)
-            self.draw_building(left, right, base_y, height, roof_color, wall_color)
+            self.draw_building(left, right, base_y, height, roof_color, wall_color, repaired)
             door_width = 34
             door_height = 68
             door_center = (left + right) / 2
             door_left = door_center - door_width / 2
             door_right = door_center + door_width / 2
-            arcade.draw_lrbt_rectangle_filled(door_left, door_right, base_y, base_y + door_height, (45, 36, 34))
+            door_color = (96, 66, 48) if repaired else (45, 36, 34)
+            arcade.draw_lrbt_rectangle_filled(door_left, door_right, base_y, base_y + door_height, door_color)
             arcade.draw_lrbt_rectangle_outline(door_left, door_right, base_y, base_y + door_height, arcade.color.BLACK, 2)
             arcade.draw_circle_filled(door_right - 8, base_y + 34, 3, (150, 132, 82))
-            arcade.draw_line(door_left + 6, base_y + 58, door_right - 7, base_y + 43, arcade.color.BLACK, 2)
-            arcade.draw_line(door_left + 7, base_y + 18, door_right - 10, base_y + 28, arcade.color.BLACK, 2)
-            arcade.draw_lrbt_rectangle_filled(
-                door_left - 5,
-                door_right + 5,
-                base_y + 8,
-                base_y + 15,
-                (31, 30, 32),
-            )
+            if repaired:
+                arcade.draw_lrbt_rectangle_outline(door_left + 5, door_right - 5, base_y + 8, base_y + door_height - 8, (222, 222, 214), 2)
+                arcade.draw_lrbt_rectangle_filled(door_left - 18, door_left - 5, base_y + 4, base_y + 16, (54, 88, 60))
+                arcade.draw_lrbt_rectangle_filled(door_right + 5, door_right + 18, base_y + 4, base_y + 16, (54, 88, 60))
+                arcade.draw_circle_filled(door_left - 12, base_y + 22, 5, (185, 148, 84))
+                arcade.draw_circle_filled(door_right + 12, base_y + 22, 5, (185, 148, 84))
+            else:
+                arcade.draw_line(door_left + 6, base_y + 58, door_right - 7, base_y + 43, arcade.color.BLACK, 2)
+                arcade.draw_line(door_left + 7, base_y + 18, door_right - 10, base_y + 28, arcade.color.BLACK, 2)
+                arcade.draw_lrbt_rectangle_filled(
+                    door_left - 5,
+                    door_right + 5,
+                    base_y + 8,
+                    base_y + 15,
+                    (31, 30, 32),
+                )
             if index == self.current_building and not self.trash_spots:
                 arcade.draw_text(
                     "Press F to open door",
