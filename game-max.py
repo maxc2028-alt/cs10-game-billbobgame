@@ -653,8 +653,7 @@ class GameView(arcade.View):
             if index < self.neighborhood_state:
                 wall_color = (76, 91, 86)
                 roof_color = (54, 77, 69)
-            damage_level = 3 if index >= self.neighborhood_state else 0
-            self.draw_building(left, right, base_y, height, roof_color, wall_color, damage_level)
+            self.draw_building(left, right, base_y, height, roof_color, wall_color)
             door_width = 34
             door_height = 68
             door_center = (left + right) / 2
@@ -663,37 +662,6 @@ class GameView(arcade.View):
             arcade.draw_lrbt_rectangle_filled(door_left, door_right, base_y, base_y + door_height, (45, 36, 34))
             arcade.draw_lrbt_rectangle_outline(door_left, door_right, base_y, base_y + door_height, arcade.color.BLACK, 2)
             arcade.draw_circle_filled(door_right - 8, base_y + 34, 3, (150, 132, 82))
-
-            if self.has_upgrade("Solar Panels"):
-                panel_left = left + 16
-                panel_right = left + 68
-                panel_bottom = base_y + height + 8
-                panel_top = base_y + height + 24
-                arcade.draw_lrbt_rectangle_filled(panel_left, panel_right, panel_bottom, panel_top, (28, 45, 68))
-                arcade.draw_lrbt_rectangle_outline(panel_left, panel_right, panel_bottom, panel_top, arcade.color.BLACK, 2)
-                arcade.draw_line(panel_left + 6, panel_bottom + 4, panel_right - 6, panel_top - 4, arcade.color.LIGHT_BLUE, 1)
-                arcade.draw_line(panel_left + 6, panel_top - 4, panel_right - 6, panel_bottom + 4, arcade.color.LIGHT_BLUE, 1)
-
-            if self.has_upgrade("Community Porch"):
-                porch_left = door_left - 12
-                porch_right = door_right + 12
-                porch_bottom = base_y + door_height + 2
-                porch_top = porch_bottom + 12
-                arcade.draw_lrbt_rectangle_filled(porch_left, porch_right, porch_bottom, porch_top, (82, 63, 45))
-                arcade.draw_lrbt_rectangle_outline(porch_left, porch_right, porch_bottom, porch_top, arcade.color.BLACK, 2)
-                arcade.draw_line(door_left + 8, base_y + 4, door_left + 8, porch_bottom, arcade.color.BLACK, 2)
-                arcade.draw_line(door_right - 8, base_y + 4, door_right - 8, porch_bottom, arcade.color.BLACK, 2)
-
-            if self.has_upgrade("Rain Garden"):
-                for offset in (18, 42, 68):
-                    patch_x = left + offset
-                    arcade.draw_circle_filled(patch_x, base_y + 9, 6, (48, 86, 54))
-                    arcade.draw_circle_filled(patch_x + 6, base_y + 16, 2, arcade.color.GOLD)
-                    arcade.draw_line(patch_x, base_y + 11, patch_x, base_y + 24, arcade.color.DARK_GREEN, 1)
-
-            if self.has_upgrade("Fresh Paint") and index < self.neighborhood_state:
-                arcade.draw_lrbt_rectangle_outline(left + 8, right - 8, base_y + 14, base_y + height - 12, (223, 221, 214), 2)
-
             if index == self.current_building and not self.trash_spots:
                 arcade.draw_text(
                     "Press F to open door",
