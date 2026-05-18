@@ -253,6 +253,35 @@ class GameView(arcade.View):
     def can_finish_current_house(self) -> bool:
         return self.current_building in self.lesson_completed_buildings
 
+    def current_target_friend_name(self) -> str:
+        return ["Maya", "Jordan", "Ari"][self.current_building % 3]
+
+    def known_name_letters(self, name: str) -> int:
+        return min(len(name), self.friend_name_hints.get(name, 0))
+
+    def friend_display_name(self, friend: FriendNPC) -> str:
+        return self.display_name_from_hint(friend.name)
+
+    def display_name_from_hint(self, name: str) -> str:
+        known_letters = self.known_name_letters(name)
+        if known_letters >= len(name):
+            return name
+        if known_letters == 0:
+            return "???"
+        shown = list(name[:known_letters])
+        shown.extend("_" for _ in range(len(name) - known_letters))
+        return " ".join(shown)
+
+    def reveal_friend_name_hint(self) -> str:
+        name = self.current_target_friend_name()
+        known_letters = self.known_name_letters(name)
+        if known_letters < len(name):
+            known_letters += 1
+            self.friend_name_hints[name] = known_letters
+        if known_letters >= len(name):
+            return f"You figured out the name {name}. Press T near them to answer the quiz."
+        return f"Name hint found: {self.display_name_from_hint(name)}"
+
     def next_building(self) -> None:
         finished_building = self.building_names[self.current_building]
         self.current_building = (self.current_building + 1) % len(self.building_names)
@@ -285,17 +314,17 @@ class GameView(arcade.View):
 
     def start_friend_quiz(self, friend: FriendNPC) -> None:
         self.quiz_friend = friend
-        self.quiz_question = QUIZ_OPTIONS[(self.cleaned + self.friendship) % len(QUIZ_OPTIONS)]
+        self.quiz_question = QUIZ_OPTIONS[(self.current_building + self.friendship) % len(QUIZ_OPTIONS)]
+        self.quiz_tries_left = 2
         self.screen = "quiz"
-        self.message = f"{friend.name} asks a question before becoming your friend."
-        self.hint = "Click the answer you think is best."
+        self.message = f"You know {friend.name}'s name. Answer their question."
+        self.hint = "You get 2 tries. Think carefully."
 
     def answer_quiz(self, answer_index: int) -> None:
         if self.quiz_friend is None:
             return
 
         if answer_index == self.quiz_question["correct"]:
-            self.friend_hints -= 1
             self.friendship += 1
             self.befriended_friends.add(self.quiz_friend.name)
             self.lesson_completed_buildings.add(self.current_building)
@@ -303,6 +332,12 @@ class GameView(arcade.View):
             self.hint = f"{self.quiz_question['fact']} Now you can finish repairing the house."
             self.quiz_friend = None
             self.screen = "playing"
+            return
+
+        self.quiz_tries_left -= 1
+        if self.quiz_tries_left > 0:
+            self.message = f"Not quite. Try again. Tries left: {self.quiz_tries_left}."
+            self.hint = "Read the answer choices carefully before picking again."
             return
 
         self.start_dark_game_over()
@@ -335,12 +370,12 @@ class GameView(arcade.View):
 
             if clicked_friend or (x is None and near_ball):
                 if not near_ball:
-                    self.message = f"Move closer to {friend.name} first."
+                    self.message = "Move closer to the person first."
                     self.hint = "Friend balls can only hear you when your ball is nearby."
                     return True
-                if self.friend_hints <= 0:
-                    self.message = f"{friend.name} needs a hint from the cleanup first."
-                    self.hint = "Pick up trash to earn friend hints, then come back."
+                if self.known_name_letters(friend.name) < len(friend.name):
+                    self.message = "You do not know this person's full name yet."
+                    self.hint = "Pick up trash to find name hints, then come back when the name is complete."
                     return True
 
                 self.start_friend_quiz(friend)
@@ -495,14 +530,18 @@ class GameView(arcade.View):
                 self.trash_spots.remove(trash)
                 self.cleaned += 1
                 self.money += TRASH_SCORE + self.upgrades
-                self.friend_hints += 1
-                self.message = f"You found a friend hint in the cleanup. Hints: {self.friend_hints}."
-                self.hint = "Move near another ball and press T or click them to become friends."
+                self.message = self.reveal_friend_name_hint()
+                self.hint = "When the full name is revealed, move near that person and press T for the quiz."
                 if self.cleaned % 2 == 0:
                     self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
                 if not self.trash_spots:
-                    self.message = "The outside is clear. Press F to open the door."
-                    self.hint = "You can talk to friends first, or open the door when you are ready."
+                    target_name = self.current_target_friend_name()
+                    if self.known_name_letters(target_name) >= len(target_name):
+                        self.message = f"The outside is clear, and you know {target_name}'s name."
+                        self.hint = "Press T near them for the lesson quiz, or press F at the door to go inside."
+                    else:
+                        self.message = "The outside is clear. Press F to open the door."
+                        self.hint = "You can open the door, but you need the full friend name before the quiz."
                 break
 
     def draw_ball(self) -> None:
@@ -727,7 +766,7 @@ class GameView(arcade.View):
             arcade.draw_ellipse_filled(friend.x, friend.y - 60, 28, 7, (15, 18, 25, 120))
             arcade.draw_circle_filled(friend.x, friend.y, 16, friend_color)
             arcade.draw_circle_outline(friend.x, friend.y, 16, arcade.color.BLACK, 2)
-            arcade.draw_text(friend.name, friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
+            arcade.draw_text(self.friend_display_name(friend), friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
             label = "friend" if friend.name in self.befriended_friends else "press T"
             arcade.draw_text(label, friend.x, friend.y - 34, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
 
@@ -841,10 +880,11 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(90, 710, 130, 500, (18, 22, 31))
         arcade.draw_lrbt_rectangle_outline(90, 710, 130, 500, arcade.color.WHITE, 3)
         arcade.draw_text("Community Question", 400, 460, arcade.color.GOLD, 24, anchor_x="center")
+        arcade.draw_text(f"Tries left: {self.quiz_tries_left}", 400, 438, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text(
             self.quiz_question["question"],
             130,
-            405,
+            395,
             arcade.color.WHITE,
             16,
             width=540,
@@ -924,11 +964,13 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_outline(10, 790, 492, 590, (126, 132, 142))
 
         arcade.draw_text("Neighborhood Cleanup", 22, 562, (220, 221, 218), 22)
+        arcade.draw_text("ESC quits", 720, 565, (156, 160, 166), 10, anchor_x="center")
         arcade.draw_text(f"Building: {self.building_names[self.current_building]}", 22, 538, (156, 160, 166), 12)
         arcade.draw_text(f"Trash: {self.cleaned}", 22, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Money: ${self.money}", 125, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, (214, 215, 212), 12)
-        arcade.draw_text(f"Hints: {self.friend_hints}", 390, 516, (214, 215, 212), 12)
+        target_name = self.current_target_friend_name()
+        arcade.draw_text(f"Name: {self.display_name_from_hint(target_name)}", 390, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
@@ -975,7 +1017,6 @@ class GameView(arcade.View):
                 anchor_x="center",
             )
 
-        arcade.draw_text("Press ESC to quit.", 400, 10, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
 
     def on_draw(self) -> None:
         self.clear()
