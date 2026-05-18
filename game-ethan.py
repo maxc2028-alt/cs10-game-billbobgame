@@ -540,6 +540,9 @@ class GameView(arcade.View):
         if self.screen != "playing":
             return
 
+        if not self.trash_spots:
+            return
+
         self.time_left -= delta_time
         if self.time_left <= 0:
             self.time_left = 0
