@@ -704,9 +704,12 @@ class GameView(arcade.View):
 
     def draw_house_interior(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (25, 24, 31))
-        arcade.draw_lrbt_rectangle_filled(90, 710, 120, 470, (68, 65, 76))
+        repaired_inside = self.inside_building in self.house_styles
+        wall_color = (93, 102, 100) if repaired_inside else (68, 65, 76)
+        floor_color = (92, 72, 52) if repaired_inside else (72, 61, 54)
+        arcade.draw_lrbt_rectangle_filled(90, 710, 120, 470, wall_color)
         arcade.draw_lrbt_rectangle_outline(90, 710, 120, 470, arcade.color.BLACK, 3)
-        arcade.draw_lrbt_rectangle_filled(90, 710, 80, 120, (72, 61, 54))
+        arcade.draw_lrbt_rectangle_filled(90, 710, 80, 120, floor_color)
         arcade.draw_line(90, 120, 710, 120, arcade.color.BLACK, 3)
 
         arcade.draw_lrbt_rectangle_filled(116, 285, 122, 165, (54, 64, 70))
@@ -759,16 +762,23 @@ class GameView(arcade.View):
         arcade.draw_line(393, 228, 386, 201, arcade.color.BLACK, 2)
         arcade.draw_line(438, 126, 407, 151, arcade.color.BLACK, 2)
 
-        arcade.draw_line(145, 285, 188, 260, arcade.color.BLACK, 2)
-        arcade.draw_line(188, 260, 177, 235, arcade.color.BLACK, 2)
-        arcade.draw_line(500, 285, 540, 260, arcade.color.BLACK, 2)
-        arcade.draw_line(540, 260, 560, 290, arcade.color.BLACK, 2)
-        arcade.draw_line(245, 121, 305, 105, arcade.color.BLACK, 2)
-        arcade.draw_line(305, 105, 358, 118, arcade.color.BLACK, 2)
-        arcade.draw_line(460, 116, 520, 101, arcade.color.BLACK, 2)
+        if repaired_inside:
+            arcade.draw_lrbt_rectangle_filled(130, 710, 410, 426, (222, 222, 214))
+            arcade.draw_lrbt_rectangle_filled(115, 165, 120, 132, (54, 88, 60))
+            arcade.draw_lrbt_rectangle_filled(630, 685, 120, 132, (54, 88, 60))
+            arcade.draw_circle_filled(140, 140, 8, (185, 148, 84))
+            arcade.draw_circle_filled(660, 140, 8, (185, 148, 84))
+        else:
+            arcade.draw_line(145, 285, 188, 260, arcade.color.BLACK, 2)
+            arcade.draw_line(188, 260, 177, 235, arcade.color.BLACK, 2)
+            arcade.draw_line(500, 285, 540, 260, arcade.color.BLACK, 2)
+            arcade.draw_line(540, 260, 560, 290, arcade.color.BLACK, 2)
+            arcade.draw_line(245, 121, 305, 105, arcade.color.BLACK, 2)
+            arcade.draw_line(305, 105, 358, 118, arcade.color.BLACK, 2)
+            arcade.draw_line(460, 116, 520, 101, arcade.color.BLACK, 2)
 
         arcade.draw_text(
-            f"Inside {self.building_names[self.current_building]}",
+            f"Inside {self.building_names[self.inside_building]}",
             400,
             485,
             arcade.color.WHITE,
