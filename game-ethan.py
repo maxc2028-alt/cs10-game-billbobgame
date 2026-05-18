@@ -497,21 +497,35 @@ class GameView(arcade.View):
         arcade.draw_circle_filled(735, 545, 30, (92, 96, 104))
         arcade.draw_line(0, 120, 800, 120, (49, 58, 55), 2)
 
-    def draw_building(self, left: float, right: float, base_y: float, height: float, roof_color, wall_color) -> None:
+    def draw_building(
+        self,
+        left: float,
+        right: float,
+        base_y: float,
+        height: float,
+        roof_color,
+        wall_color,
+        repaired: bool = False,
+    ) -> None:
         top = base_y + height
         arcade.draw_lrbt_rectangle_filled(left, right, base_y, top, wall_color)
         arcade.draw_lrbt_rectangle_outline(left, right, base_y, top, arcade.color.BLACK)
         roof_mid = (left + right) / 2
         arcade.draw_triangle_filled(left - 8, top, right + 8, top, roof_mid, top + 60, roof_color)
         arcade.draw_triangle_outline(left - 8, top, right + 8, top, roof_mid, top + 60, arcade.color.BLACK)
-        arcade.draw_line(left + 18, top - 25, left + 55, top - 62, arcade.color.BLACK, 3)
-        arcade.draw_line(left + 55, top - 62, left + 44, top - 105, arcade.color.BLACK, 2)
-        arcade.draw_line(right - 28, top - 35, right - 72, top - 78, arcade.color.BLACK, 3)
-        arcade.draw_line(right - 72, top - 78, right - 48, top - 120, arcade.color.BLACK, 2)
-        arcade.draw_lrbt_rectangle_filled(left + 10, left + 24, base_y + 18, top - 20, (35, 36, 42, 110))
-        arcade.draw_lrbt_rectangle_filled(right - 34, right - 18, base_y + 35, top - 45, (36, 36, 41, 95))
-        arcade.draw_line(left + 4, top - 12, roof_mid - 10, top + 45, (31, 24, 27), 3)
-        arcade.draw_line(roof_mid + 18, top + 40, right - 4, top - 8, (31, 24, 27), 3)
+
+        if repaired:
+            arcade.draw_line(left + 12, top - 7, right - 12, top - 7, (222, 222, 214), 3)
+            arcade.draw_line(left + 12, base_y + 8, right - 12, base_y + 8, (222, 222, 214), 3)
+        else:
+            arcade.draw_line(left + 18, top - 25, left + 55, top - 62, arcade.color.BLACK, 3)
+            arcade.draw_line(left + 55, top - 62, left + 44, top - 105, arcade.color.BLACK, 2)
+            arcade.draw_line(right - 28, top - 35, right - 72, top - 78, arcade.color.BLACK, 3)
+            arcade.draw_line(right - 72, top - 78, right - 48, top - 120, arcade.color.BLACK, 2)
+            arcade.draw_lrbt_rectangle_filled(left + 10, left + 24, base_y + 18, top - 20, (35, 36, 42, 110))
+            arcade.draw_lrbt_rectangle_filled(right - 34, right - 18, base_y + 35, top - 45, (36, 36, 41, 95))
+            arcade.draw_line(left + 4, top - 12, roof_mid - 10, top + 45, (31, 24, 27), 3)
+            arcade.draw_line(roof_mid + 18, top + 40, right - 4, top - 8, (31, 24, 27), 3)
 
         window_width = min(32, max(22, (right - left) / 5))
         window_height = min(42, max(30, height / 5))
@@ -532,10 +546,15 @@ class GameView(arcade.View):
                 arcade.color.LIGHT_STEEL_BLUE,
             )
             arcade.draw_lrbt_rectangle_outline(window_left, window_right, window_bottom, window_top, arcade.color.BLACK)
-            arcade.draw_line(window_left + 7, window_top - 7, center_x - 2, window_bottom + 18, arcade.color.WHITE, 2)
-            arcade.draw_line(center_x - 2, window_bottom + 18, window_right - 8, window_bottom + 8, arcade.color.WHITE, 2)
-            arcade.draw_line(center_x - 2, window_bottom + 18, center_x + 10, window_top - 12, arcade.color.WHITE, 1)
-            if i % 2 == 0:
+            if repaired:
+                arcade.draw_line(center_x, window_bottom, center_x, window_top, arcade.color.WHITE, 2)
+                arcade.draw_line(window_left, window_bottom + window_height / 2, window_right, window_bottom + window_height / 2, arcade.color.WHITE, 2)
+                arcade.draw_lrbt_rectangle_outline(window_left - 3, window_right + 3, window_bottom - 3, window_top + 3, (222, 222, 214), 2)
+            else:
+                arcade.draw_line(window_left + 7, window_top - 7, center_x - 2, window_bottom + 18, arcade.color.WHITE, 2)
+                arcade.draw_line(center_x - 2, window_bottom + 18, window_right - 8, window_bottom + 8, arcade.color.WHITE, 2)
+                arcade.draw_line(center_x - 2, window_bottom + 18, center_x + 10, window_top - 12, arcade.color.WHITE, 1)
+            if not repaired and i % 2 == 0:
                 arcade.draw_lrbt_rectangle_filled(
                     window_left - 4,
                     window_right + 4,
