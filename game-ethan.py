@@ -616,101 +616,106 @@ class GameView(arcade.View):
         arcade.draw_text(self.quiz_question["fact"], 170, 215, arcade.color.LIGHT_GRAY, 13, width=460, multiline=True)
 
     def draw_hud(self) -> None:
-        arcade.draw_lrbt_rectangle_filled(10, 790, 388, 590, (18, 22, 31))
-        arcade.draw_lrbt_rectangle_outline(10, 790, 388, 590, arcade.color.WHITE)
+        arcade.draw_lrbt_rectangle_filled(10, 790, 492, 590, (18, 22, 31))
+        arcade.draw_lrbt_rectangle_outline(10, 790, 492, 590, arcade.color.WHITE)
 
         arcade.draw_text("Neighborhood Cleanup", 22, 562, arcade.color.WHITE, 22)
-        arcade.draw_text(f"Building: {self.building_names[self.current_building]}", 22, 536, arcade.color.LIGHT_GRAY, 13)
-        arcade.draw_text(f"Trash: {self.cleaned}", 22, 510, arcade.color.WHITE, 13)
-        arcade.draw_text(f"Money: ${self.money}", 150, 510, arcade.color.WHITE, 13)
-        arcade.draw_text(f"Friendship: {self.friendship}", 275, 510, arcade.color.WHITE, 13)
-        arcade.draw_text(f"Hints: {self.friend_hints}", 430, 510, arcade.color.WHITE, 13)
-        arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 540, 510, arcade.color.WHITE, 13)
-        arcade.draw_text(f"Time: {self.time_left:0.1f}s", 640, 510, arcade.color.WHITE, 13)
+        arcade.draw_text(f"Building: {self.building_names[self.current_building]}", 22, 538, arcade.color.LIGHT_GRAY, 12)
+        arcade.draw_text(f"Trash: {self.cleaned}", 22, 516, arcade.color.WHITE, 12)
+        arcade.draw_text(f"Money: ${self.money}", 125, 516, arcade.color.WHITE, 12)
+        arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, arcade.color.WHITE, 12)
+        arcade.draw_text(f"Hints: {self.friend_hints}", 390, 516, arcade.color.WHITE, 12)
+        arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, arcade.color.WHITE, 12)
+        arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, arcade.color.WHITE, 12)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
-            arcade.draw_text(f"Repairs: {fixed_count}/{repair_total}", 22, 490, arcade.color.LIGHT_GRAY, 12)
+            arcade.draw_text(f"Repairs: {fixed_count}/{repair_total}", 260, 538, arcade.color.LIGHT_GRAY, 12)
         else:
-            arcade.draw_text(f"Neighborhood level: {self.neighborhood_state + 1}/{BUILDING_STAGES}", 22, 490, arcade.color.LIGHT_GRAY, 12)
+            arcade.draw_text(
+                f"Neighborhood level: {self.neighborhood_state + 1}/{BUILDING_STAGES}",
+                260,
+                538,
+                arcade.color.LIGHT_GRAY,
+                12,
+            )
 
         bar_left = 22
         bar_right = 778
-        bar_bottom = 462
-        bar_top = 476
+        bar_bottom = 500
+        bar_top = 508
         arcade.draw_lrbt_rectangle_filled(bar_left, bar_right, bar_bottom, bar_top, arcade.color.DARK_SLATE_GRAY)
         filled = bar_left + (bar_right - bar_left) * max(0, self.time_left) / QUEST_TIME
         arcade.draw_lrbt_rectangle_filled(bar_left, filled, bar_bottom, bar_top, arcade.color.GOLD)
         arcade.draw_lrbt_rectangle_outline(bar_left, bar_right, bar_bottom, bar_top, arcade.color.WHITE)
 
-        arcade.draw_text(self.message, 22, 436, arcade.color.AMAZON, 14, width=745, multiline=True)
-        arcade.draw_text(self.hint, 22, 410, arcade.color.LIGHT_GRAY, 11, width=745, multiline=True)
-
-        arcade.draw_lrbt_rectangle_filled(140, 660, 34, 86, (18, 22, 31))
-        arcade.draw_lrbt_rectangle_outline(140, 660, 34, 86, arcade.color.WHITE)
+        arcade.draw_lrbt_rectangle_filled(95, 705, 18, 96, (18, 22, 31))
+        arcade.draw_lrbt_rectangle_outline(95, 705, 18, 96, arcade.color.WHITE)
+        arcade.draw_text(self.message, 112, 75, arcade.color.AMAZON, 12, width=576, multiline=True)
+        arcade.draw_text(self.hint, 112, 55, arcade.color.LIGHT_GRAY, 10, width=576, multiline=True)
 
         if self.screen == "title":
             arcade.draw_text(
                 "Press SPACE to begin the first cleanup round.",
                 400,
-                63,
+                35,
                 arcade.color.WHITE,
-                14,
+                11,
                 anchor_x="center",
             )
         elif self.screen == "complete":
             arcade.draw_text(
                 "Press SPACE to move to the next building.",
                 400,
-                63,
+                35,
                 arcade.color.WHITE,
-                14,
+                11,
                 anchor_x="center",
             )
         elif self.screen == "failed":
             arcade.draw_text(
                 "Press SPACE to try again with a fresh round.",
                 400,
-                63,
+                35,
                 arcade.color.WHITE,
-                14,
+                11,
                 anchor_x="center",
             )
         elif self.screen == "repair":
             arcade.draw_text(
                 "Move with WASD or arrows. Click repair spots to fix this house.",
                 400,
-                63,
+                35,
                 arcade.color.WHITE,
-                14,
+                11,
                 anchor_x="center",
             )
             arcade.draw_text(
                 "When every repair is finished, the next building unlocks.",
                 400,
-                44,
+                23,
                 arcade.color.LIGHT_GRAY,
-                11,
+                9,
                 anchor_x="center",
             )
         else:
             arcade.draw_text(
                 "Move close to trash and click it. Press F near blue balls to make friends.",
                 400,
-                63,
+                35,
                 arcade.color.WHITE,
-                14,
+                11,
                 anchor_x="center",
             )
             arcade.draw_text(
                 "Clearing more trash unlocks more trust and brighter buildings.",
                 400,
-                44,
+                23,
                 arcade.color.LIGHT_GRAY,
-                11,
+                9,
                 anchor_x="center",
             )
-        arcade.draw_text("Press ESC to quit.", 400, 24, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_text("Press ESC to quit.", 400, 10, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
 
     def on_draw(self) -> None:
         self.clear()
