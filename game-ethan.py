@@ -280,7 +280,7 @@ class GameView(arcade.View):
                 return True
 
         if x is None and y is None:
-            self.message = "Move close to a blue ball before pressing X."
+            self.message = "Move close to a blue ball before pressing F."
             self.hint = "Pick up trash for hints, then use those hints near other balls."
             return True
 
@@ -309,7 +309,7 @@ class GameView(arcade.View):
             self.enter_house()
             return
 
-        if key == arcade.key.X:
+        if key == arcade.key.F:
             if self.screen == "playing" and not self.trash_spots:
                 self.enter_house()
                 return
@@ -386,7 +386,7 @@ class GameView(arcade.View):
                 self.money += TRASH_SCORE + self.upgrades
                 self.friend_hints += 1
                 self.message = f"You found a friend hint in the cleanup. Hints: {self.friend_hints}."
-                self.hint = "Move near another ball and press X or click them to become friends."
+                self.hint = "Move near another ball and press F or click them to become friends."
                 if self.cleaned % 2 == 0:
                     self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
                 if not self.trash_spots:
@@ -542,7 +542,7 @@ class GameView(arcade.View):
             arcade.draw_circle_filled(friend.x, friend.y, 16, friend_color)
             arcade.draw_circle_outline(friend.x, friend.y, 16, arcade.color.BLACK, 2)
             arcade.draw_text(friend.name, friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
-            label = "friend" if friend.name in self.befriended_friends else "press X"
+            label = "friend" if friend.name in self.befriended_friends else "press F"
             arcade.draw_text(label, friend.x, friend.y - 34, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
 
         self.draw_ball()
@@ -721,7 +721,7 @@ class GameView(arcade.View):
         else:
             play_instruction = "Press F to open the door when you are ready."
             if self.trash_spots:
-                play_instruction = "Move close to trash and click it. Press X near blue balls to make friends."
+                play_instruction = "Move close to trash and click it. Press F near blue balls to make friends."
             arcade.draw_text(
                 play_instruction,
                 400,
