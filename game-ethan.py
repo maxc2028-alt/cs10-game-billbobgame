@@ -101,7 +101,7 @@ class GameView(arcade.View):
         super().__init__(window=window)
         self.camera: arcade.Camera2D | None = None
         self.background_color = arcade.csscolor.DARK_SLATE_BLUE
-        self.screen = "title"
+        self.screen = "intro"
         self.time_left = QUEST_TIME
         self.money = 0
         self.friendship = 0
@@ -130,6 +130,7 @@ class GameView(arcade.View):
         self.round_started = False
         self.ball_x = 400.0
         self.ball_y = 155.0
+        self.intro_walk_x = 85.0
         self.keys_down: set[int] = set()
         self.quiz_friend: FriendNPC | None = None
         self.quiz_question = QUIZ_OPTIONS[0]
@@ -448,7 +449,7 @@ class GameView(arcade.View):
             return
 
         try:
-            if self.screen in {"title", "complete", "failed", "trash_game_over"}:
+            if self.screen in {"complete", "failed", "trash_game_over"}:
                 self.reset_round()
             elif self.screen == "playing" and not self.round_started:
                 self.reset_round()
@@ -468,6 +469,11 @@ class GameView(arcade.View):
             world_position = self.camera.unproject((x, y))
             x = world_position.x
             y = world_position.y
+
+        if self.screen == "intro":
+            if 310 <= x <= 490 and 135 <= y <= 190:
+                self.reset_round()
+            return
 
         if 10 <= x <= 45 and 18 <= y <= 53:
             self.show_instructions = not self.show_instructions
@@ -588,6 +594,12 @@ class GameView(arcade.View):
         self.ball_y = max(min_y, min(max_y, self.ball_y))
 
     def on_update(self, delta_time: float) -> None:
+        if self.screen == "intro":
+            self.intro_walk_x += 55 * delta_time
+            if self.intro_walk_x > 455:
+                self.intro_walk_x = 455
+            return
+
         self.update_ball(delta_time)
 
         if self.screen == "dark" and self.reached_entrance():
@@ -930,6 +942,42 @@ class GameView(arcade.View):
             arcade.draw_text(name, mid_x, 205, (222, 222, 214), 12, anchor_x="center")
 
         arcade.draw_text("Press 1, 2, or 3", 400, 165, (156, 160, 166), 13, anchor_x="center")
+
+    def draw_intro(self) -> None:
+        self.draw_background()
+        arcade.draw_text("Neighborhood Cleanup", 400, 505, (222, 222, 214), 36, anchor_x="center")
+        arcade.draw_text(
+            "Walk to the homes, learn who lives nearby, and help repair the block.",
+            400,
+            465,
+            (156, 160, 166),
+            14,
+            anchor_x="center",
+        )
+
+        intro_buildings = [
+            (430, 525, 185, 150, (73, 52, 48), (58, 62, 70)),
+            (540, 650, 175, 170, (62, 43, 55), (64, 68, 76)),
+            (665, 745, 190, 135, (61, 63, 49), (70, 72, 76)),
+        ]
+        for left, right, base_y, height, roof_color, wall_color in intro_buildings:
+            self.draw_building(left, right, base_y, height, roof_color, wall_color)
+
+        arcade.draw_lrbt_rectangle_filled(55, 745, 90, 125, (30, 32, 38))
+        arcade.draw_line(55, 125, 745, 125, arcade.color.BLACK, 3)
+
+        person_x = self.intro_walk_x
+        arcade.draw_ellipse_filled(person_x, 84, 34, 8, (15, 18, 25, 130))
+        arcade.draw_line(person_x, 134, person_x, 104, arcade.color.BLACK, 5)
+        arcade.draw_line(person_x - 14, 120, person_x + 14, 120, arcade.color.BLACK, 3)
+        arcade.draw_line(person_x, 104, person_x - 11, 88, arcade.color.BLACK, 3)
+        arcade.draw_line(person_x, 104, person_x + 12, 89, arcade.color.BLACK, 3)
+        arcade.draw_circle_filled(person_x, 150, 16, (177, 154, 82))
+        arcade.draw_circle_outline(person_x, 150, 16, arcade.color.BLACK, 2)
+
+        arcade.draw_lrbt_rectangle_filled(310, 490, 135, 190, (174, 151, 82))
+        arcade.draw_lrbt_rectangle_outline(310, 490, 135, 190, arcade.color.BLACK, 3)
+        arcade.draw_text("START", 400, 153, arcade.color.BLACK, 22, anchor_x="center")
 
     def draw_dark_challenge(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, arcade.color.BLACK)
