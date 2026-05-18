@@ -264,8 +264,9 @@ class GameView(arcade.View):
         self.next_building()
 
     def fail_round(self) -> None:
-        self.screen = "failed"
-        self.message = "The timer ran out. The block stays quiet for now."
+        self.screen = "trash_game_over"
+        self.message = "Game over. The timer ran out."
+        self.hint = "You needed to clear the trash before time ran out."
         self.round_started = False
 
     def start_friend_quiz(self, friend: FriendNPC) -> None:
@@ -419,7 +420,7 @@ class GameView(arcade.View):
             x = world_position.x
             y = world_position.y
 
-        if 755 <= x <= 790 and 18 <= y <= 53:
+        if 10 <= x <= 45 and 18 <= y <= 53:
             self.show_instructions = not self.show_instructions
             return
 
@@ -901,6 +902,12 @@ class GameView(arcade.View):
         arcade.draw_text("Press ESC to quit.", 400, 265, arcade.color.WHITE, 16, anchor_x="center")
         arcade.draw_text(self.quiz_question["fact"], 170, 215, arcade.color.LIGHT_GRAY, 13, width=460, multiline=True)
 
+    def draw_trash_game_over(self) -> None:
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, arcade.color.BLACK)
+        arcade.draw_text("GAME OVER", 400, 330, arcade.color.GOLD, 64, anchor_x="center")
+        arcade.draw_text("You ran out of time picking up trash.", 400, 270, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_text("Press SPACE to try again or ESC to quit.", 400, 230, arcade.color.LIGHT_GRAY, 14, anchor_x="center")
+
     def draw_hud(self) -> None:
         arcade.draw_lrbt_rectangle_filled(10, 790, 492, 590, (14, 17, 24))
         arcade.draw_lrbt_rectangle_outline(10, 790, 492, 590, (126, 132, 142))
@@ -939,9 +946,9 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_outline(105, 695, 16, 50, (126, 132, 142))
         arcade.draw_text(self.message, 122, 29, (117, 147, 135), 11, width=552)
 
-        arcade.draw_circle_filled(772, 35, 17, (14, 17, 24))
-        arcade.draw_circle_outline(772, 35, 17, (222, 222, 214), 2)
-        arcade.draw_text("?", 772, 25, (222, 222, 214), 18, anchor_x="center")
+        arcade.draw_circle_filled(28, 35, 17, (14, 17, 24))
+        arcade.draw_circle_outline(28, 35, 17, (222, 222, 214), 2)
+        arcade.draw_text("?", 28, 25, (222, 222, 214), 18, anchor_x="center")
 
         if self.show_instructions:
             arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
