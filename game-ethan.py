@@ -973,9 +973,16 @@ class GameView(arcade.View):
         arrived = person_x >= 285
         wave = math.sin(self.intro_time * 7) * 10 if arrived else 0
         arcade.draw_ellipse_filled(person_x, 84, 34, 8, (15, 18, 25, 130))
-        arcade.draw_line(person_x + 17, 162, person_x + 52, 94, (70, 45, 28), 4)
-        arcade.draw_circle_filled(person_x + 52, 91, 13, (80, 55, 42))
-        arcade.draw_circle_outline(person_x + 52, 91, 13, arcade.color.BLACK, 2)
+        stick_start_x = person_x - 24
+        stick_start_y = 160
+        stick_end_x = person_x + 62
+        stick_end_y = 188
+        arcade.draw_line(stick_start_x, stick_start_y, stick_end_x, stick_end_y, (82, 50, 28), 4)
+        arcade.draw_line(person_x - 8, 142, stick_start_x + 28, stick_start_y + 10, arcade.color.BLACK, 3)
+        arcade.draw_circle_filled(stick_end_x + 7, stick_end_y - 6, 18, (145, 35, 38))
+        arcade.draw_circle_outline(stick_end_x + 7, stick_end_y - 6, 18, arcade.color.BLACK, 2)
+        arcade.draw_line(stick_end_x - 3, stick_end_y - 3, stick_end_x + 12, stick_end_y + 6, arcade.color.BLACK, 2)
+        arcade.draw_line(stick_end_x + 2, stick_end_y + 1, stick_end_x + 17, stick_end_y - 12, arcade.color.BLACK, 2)
         arcade.draw_line(person_x, 134, person_x, 104, arcade.color.BLACK, 5)
         arcade.draw_line(person_x - 14, 120, person_x + 8, 119, arcade.color.BLACK, 3)
         if arrived:
@@ -984,11 +991,9 @@ class GameView(arcade.View):
             arcade.draw_text("Press START", person_x + 80, 214, (222, 222, 214), 13, anchor_x="center")
             arcade.draw_text("I am ready.", person_x + 80, 196, (156, 160, 166), 10, anchor_x="center")
         else:
-            arcade.draw_line(person_x + 8, 119, person_x + 20, 104, arcade.color.BLACK, 3)
+        arcade.draw_line(person_x + 8, 119, person_x + 20, 104, arcade.color.BLACK, 3)
         arcade.draw_line(person_x, 104, person_x - 11, 88, arcade.color.BLACK, 3)
         arcade.draw_line(person_x, 104, person_x + 12, 89, arcade.color.BLACK, 3)
-        arcade.draw_circle_filled(person_x - 14, 128, 10, (74, 56, 43))
-        arcade.draw_circle_outline(person_x - 14, 128, 10, arcade.color.BLACK, 2)
         arcade.draw_circle_filled(person_x, 150, 16, (177, 154, 82))
         arcade.draw_circle_outline(person_x, 150, 16, arcade.color.BLACK, 2)
 
