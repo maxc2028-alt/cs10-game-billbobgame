@@ -206,6 +206,7 @@ class GameView(arcade.View):
             RepairSpot(x, y, label, color, cost)
             for x, y, label, color, cost in repair_sets[self.current_building]
         ]
+        self.time_left = QUEST_TIME
         self.inside_building = self.current_building
         self.screen = "repair"
         self.round_started = False
@@ -215,6 +216,7 @@ class GameView(arcade.View):
         self.hint = "Repair the damaged wall, floor, window, and doorway details to finish this house."
 
     def visit_house(self, building_index: int) -> None:
+        self.time_left = QUEST_TIME
         self.inside_building = building_index
         self.repair_spots = []
         self.screen = "visit"
@@ -652,9 +654,6 @@ class GameView(arcade.View):
             repaired = index in self.house_styles
             if index in self.house_styles:
                 roof_color, wall_color = self.house_styles[index]
-            elif index < self.neighborhood_state:
-                wall_color = (76, 91, 86)
-                roof_color = (54, 77, 69)
             self.draw_building(left, right, base_y, height, roof_color, wall_color, repaired)
             door_width = 34
             door_height = 68
