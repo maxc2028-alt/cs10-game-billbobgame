@@ -29,24 +29,34 @@ ENTRANCE_HEIGHT = 120
 BUILDING_POSITIONS = [(90, 320, 120), (350, 590, 115), (620, 770, 95)]
 QUIZ_OPTIONS = [
     {
-        "question": "What is one helpful way an abandoned home could be used?",
+        "question": "Which choice best explains why repairing an abandoned home can reduce loneliness?",
         "answers": [
-            "Turn it into safe housing or a youth center",
-            "Leave it empty so nobody notices it",
-            "Break more windows so it looks scary",
+            "It creates a safe shared place where people can meet, help, and feel noticed",
+            "It hides the problems so nobody has to talk about them",
+            "It makes every person instantly happy without needing relationships",
         ],
         "correct": 0,
         "fact": "Empty homes can become safe housing, community rooms, gardens, or youth spaces when people repair them together.",
     },
     {
-        "question": "What can help teens who feel lonely?",
+        "question": "A teen says they feel invisible in their neighborhood. What is the strongest first response?",
         "answers": [
-            "A trusted friend, mentor, club, or safe place to meet",
-            "Being ignored until they stop talking",
-            "More empty places with nobody around",
+            "Listen seriously, connect them with trusted people, and invite them into safe activities",
+            "Tell them other people have worse problems",
+            "Wait for them to solve it alone so they become tougher",
         ],
         "correct": 0,
         "fact": "Connection matters. Friends, mentors, teams, clubs, and safe community spaces can help teens feel less alone.",
+    },
+    {
+        "question": "Why should a cleanup project include the people who live nearby?",
+        "answers": [
+            "They understand what the block needs and feel more ownership when they help decide",
+            "It is faster if nobody asks them what they think",
+            "Only money matters, not relationships or trust",
+        ],
+        "correct": 0,
+        "fact": "Community repair works best when neighbors are included, respected, and trusted to shape the place they share.",
     },
 ]
 
@@ -96,6 +106,7 @@ class GameView(arcade.View):
         self.money = 0
         self.friendship = 0
         self.friend_hints = 0
+        self.friend_name_hints: dict[str, int] = {}
         self.cleaned = 0
         self.upgrades = 0
         self.message = "Press SPACE to begin."
@@ -122,6 +133,7 @@ class GameView(arcade.View):
         self.keys_down: set[int] = set()
         self.quiz_friend: FriendNPC | None = None
         self.quiz_question = QUIZ_OPTIONS[0]
+        self.quiz_tries_left = 2
         self.game_over_ready = False
         self.show_instructions = False
         self.configure_camera()
