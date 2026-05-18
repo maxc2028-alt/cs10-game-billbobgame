@@ -399,7 +399,7 @@ class GameView(arcade.View):
             return
 
         try:
-            if self.screen in {"title", "complete", "failed"}:
+            if self.screen in {"title", "complete", "failed", "trash_game_over"}:
                 self.reset_round()
             elif self.screen == "playing" and not self.round_started:
                 self.reset_round()
@@ -1018,6 +1018,10 @@ class GameView(arcade.View):
 
         if self.screen == "game_over":
             self.draw_game_over()
+            return
+
+        if self.screen == "trash_game_over":
+            self.draw_trash_game_over()
             return
 
         if self.screen in {"repair", "visit"}:
