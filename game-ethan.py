@@ -504,8 +504,20 @@ class GameView(arcade.View):
             arcade.draw_line(center_x - 2, window_bottom + 18, window_right - 8, window_bottom + 8, arcade.color.WHITE, 2)
             arcade.draw_line(center_x - 2, window_bottom + 18, center_x + 10, window_top - 12, arcade.color.WHITE, 1)
             if i % 2 == 0:
-                arcade.draw_rectangle_filled(center_x, window_bottom + 15, window_width + 8, 8, (87, 63, 45), 18)
-                arcade.draw_rectangle_filled(center_x, window_top - 13, window_width + 8, 8, (75, 55, 42), -16)
+                arcade.draw_lrbt_rectangle_filled(
+                    window_left - 4,
+                    window_right + 4,
+                    window_bottom + 11,
+                    window_bottom + 19,
+                    (87, 63, 45),
+                )
+                arcade.draw_lrbt_rectangle_filled(
+                    window_left - 4,
+                    window_right + 4,
+                    window_top - 17,
+                    window_top - 9,
+                    (75, 55, 42),
+                )
                 arcade.draw_line(window_left - 3, window_bottom + 14, window_right + 3, window_top - 10, arcade.color.BLACK, 1)
 
     def draw_scene(self) -> None:
@@ -536,7 +548,13 @@ class GameView(arcade.View):
             arcade.draw_circle_filled(door_right - 8, base_y + 34, 3, (150, 132, 82))
             arcade.draw_line(door_left + 6, base_y + 58, door_right - 7, base_y + 43, arcade.color.BLACK, 2)
             arcade.draw_line(door_left + 7, base_y + 18, door_right - 10, base_y + 28, arcade.color.BLACK, 2)
-            arcade.draw_rectangle_filled(door_center, base_y + 11, door_width + 10, 7, (31, 30, 32), 0)
+            arcade.draw_lrbt_rectangle_filled(
+                door_left - 5,
+                door_right + 5,
+                base_y + 8,
+                base_y + 15,
+                (31, 30, 32),
+            )
             if index == self.current_building and not self.trash_spots:
                 arcade.draw_text(
                     "Press F to open door",
