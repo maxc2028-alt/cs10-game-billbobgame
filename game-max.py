@@ -160,7 +160,7 @@ class GameView(arcade.View):
         self.configure_camera()
 
     def reset_round(self) -> None:
-        self.time_left = QUEST_TIME
+        self.time_left = self.round_time_limit()
         self.cleaned = 0
         self.repair_spots = []
         self.upgrade_choices = []
@@ -231,10 +231,43 @@ class GameView(arcade.View):
         self.message = f"{finished_building} is repaired. Pick a house upgrade."
         self.hint = "Press 1, 2, or 3 to choose an upgrade, then press SPACE to start the next building."
 
+    def has_upgrade(self, upgrade_name: str) -> bool:
+        return upgrade_name in self.selected_house_upgrades
+
+    def round_time_limit(self) -> float:
+        time_limit = QUEST_TIME
+        if self.has_upgrade("Rain Garden"):
+            time_limit += 5.0
+        return time_limit
+
+    def trash_reward(self) -> int:
+        reward = TRASH_SCORE + self.upgrades
+        if self.has_upgrade("Solar Panels"):
+            reward += 2
+        return reward
+
+    def repair_reward(self) -> int:
+        reward = 3 + self.upgrades
+        if self.has_upgrade("Fresh Paint"):
+            reward += 1
+        return reward
+
+    def building_completion_reward(self) -> int:
+        reward = 15 + self.upgrades * 3
+        if self.has_upgrade("Solar Panels"):
+            reward += 5
+        return reward
+
+    def effective_friend_distance(self) -> float:
+        distance = FRIEND_DISTANCE
+        if self.has_upgrade("Community Porch"):
+            distance += 20
+        return distance
+
     def advance_to_next_building(self) -> None:
         self.current_building = (self.current_building + 1) % len(self.building_names)
         self.buildings_cleaned += 1
-        self.money += 15 + self.upgrades * 3
+        self.money += self.building_completion_reward()
         self.friendship += 1
         self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
         self.upgrade_choices = []
@@ -321,7 +354,7 @@ class GameView(arcade.View):
                 continue
 
             clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 24 ** 2
-            near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
+            near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= self.effective_friend_distance() ** 2
 
             if clicked_friend or (x is None and near_ball):
                 if not near_ball:
@@ -429,7 +462,7 @@ class GameView(arcade.View):
                     continue
                 if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= spot.radius ** 2:
                     spot.fixed = True
-                    self.money += 3 + self.upgrades
+                    self.money += self.repair_reward()
                     self.message = f"Fixed: {spot.label}."
                     self.hint = "Keep repairing the marked spots until the house is ready."
                     if all(repair.fixed for repair in self.repair_spots):
@@ -463,7 +496,7 @@ class GameView(arcade.View):
 
                 self.trash_spots.remove(trash)
                 self.cleaned += 1
-                self.money += TRASH_SCORE + self.upgrades
+                self.money += self.trash_reward()
                 self.friend_hints += 1
                 self.message = f"You found a friend hint in the cleanup. Hints: {self.friend_hints}."
                 self.hint = "Move near another ball and press F or click them to become friends."
@@ -543,7 +576,16 @@ class GameView(arcade.View):
         arcade.draw_circle_filled(735, 545, 30, (92, 96, 104))
         arcade.draw_line(0, 120, 800, 120, (49, 58, 55), 2)
 
-    def draw_building(self, left: float, right: float, base_y: float, height: float, roof_color, wall_color) -> None:
+    def draw_building(
+        self,
+        left: float,
+        right: float,
+        base_y: float,
+        height: float,
+        roof_color,
+        wall_color,
+        damage_level: int = 0,
+    ) -> None:
         top = base_y + height
         arcade.draw_lrbt_rectangle_filled(left, right, base_y, top, wall_color)
         arcade.draw_lrbt_rectangle_outline(left, right, base_y, top, arcade.color.BLACK)
@@ -570,6 +612,29 @@ class GameView(arcade.View):
                 arcade.color.LIGHT_STEEL_BLUE,
             )
             arcade.draw_lrbt_rectangle_outline(window_left, window_right, window_bottom, window_top, arcade.color.BLACK)
+
+        if damage_level > 0:
+            soot_color = (26, 24, 22)
+            for i in range(damage_level):
+                offset = 18 + i * 42
+                arcade.draw_circle_filled(left + offset, top - 18 - i * 6, 8, (38, 36, 34))
+                arcade.draw_line(left + offset - 10, top - 10, left + offset + 14, top - 36, soot_color, 2)
+                arcade.draw_line(left + offset - 4, top - 2, left + offset + 18, top - 28, soot_color, 1)
+
+            boarded_x = left + (right - left) * 0.27
+            boarded_left = boarded_x - 17
+            boarded_right = boarded_x + 17
+            boarded_bottom = window_bottom - 6
+            boarded_top = window_top + 4
+            arcade.draw_lrbt_rectangle_filled(boarded_left, boarded_right, boarded_bottom, boarded_top, (79, 58, 39))
+            arcade.draw_lrbt_rectangle_outline(boarded_left, boarded_right, boarded_bottom, boarded_top, arcade.color.BLACK, 2)
+            arcade.draw_line(boarded_left, boarded_bottom, boarded_right, boarded_top, arcade.color.BLACK, 2)
+            arcade.draw_line(boarded_left, boarded_top, boarded_right, boarded_bottom, arcade.color.BLACK, 2)
+
+            arcade.draw_line(left + 18, base_y + 10, left + 42, base_y + 28, arcade.color.DARK_RED, 2)
+            arcade.draw_line(right - 52, base_y + 8, right - 24, base_y + 24, arcade.color.DARK_RED, 2)
+            arcade.draw_line(left + 20, base_y + 8, left + 35, base_y + 8, arcade.color.DARK_RED, 2)
+            arcade.draw_circle_filled(right - 26, base_y + 9, 3, arcade.color.DARK_RED)
 
     def draw_scene(self) -> None:
         self.draw_background()
