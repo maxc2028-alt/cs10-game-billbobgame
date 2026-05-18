@@ -21,13 +21,14 @@ SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Neighborhood Cleanup: South Block"
 
 
-QUEST_TIME = 7.0
+QUEST_TIME = 11.0
 MAX_UPGRADES = 3
 TRASH_SCORE = 4
 BUILDING_STAGES = 3
 BALL_SPEED = 220
 BALL_RADIUS = 16
 COLLECT_DISTANCE = 70
+TRASH_CLICK_RADIUS = 30
 FRIEND_DISTANCE = 65
 ENTRANCE_X = 720
 ENTRANCE_Y = 300
@@ -676,7 +677,7 @@ class GameView(arcade.View):
 
 
         for trash in list(self.trash_spots):
-            if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= trash.radius ** 2:
+            if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= TRASH_CLICK_RADIUS ** 2:
                 if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
                     self.message = "Move the ball closer to pick that up."
                     self.hint = "Use WASD or arrow keys to get near the trash, then click it."
@@ -1362,6 +1363,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 
 
