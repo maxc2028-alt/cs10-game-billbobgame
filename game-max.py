@@ -309,6 +309,29 @@ class GameView(arcade.View):
         return f"{known_letters}/{len(name)} clues"
 
 
+    def friend_action_hint(self) -> str:
+        if self.screen != "playing":
+            return ""
+        target_name = self.current_target_friend_name()
+        if self.trash_spots:
+            return "Clean trash first to reveal friend name clues."
+        if self.known_name_letters(target_name) < len(target_name):
+            return f"Friend clues: {self.display_name_from_hint(target_name)}."
+        return "Move close to the blue friend and press T, or click them, to type the full name."
+
+
+    def friend_label_text(self, friend: FriendNPC) -> str:
+        if friend.name in self.befriended_friends:
+            return "friend"
+        if friend.name != self.current_target_friend_name():
+            return "not yet"
+        if self.known_name_letters(friend.name) < len(friend.name):
+            return "find clues"
+        if friend.name in self.guessed_friend_names:
+            return "quiz time"
+        return "press T"
+
+
     def letter_clue(self, letter: str, position: int) -> str:
         if letter == " ":
             return f"spot {position} is a space between two words"
@@ -344,8 +367,8 @@ class GameView(arcade.View):
                 clues.append(self.letter_clue(name[known_letters - 1], known_letters))
             self.friend_name_hints[name] = known_letters
         if known_letters >= len(name):
-            return f"Name clues complete: {'; '.join(clues)}. Press T near the person and guess the name."
-        return f"Name clue: {'; '.join(clues)}."
+            return f"Name clues complete: {'; '.join(clues)}. Move close and press T, or click the friend, to guess the name."
+        return f"Name clue: {'; '.join(clues)}. Keep cleaning trash for more letters."
 
 
     def next_building(self) -> None:
@@ -388,15 +411,15 @@ class GameView(arcade.View):
         self.quiz_tries_left = 2
         self.screen = "quiz"
         self.message = f"You know {friend.name}'s name. Answer their question."
-        self.hint = "You get 2 tries. Think carefully."
+        self.hint = "You get 2 tries. Read the choices carefully before you pick one."
 
 
     def start_name_guess(self, friend: FriendNPC) -> None:
         self.guess_friend = friend
         self.name_guess = ""
         self.screen = "name_guess"
-        self.message = "Type the person's full name from the clues."
-        self.hint = "Press ENTER to guess. Use BACKSPACE to erase."
+        self.message = "Type the friend's full name from the trash clues."
+        self.hint = "Press ENTER to guess. Use BACKSPACE to erase. Click a friend or press T after you are nearby."
 
 
     def submit_name_guess(self) -> None:
@@ -688,14 +711,14 @@ class GameView(arcade.View):
                 self.cleaned += 1
                 self.money += TRASH_SCORE + self.upgrades
                 self.message = self.reveal_friend_name_hint()
-                self.hint = "When the full name is revealed, move near that person and press T for the quiz."
+                self.hint = "When the full name is revealed, move near that person and press T, or click them, to continue."
                 if self.cleaned % 2 == 0:
                     self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
                 if not self.trash_spots:
                     target_name = self.current_target_friend_name()
                     if self.known_name_letters(target_name) >= len(target_name):
                         self.message = "The outside is clear, and the name clues are complete."
-                        self.hint = "Press T near the person, type the full name, then take the quiz."
+                        self.hint = "Move close to the person and press T, or click them, then type the full name."
                     else:
                         self.message = "The outside is clear. Press F to open the door."
                         self.hint = "You can open the door, but you need the full friend name before the quiz."
@@ -955,8 +978,7 @@ class GameView(arcade.View):
             arcade.draw_circle_filled(friend.x, friend.y, 16, friend_color)
             arcade.draw_circle_outline(friend.x, friend.y, 16, arcade.color.BLACK, 2)
             arcade.draw_text(self.friend_display_name(friend), friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
-            label = "friend" if friend.name in self.befriended_friends else "press T"
-            arcade.draw_text(label, friend.x, friend.y - 34, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
+            arcade.draw_text(self.friend_label_text(friend), friend.x, friend.y - 34, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
 
 
         self.draw_ball()
@@ -1117,7 +1139,8 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(210, 590, 265, 315, (34, 44, 60))
         arcade.draw_lrbt_rectangle_outline(210, 590, 265, 315, arcade.color.LIGHT_GRAY, 2)
         arcade.draw_text(self.name_guess or "type name here", 400, 282, arcade.color.WHITE, 18, anchor_x="center")
-        arcade.draw_text("ENTER to submit     BACKSPACE to erase", 400, 220, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_text("ENTER submits     BACKSPACE erases", 400, 220, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_text("Use the trash clues to spell the full name.", 400, 196, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
 
     def draw_decorate(self) -> None:
@@ -1251,6 +1274,7 @@ class GameView(arcade.View):
         arcade.draw_text(f"Clues: {self.display_name_from_hint(target_name)}", 390, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
+        arcade.draw_text(self.friend_action_hint(), 520, 538, (156, 160, 166), 10, width=248, align="left")
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
@@ -1363,5 +1387,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
