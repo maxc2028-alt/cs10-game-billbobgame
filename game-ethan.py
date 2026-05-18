@@ -310,6 +310,9 @@ class GameView(arcade.View):
             return
 
         if key == arcade.key.F:
+            if self.screen == "playing" and not self.trash_spots:
+                self.enter_house()
+                return
             self.try_befriend()
             return
 
@@ -386,18 +389,18 @@ class GameView(arcade.View):
                 self.hint = "Move near another ball and press F or click them to become friends."
                 if self.cleaned % 2 == 0:
                     self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
+                if not self.trash_spots:
+                    self.message = "The outside is clear. Press F to open the door."
+                    self.hint = "You can talk to friends first, or open the door when you are ready."
                 break
-
-        if not self.trash_spots:
-            self.enter_house()
 
     def draw_ball(self) -> None:
         if self.screen == "playing":
-            arcade.draw_circle_outline(self.ball_x, self.ball_y, COLLECT_DISTANCE, arcade.color.LIGHT_GRAY, 1)
+            arcade.draw_circle_outline(self.ball_x, self.ball_y, COLLECT_DISTANCE, (128, 133, 140), 1)
         arcade.draw_circle_filled(self.ball_x + 4, self.ball_y - 5, BALL_RADIUS, (15, 18, 25, 120))
-        arcade.draw_circle_filled(self.ball_x, self.ball_y, BALL_RADIUS, arcade.color.GOLD)
+        arcade.draw_circle_filled(self.ball_x, self.ball_y, BALL_RADIUS, (177, 154, 82))
         arcade.draw_circle_outline(self.ball_x, self.ball_y, BALL_RADIUS, arcade.color.BLACK, 2)
-        arcade.draw_circle_filled(self.ball_x - 5, self.ball_y + 5, 5, arcade.color.WHITE)
+        arcade.draw_circle_filled(self.ball_x - 5, self.ball_y + 5, 5, (222, 222, 214))
 
     def update_ball(self, delta_time: float) -> None:
         if self.screen not in {"playing", "repair", "dark"}:
@@ -452,13 +455,13 @@ class GameView(arcade.View):
             self.fail_round()
 
     def draw_background(self) -> None:
-        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (31, 38, 57))
-        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 120, (45, 58, 46))
-        arcade.draw_circle_filled(95, 525, 34, arcade.color.GOLD)
-        arcade.draw_circle_filled(140, 535, 24, arcade.color.GOLD)
-        arcade.draw_circle_filled(700, 525, 22, arcade.color.LIGHT_BLUE)
-        arcade.draw_circle_filled(735, 545, 30, arcade.color.WHITE)
-        arcade.draw_line(0, 120, 800, 120, (70, 80, 70), 2)
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (18, 22, 32))
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 120, (31, 38, 36))
+        arcade.draw_circle_filled(95, 525, 34, (132, 126, 108))
+        arcade.draw_circle_filled(140, 535, 24, (112, 108, 98))
+        arcade.draw_circle_filled(700, 525, 22, (76, 86, 102))
+        arcade.draw_circle_filled(735, 545, 30, (92, 96, 104))
+        arcade.draw_line(0, 120, 800, 120, (49, 58, 55), 2)
 
     def draw_building(self, left: float, right: float, base_y: float, height: float, roof_color, wall_color) -> None:
         top = base_y + height
@@ -492,9 +495,9 @@ class GameView(arcade.View):
         self.draw_background()
 
         building_colors = [
-            (arcade.color.SIENNA, arcade.color.DIM_GRAY),
-            (arcade.color.MAROON, arcade.color.SLATE_GRAY),
-            (arcade.color.OLIVE, arcade.color.GRAY),
+            ((73, 52, 48), (58, 62, 70)),
+            ((62, 43, 55), (64, 68, 76)),
+            ((61, 63, 49), (70, 72, 76)),
         ]
         building_heights = [220, 235, 195]
         building_positions = [(90, 320, 120), (350, 590, 115), (620, 770, 95)]
@@ -503,11 +506,28 @@ class GameView(arcade.View):
             roof_color, wall_color = building_colors[index]
             height = building_heights[index]
             if index < self.neighborhood_state:
-                wall_color = arcade.color.DARK_SEA_GREEN
-                roof_color = arcade.color.FOREST_GREEN
+                wall_color = (76, 91, 86)
+                roof_color = (54, 77, 69)
             self.draw_building(left, right, base_y, height, roof_color, wall_color)
+            door_width = 34
+            door_height = 68
+            door_center = (left + right) / 2
+            door_left = door_center - door_width / 2
+            door_right = door_center + door_width / 2
+            arcade.draw_lrbt_rectangle_filled(door_left, door_right, base_y, base_y + door_height, (45, 36, 34))
+            arcade.draw_lrbt_rectangle_outline(door_left, door_right, base_y, base_y + door_height, arcade.color.BLACK, 2)
+            arcade.draw_circle_filled(door_right - 8, base_y + 34, 3, (150, 132, 82))
+            if index == self.current_building and not self.trash_spots:
+                arcade.draw_text(
+                    "Press F to open door",
+                    door_center,
+                    base_y + door_height + 10,
+                    (222, 222, 214),
+                    10,
+                    anchor_x="center",
+                )
 
-        arcade.draw_lrbt_rectangle_filled(40, 760, 80, 105, (40, 42, 48))
+        arcade.draw_lrbt_rectangle_filled(40, 760, 80, 105, (30, 32, 38))
         arcade.draw_line(0, 105, 800, 105, arcade.color.BLACK, 3)
 
         arcade.draw_text("bus stop", 675, 138, arcade.color.WHITE, 10)
@@ -518,7 +538,7 @@ class GameView(arcade.View):
             arcade.draw_text(trash.highlight, trash.x, trash.y - 5, arcade.color.WHITE, 8, anchor_x="center")
 
         for friend in self.friends:
-            friend_color = arcade.color.LIGHT_GREEN if friend.name in self.befriended_friends else arcade.color.LIGHT_BLUE
+            friend_color = (118, 139, 129) if friend.name in self.befriended_friends else (86, 104, 123)
             arcade.draw_circle_filled(friend.x, friend.y, 16, friend_color)
             arcade.draw_circle_outline(friend.x, friend.y, 16, arcade.color.BLACK, 2)
             arcade.draw_text(friend.name, friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
@@ -528,23 +548,23 @@ class GameView(arcade.View):
         self.draw_ball()
 
     def draw_house_interior(self) -> None:
-        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (34, 30, 40))
-        arcade.draw_lrbt_rectangle_filled(90, 710, 120, 470, (84, 75, 88))
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (25, 24, 31))
+        arcade.draw_lrbt_rectangle_filled(90, 710, 120, 470, (68, 65, 76))
         arcade.draw_lrbt_rectangle_outline(90, 710, 120, 470, arcade.color.BLACK, 3)
-        arcade.draw_lrbt_rectangle_filled(90, 710, 80, 120, (96, 76, 55))
+        arcade.draw_lrbt_rectangle_filled(90, 710, 80, 120, (72, 61, 54))
         arcade.draw_line(90, 120, 710, 120, arcade.color.BLACK, 3)
 
-        arcade.draw_lrbt_rectangle_filled(165, 245, 315, 405, arcade.color.DARK_SLATE_BLUE)
+        arcade.draw_lrbt_rectangle_filled(165, 245, 315, 405, (34, 44, 60))
         arcade.draw_lrbt_rectangle_outline(165, 245, 315, 405, arcade.color.BLACK, 2)
         arcade.draw_line(205, 315, 205, 405, arcade.color.BLACK, 2)
         arcade.draw_line(165, 360, 245, 360, arcade.color.BLACK, 2)
 
-        arcade.draw_lrbt_rectangle_filled(540, 620, 315, 405, arcade.color.DARK_SLATE_BLUE)
+        arcade.draw_lrbt_rectangle_filled(540, 620, 315, 405, (34, 44, 60))
         arcade.draw_lrbt_rectangle_outline(540, 620, 315, 405, arcade.color.BLACK, 2)
         arcade.draw_line(580, 315, 580, 405, arcade.color.BLACK, 2)
         arcade.draw_line(540, 360, 620, 360, arcade.color.BLACK, 2)
 
-        arcade.draw_lrbt_rectangle_filled(360, 440, 120, 260, (83, 58, 42))
+        arcade.draw_lrbt_rectangle_filled(360, 440, 120, 260, (61, 48, 42))
         arcade.draw_lrbt_rectangle_outline(360, 440, 120, 260, arcade.color.BLACK, 2)
         arcade.draw_circle_filled(425, 195, 4, arcade.color.GOLD)
 
@@ -616,27 +636,27 @@ class GameView(arcade.View):
         arcade.draw_text(self.quiz_question["fact"], 170, 215, arcade.color.LIGHT_GRAY, 13, width=460, multiline=True)
 
     def draw_hud(self) -> None:
-        arcade.draw_lrbt_rectangle_filled(10, 790, 492, 590, (18, 22, 31))
-        arcade.draw_lrbt_rectangle_outline(10, 790, 492, 590, arcade.color.WHITE)
+        arcade.draw_lrbt_rectangle_filled(10, 790, 492, 590, (14, 17, 24))
+        arcade.draw_lrbt_rectangle_outline(10, 790, 492, 590, (126, 132, 142))
 
-        arcade.draw_text("Neighborhood Cleanup", 22, 562, arcade.color.WHITE, 22)
-        arcade.draw_text(f"Building: {self.building_names[self.current_building]}", 22, 538, arcade.color.LIGHT_GRAY, 12)
-        arcade.draw_text(f"Trash: {self.cleaned}", 22, 516, arcade.color.WHITE, 12)
-        arcade.draw_text(f"Money: ${self.money}", 125, 516, arcade.color.WHITE, 12)
-        arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, arcade.color.WHITE, 12)
-        arcade.draw_text(f"Hints: {self.friend_hints}", 390, 516, arcade.color.WHITE, 12)
-        arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, arcade.color.WHITE, 12)
-        arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, arcade.color.WHITE, 12)
+        arcade.draw_text("Neighborhood Cleanup", 22, 562, (220, 221, 218), 22)
+        arcade.draw_text(f"Building: {self.building_names[self.current_building]}", 22, 538, (156, 160, 166), 12)
+        arcade.draw_text(f"Trash: {self.cleaned}", 22, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Money: ${self.money}", 125, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Hints: {self.friend_hints}", 390, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
-            arcade.draw_text(f"Repairs: {fixed_count}/{repair_total}", 260, 538, arcade.color.LIGHT_GRAY, 12)
+            arcade.draw_text(f"Repairs: {fixed_count}/{repair_total}", 260, 538, (156, 160, 166), 12)
         else:
             arcade.draw_text(
                 f"Neighborhood level: {self.neighborhood_state + 1}/{BUILDING_STAGES}",
                 260,
                 538,
-                arcade.color.LIGHT_GRAY,
+                (156, 160, 166),
                 12,
             )
 
@@ -646,13 +666,13 @@ class GameView(arcade.View):
         bar_top = 508
         arcade.draw_lrbt_rectangle_filled(bar_left, bar_right, bar_bottom, bar_top, arcade.color.DARK_SLATE_GRAY)
         filled = bar_left + (bar_right - bar_left) * max(0, self.time_left) / QUEST_TIME
-        arcade.draw_lrbt_rectangle_filled(bar_left, filled, bar_bottom, bar_top, arcade.color.GOLD)
-        arcade.draw_lrbt_rectangle_outline(bar_left, bar_right, bar_bottom, bar_top, arcade.color.WHITE)
+        arcade.draw_lrbt_rectangle_filled(bar_left, filled, bar_bottom, bar_top, (174, 151, 82))
+        arcade.draw_lrbt_rectangle_outline(bar_left, bar_right, bar_bottom, bar_top, (126, 132, 142))
 
-        arcade.draw_lrbt_rectangle_filled(95, 705, 18, 96, (18, 22, 31))
-        arcade.draw_lrbt_rectangle_outline(95, 705, 18, 96, arcade.color.WHITE)
-        arcade.draw_text(self.message, 112, 75, arcade.color.AMAZON, 12, width=576, multiline=True)
-        arcade.draw_text(self.hint, 112, 55, arcade.color.LIGHT_GRAY, 10, width=576, multiline=True)
+        arcade.draw_lrbt_rectangle_filled(95, 705, 18, 96, (14, 17, 24))
+        arcade.draw_lrbt_rectangle_outline(95, 705, 18, 96, (126, 132, 142))
+        arcade.draw_text(self.message, 112, 75, (117, 147, 135), 12, width=576, multiline=True)
+        arcade.draw_text(self.hint, 112, 55, (156, 160, 166), 10, width=576, multiline=True)
 
         if self.screen == "title":
             arcade.draw_text(
@@ -699,8 +719,11 @@ class GameView(arcade.View):
                 anchor_x="center",
             )
         else:
+            play_instruction = "Press F to open the door when you are ready."
+            if self.trash_spots:
+                play_instruction = "Move close to trash and click it. Press F near blue balls to make friends."
             arcade.draw_text(
-                "Move close to trash and click it. Press F near blue balls to make friends.",
+                play_instruction,
                 400,
                 35,
                 arcade.color.WHITE,
