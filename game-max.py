@@ -36,6 +36,23 @@ ENTRANCE_WIDTH = 55
 ENTRANCE_HEIGHT = 120
 BUILDING_POSITIONS = [(90, 320, 120), (350, 590, 115), (620, 770, 95)]
 FRIEND_NAMES = ["Jane", "Billy Bob", "Max"]
+INTERIOR_REPAIR_SETS = [
+    [
+        (205, 355, "fix the ceiling crack", arcade.color.LIGHT_STEEL_BLUE, 3),
+        (405, 250, "repair the table leg", arcade.color.GOLD, 3),
+        (600, 175, "replace the loose lamp", arcade.color.DARK_SEA_GREEN, 4),
+    ],
+    [
+        (220, 340, "patch the wall hole", arcade.color.LIGHT_BLUE, 3),
+        (405, 245, "tighten the cabinet door", arcade.color.GOLD, 4),
+        (585, 175, "fix the broken shelf", arcade.color.LIGHT_STEEL_BLUE, 3),
+    ],
+    [
+        (215, 345, "seal the window gap", arcade.color.LIGHT_BLUE, 3),
+        (405, 250, "repair the floor seam", arcade.color.GOLD, 4),
+        (590, 175, "straighten the hanging frame", arcade.color.DARK_SEA_GREEN, 4),
+    ],
+]
 QUIZ_OPTIONS = [
     {
         "question": "Which choice best explains why repairing an abandoned home can reduce loneliness?",
@@ -130,10 +147,12 @@ class GameView(arcade.View):
         self.hint = "Clear every trash pile to move to the next building."
         self.trash_spots: list[TrashSpot] = []
         self.repair_spots: list[RepairSpot] = []
+        self.interior_spots: list[RepairSpot] = []
         self.friends: list[FriendNPC] = []
         self.befriended_friends: set[str] = set()
         self.guessed_friend_names: set[str] = set()
         self.lesson_completed_buildings: set[int] = set()
+        self.inside_repaired_buildings: set[int] = set()
         self.buildings_cleaned = 0
         self.building_names = ["North House", "Corner Lot", "Old Flat"]
         self.current_building = 0
@@ -259,18 +278,24 @@ class GameView(arcade.View):
         self.ball_y = 155.0
         self.message = f"You enter {self.building_names[self.current_building]}. Click each repair spot."
         self.hint = "Repair the damaged wall, floor, window, and doorway details to finish this house."
+        self.interior_spots = []
 
 
     def visit_house(self, building_index: int) -> None:
         self.time_left = QUEST_TIME
         self.inside_building = building_index
-        self.repair_spots = []
+        self.interior_spots = [
+            RepairSpot(x, y, label, color, cost)
+            for x, y, label, color, cost in INTERIOR_REPAIR_SETS[building_index]
+        ]
+        if building_index in self.inside_repaired_buildings:
+            self.interior_spots = []
         self.screen = "visit"
         self.round_started = False
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.message = f"You went back inside {self.building_names[building_index]}."
-        self.hint = "This house is repaired now. Press F by the door to go back outside."
+        self.hint = "Click the inside repair spots to fix the room, or press F by the door to go back outside."
 
 
     def leave_house(self) -> None:
@@ -286,6 +311,13 @@ class GameView(arcade.View):
             self.hint = "Press F near the current door when you are ready to go inside."
 
 
+    def finish_interior_repair(self) -> None:
+        self.inside_repaired_buildings.add(self.inside_building)
+        self.interior_spots = []
+        self.message = f"The inside of {self.building_names[self.inside_building]} is fixed."
+        self.hint = "Press F by the door to go back outside."
+
+
     def can_finish_current_house(self) -> bool:
         return self.current_building in self.lesson_completed_buildings
 
@@ -298,6 +330,22 @@ class GameView(arcade.View):
         return min(len(name), self.friend_name_hints.get(name, 0))
 
 
+    def name_hint_pattern(self, name: str) -> str:
+        known_letters = self.known_name_letters(name)
+        revealed = 0
+        pattern: list[str] = []
+        for char in name:
+            if char == " ":
+                pattern.append(" ")
+                continue
+            if revealed < known_letters:
+                pattern.append(char)
+                revealed += 1
+            else:
+                pattern.append("_")
+        return "".join(pattern)
+
+
     def friend_display_name(self, friend: FriendNPC) -> str:
         if friend.name in self.guessed_friend_names or friend.name in self.befriended_friends:
             return friend.name
@@ -305,8 +353,7 @@ class GameView(arcade.View):
 
 
     def display_name_from_hint(self, name: str) -> str:
-        known_letters = self.known_name_letters(name)
-        return f"{known_letters}/{len(name)} clues"
+        return self.name_hint_pattern(name)
 
 
     def friend_action_hint(self) -> str:
@@ -358,7 +405,7 @@ class GameView(arcade.View):
         name = self.current_target_friend_name()
         known_letters = self.known_name_letters(name)
         clues: list[str] = []
-        clues_per_pickup = 2 if len(name) > 6 else 1
+        clues_per_pickup = 3 if len(name) > 6 else 2
         if known_letters < len(name):
             for _ in range(clues_per_pickup):
                 if known_letters >= len(name):
@@ -367,8 +414,8 @@ class GameView(arcade.View):
                 clues.append(self.letter_clue(name[known_letters - 1], known_letters))
             self.friend_name_hints[name] = known_letters
         if known_letters >= len(name):
-            return f"Name clues complete: {'; '.join(clues)}. Move close and press T, or click the friend, to guess the name."
-        return f"Name clue: {'; '.join(clues)}. Keep cleaning trash for more letters."
+            return f"Name clues complete: {self.name_hint_pattern(name)}. Move close and press T, or click the friend, to guess the name."
+        return f"Name clue: {self.name_hint_pattern(name)}. Keep cleaning trash for more letters."
 
 
     def next_building(self) -> None:
@@ -418,8 +465,8 @@ class GameView(arcade.View):
         self.guess_friend = friend
         self.name_guess = ""
         self.screen = "name_guess"
-        self.message = "Type the friend's full name from the trash clues."
-        self.hint = "Press ENTER to guess. Use BACKSPACE to erase. Click a friend or press T after you are nearby."
+        self.message = f"Type the friend's full name. Pattern: {self.name_hint_pattern(friend.name)}"
+        self.hint = "Press ENTER to guess. Use BACKSPACE to erase. The pattern above shows what is already known."
 
 
     def submit_name_guess(self) -> None:
@@ -437,7 +484,7 @@ class GameView(arcade.View):
 
 
         self.message = "That name is not right yet."
-        self.hint = "Use the letter clues from the bottom box, then try again."
+        self.hint = f"Check the pattern: {self.name_hint_pattern(self.guess_friend.name)}. Then try again."
 
 
     def answer_quiz(self, answer_index: int) -> None:
@@ -687,6 +734,25 @@ class GameView(arcade.View):
                     self.hint = "Keep repairing the damaged spots until the house is ready."
                     if all(repair.fixed for repair in self.repair_spots):
                         self.finish_repair()
+                    return
+            return
+
+
+        if self.screen == "visit":
+            for spot in self.interior_spots:
+                if spot.fixed:
+                    continue
+                if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= spot.radius ** 2:
+                    if self.money < spot.cost:
+                        self.message = f"Need ${spot.cost} to {spot.label}. You have ${self.money}."
+                        self.hint = "Clean more trash outside to earn repair money."
+                        return
+                    spot.fixed = True
+                    self.money -= spot.cost
+                    self.message = f"Spent ${spot.cost} to {spot.label}."
+                    self.hint = "Keep fixing the inside until every spot is done."
+                    if all(interior.fixed for interior in self.interior_spots):
+                        self.finish_interior_repair()
                     return
             return
 
@@ -986,7 +1052,7 @@ class GameView(arcade.View):
 
     def draw_house_interior(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (25, 24, 31))
-        repaired_inside = self.inside_building in self.house_styles
+        repaired_inside = self.inside_building in self.inside_repaired_buildings
         wall_color = (93, 102, 100) if repaired_inside else (68, 65, 76)
         floor_color = (92, 72, 52) if repaired_inside else (72, 61, 54)
         arcade.draw_lrbt_rectangle_filled(90, 710, 120, 470, wall_color)
@@ -1076,9 +1142,15 @@ class GameView(arcade.View):
             22,
             anchor_x="center",
         )
+        if self.screen == "visit":
+            if repaired_inside:
+                arcade.draw_text("The inside is fixed.", 400, 458, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+            else:
+                arcade.draw_text("Click the inside repair spots to finish this room.", 400, 458, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
 
 
-        for spot in self.repair_spots:
+        interior_spots = self.interior_spots if self.screen == "visit" else self.repair_spots
+        for spot in interior_spots:
             if spot.fixed:
                 arcade.draw_circle_outline(spot.x, spot.y, 17, arcade.color.DARK_SEA_GREEN, 3)
                 arcade.draw_text("fixed", spot.x, spot.y - 5, arcade.color.WHITE, 8, anchor_x="center")
@@ -1136,6 +1208,8 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_outline(120, 680, 180, 430, arcade.color.WHITE, 3)
         arcade.draw_text("Guess The Name", 400, 382, arcade.color.GOLD, 26, anchor_x="center")
         arcade.draw_text(f"Who is {friend_label}?", 400, 342, arcade.color.LIGHT_GRAY, 15, anchor_x="center")
+        if self.guess_friend is not None:
+            arcade.draw_text(f"Clue pattern: {self.name_hint_pattern(self.guess_friend.name)}", 400, 318, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_lrbt_rectangle_filled(210, 590, 265, 315, (34, 44, 60))
         arcade.draw_lrbt_rectangle_outline(210, 590, 265, 315, arcade.color.LIGHT_GRAY, 2)
         arcade.draw_text(self.name_guess or "type name here", 400, 282, arcade.color.WHITE, 18, anchor_x="center")
@@ -1275,6 +1349,7 @@ class GameView(arcade.View):
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
         arcade.draw_text(self.friend_action_hint(), 520, 538, (156, 160, 166), 10, width=248, align="left")
+        arcade.draw_text(f"Name hint: {self.name_hint_pattern(target_name)}", 22, 494, (156, 160, 166), 10)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
