@@ -447,6 +447,20 @@ class GameView(arcade.View):
                 self.window.close()
             return
 
+        if self.screen == "name_guess":
+            if key == arcade.key.ENTER:
+                self.submit_name_guess()
+                return
+            if key == arcade.key.BACKSPACE:
+                self.name_guess = self.name_guess[:-1]
+                return
+            if key == arcade.key.SPACE and self.name_guess and len(self.name_guess) < 16:
+                self.name_guess += " "
+                return
+            if arcade.key.A <= key <= arcade.key.Z and len(self.name_guess) < 16:
+                self.name_guess += chr(key).lower()
+                return
+
         if key in (
             arcade.key.W,
             arcade.key.A,
@@ -487,20 +501,6 @@ class GameView(arcade.View):
         if key == arcade.key.T:
             self.try_befriend()
             return
-
-        if self.screen == "name_guess":
-            if key == arcade.key.ENTER:
-                self.submit_name_guess()
-                return
-            if key == arcade.key.BACKSPACE:
-                self.name_guess = self.name_guess[:-1]
-                return
-            if key == arcade.key.SPACE and self.name_guess and len(self.name_guess) < 16:
-                self.name_guess += " "
-                return
-            if arcade.key.A <= key <= arcade.key.Z and len(self.name_guess) < 16:
-                self.name_guess += chr(key).lower()
-                return
 
         number_keys = (arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3)
         if self.screen == "decorate" and key in number_keys:
@@ -563,6 +563,9 @@ class GameView(arcade.View):
                     return
             return
 
+        if self.screen == "name_guess":
+            return
+
         if self.screen == "repair":
             for spot in self.repair_spots:
                 if spot.fixed:
@@ -609,8 +612,8 @@ class GameView(arcade.View):
                 if not self.trash_spots:
                     target_name = self.current_target_friend_name()
                     if self.known_name_letters(target_name) >= len(target_name):
-                        self.message = f"The outside is clear, and you know {target_name}'s name."
-                        self.hint = "Press T near them for the lesson quiz, or press F at the door to go inside."
+                        self.message = "The outside is clear, and the name clues are complete."
+                        self.hint = "Press T near the person, type the full name, then take the quiz."
                     else:
                         self.message = "The outside is clear. Press F to open the door."
                         self.hint = "You can open the door, but you need the full friend name before the quiz."
@@ -977,6 +980,21 @@ class GameView(arcade.View):
             arcade.draw_lrbt_rectangle_outline(130, 670, bottom, top, arcade.color.LIGHT_GRAY, 2)
             arcade.draw_text(f"{index + 1}. {answer}", 150, bottom + 15, arcade.color.WHITE, 13, width=500)
 
+    def draw_name_guess(self) -> None:
+        self.draw_background()
+        friend_label = "the person"
+        if self.guess_friend is not None:
+            friend_label = "???"
+
+        arcade.draw_lrbt_rectangle_filled(120, 680, 180, 430, (18, 22, 31))
+        arcade.draw_lrbt_rectangle_outline(120, 680, 180, 430, arcade.color.WHITE, 3)
+        arcade.draw_text("Guess The Name", 400, 382, arcade.color.GOLD, 26, anchor_x="center")
+        arcade.draw_text(f"Who is {friend_label}?", 400, 342, arcade.color.LIGHT_GRAY, 15, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(210, 590, 265, 315, (34, 44, 60))
+        arcade.draw_lrbt_rectangle_outline(210, 590, 265, 315, arcade.color.LIGHT_GRAY, 2)
+        arcade.draw_text(self.name_guess or "type name here", 400, 282, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_text("ENTER to submit     BACKSPACE to erase", 400, 220, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+
     def draw_decorate(self) -> None:
         self.draw_background()
         arcade.draw_text("Choose a finished look", 400, 455, (222, 222, 214), 28, anchor_x="center")
@@ -1093,7 +1111,7 @@ class GameView(arcade.View):
         arcade.draw_text(f"Money: ${self.money}", 125, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, (214, 215, 212), 12)
         target_name = self.current_target_friend_name()
-        arcade.draw_text(f"Name: {self.display_name_from_hint(target_name)}", 390, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Clues: {self.display_name_from_hint(target_name)}", 390, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
@@ -1152,6 +1170,10 @@ class GameView(arcade.View):
 
         if self.screen == "quiz":
             self.draw_quiz()
+            return
+
+        if self.screen == "name_guess":
+            self.draw_name_guess()
             return
 
         if self.screen == "decorate":
