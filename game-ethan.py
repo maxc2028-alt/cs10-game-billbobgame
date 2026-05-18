@@ -739,6 +739,39 @@ class GameView(arcade.View):
             arcade.draw_lrbt_rectangle_outline(130, 670, bottom, top, arcade.color.LIGHT_GRAY, 2)
             arcade.draw_text(f"{index + 1}. {answer}", 150, bottom + 15, arcade.color.WHITE, 13, width=500)
 
+    def draw_decorate(self) -> None:
+        self.draw_background()
+        arcade.draw_text("Choose a finished look", 400, 455, (222, 222, 214), 28, anchor_x="center")
+        arcade.draw_text(
+            self.building_names[self.current_building],
+            400,
+            420,
+            (156, 160, 166),
+            14,
+            anchor_x="center",
+        )
+
+        for index, (name, roof_color, wall_color) in enumerate(self.style_options):
+            left = 150 + index * 175
+            right = left + 130
+            base_y = 235
+            top = 335
+            mid_x = (left + right) / 2
+            arcade.draw_lrbt_rectangle_filled(left, right, base_y, top, wall_color)
+            arcade.draw_lrbt_rectangle_outline(left, right, base_y, top, arcade.color.BLACK, 2)
+            arcade.draw_triangle_filled(left - 8, top, right + 8, top, mid_x, top + 44, roof_color)
+            arcade.draw_triangle_outline(left - 8, top, right + 8, top, mid_x, top + 44, arcade.color.BLACK)
+            arcade.draw_lrbt_rectangle_filled(mid_x - 14, mid_x + 14, base_y, base_y + 48, (60, 45, 37))
+            arcade.draw_lrbt_rectangle_outline(mid_x - 14, mid_x + 14, base_y, base_y + 48, arcade.color.BLACK, 2)
+            arcade.draw_lrbt_rectangle_filled(left + 18, left + 42, base_y + 55, base_y + 84, (150, 177, 190))
+            arcade.draw_lrbt_rectangle_outline(left + 18, left + 42, base_y + 55, base_y + 84, arcade.color.BLACK, 2)
+            arcade.draw_lrbt_rectangle_filled(right - 42, right - 18, base_y + 55, base_y + 84, (150, 177, 190))
+            arcade.draw_lrbt_rectangle_outline(right - 42, right - 18, base_y + 55, base_y + 84, arcade.color.BLACK, 2)
+            arcade.draw_text(f"{index + 1}", mid_x, 365, arcade.color.GOLD, 18, anchor_x="center")
+            arcade.draw_text(name, mid_x, 205, (222, 222, 214), 12, anchor_x="center")
+
+        arcade.draw_text("Press 1, 2, or 3", 400, 165, (156, 160, 166), 13, anchor_x="center")
+
     def draw_dark_challenge(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, arcade.color.BLACK)
         arcade.draw_circle_filled(self.ball_x, self.ball_y, 105, (255, 218, 74, 70))
@@ -906,6 +939,10 @@ class GameView(arcade.View):
 
         if self.screen == "quiz":
             self.draw_quiz()
+            return
+
+        if self.screen == "decorate":
+            self.draw_decorate()
             return
 
         if self.screen == "dark":
