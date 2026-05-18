@@ -326,7 +326,7 @@ class GameView(arcade.View):
                 return True
 
         if x is None and y is None:
-            self.message = "Move close to a blue ball before pressing F."
+            self.message = "Move close to a blue ball before pressing T."
             self.hint = "Pick up trash for hints, then use those hints near other balls."
             return True
 
@@ -483,7 +483,7 @@ class GameView(arcade.View):
         arcade.draw_circle_filled(self.ball_x - 5, self.ball_y + 5, 5, (222, 222, 214))
 
     def update_ball(self, delta_time: float) -> None:
-        if self.screen not in {"playing", "repair", "dark"}:
+        if self.screen not in {"playing", "repair", "visit", "dark"}:
             return
 
         move_x = 0
@@ -504,7 +504,7 @@ class GameView(arcade.View):
         self.ball_x += move_x * BALL_SPEED * delta_time
         self.ball_y += move_y * BALL_SPEED * delta_time
 
-        if self.screen == "repair":
+        if self.screen in {"repair", "visit"}:
             min_x, max_x = 90 + BALL_RADIUS, 710 - BALL_RADIUS
             min_y, max_y = 80 + BALL_RADIUS, 470 - BALL_RADIUS
         elif self.screen == "dark":
