@@ -991,7 +991,7 @@ class GameView(arcade.View):
             arcade.draw_text("Press START", person_x + 80, 214, (222, 222, 214), 13, anchor_x="center")
             arcade.draw_text("I am ready.", person_x + 80, 196, (156, 160, 166), 10, anchor_x="center")
         else:
-        arcade.draw_line(person_x + 8, 119, person_x + 20, 104, arcade.color.BLACK, 3)
+            arcade.draw_line(person_x + 8, 119, person_x + 20, 104, arcade.color.BLACK, 3)
         arcade.draw_line(person_x, 104, person_x - 11, 88, arcade.color.BLACK, 3)
         arcade.draw_line(person_x, 104, person_x + 12, 89, arcade.color.BLACK, 3)
         arcade.draw_circle_filled(person_x, 150, 16, (177, 154, 82))
