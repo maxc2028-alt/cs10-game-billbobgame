@@ -472,6 +472,14 @@ class GameView(arcade.View):
         roof_mid = (left + right) / 2
         arcade.draw_triangle_filled(left - 8, top, right + 8, top, roof_mid, top + 60, roof_color)
         arcade.draw_triangle_outline(left - 8, top, right + 8, top, roof_mid, top + 60, arcade.color.BLACK)
+        arcade.draw_line(left + 18, top - 25, left + 55, top - 62, arcade.color.BLACK, 3)
+        arcade.draw_line(left + 55, top - 62, left + 44, top - 105, arcade.color.BLACK, 2)
+        arcade.draw_line(right - 28, top - 35, right - 72, top - 78, arcade.color.BLACK, 3)
+        arcade.draw_line(right - 72, top - 78, right - 48, top - 120, arcade.color.BLACK, 2)
+        arcade.draw_lrbt_rectangle_filled(left + 10, left + 24, base_y + 18, top - 20, (35, 36, 42, 110))
+        arcade.draw_lrbt_rectangle_filled(right - 34, right - 18, base_y + 35, top - 45, (36, 36, 41, 95))
+        arcade.draw_line(left + 4, top - 12, roof_mid - 10, top + 45, (31, 24, 27), 3)
+        arcade.draw_line(roof_mid + 18, top + 40, right - 4, top - 8, (31, 24, 27), 3)
 
         window_width = min(32, max(22, (right - left) / 5))
         window_height = min(42, max(30, height / 5))
@@ -495,6 +503,10 @@ class GameView(arcade.View):
             arcade.draw_line(window_left + 7, window_top - 7, center_x - 2, window_bottom + 18, arcade.color.WHITE, 2)
             arcade.draw_line(center_x - 2, window_bottom + 18, window_right - 8, window_bottom + 8, arcade.color.WHITE, 2)
             arcade.draw_line(center_x - 2, window_bottom + 18, center_x + 10, window_top - 12, arcade.color.WHITE, 1)
+            if i % 2 == 0:
+                arcade.draw_rectangle_filled(center_x, window_bottom + 15, window_width + 8, 8, (87, 63, 45), 18)
+                arcade.draw_rectangle_filled(center_x, window_top - 13, window_width + 8, 8, (75, 55, 42), -16)
+                arcade.draw_line(window_left - 3, window_bottom + 14, window_right + 3, window_top - 10, arcade.color.BLACK, 1)
 
     def draw_scene(self) -> None:
         self.draw_background()
@@ -522,6 +534,9 @@ class GameView(arcade.View):
             arcade.draw_lrbt_rectangle_filled(door_left, door_right, base_y, base_y + door_height, (45, 36, 34))
             arcade.draw_lrbt_rectangle_outline(door_left, door_right, base_y, base_y + door_height, arcade.color.BLACK, 2)
             arcade.draw_circle_filled(door_right - 8, base_y + 34, 3, (150, 132, 82))
+            arcade.draw_line(door_left + 6, base_y + 58, door_right - 7, base_y + 43, arcade.color.BLACK, 2)
+            arcade.draw_line(door_left + 7, base_y + 18, door_right - 10, base_y + 28, arcade.color.BLACK, 2)
+            arcade.draw_rectangle_filled(door_center, base_y + 11, door_width + 10, 7, (31, 30, 32), 0)
             if index == self.current_building and not self.trash_spots:
                 arcade.draw_text(
                     "Press F to open door",
@@ -641,8 +656,6 @@ class GameView(arcade.View):
             arcade.draw_lrbt_rectangle_filled(130, 670, bottom, top, (44, 58, 72))
             arcade.draw_lrbt_rectangle_outline(130, 670, bottom, top, arcade.color.LIGHT_GRAY, 2)
             arcade.draw_text(f"{index + 1}. {answer}", 150, bottom + 15, arcade.color.WHITE, 13, width=500)
-
-        arcade.draw_text("Pick carefully. A wrong answer changes the game.", 400, 152, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
 
     def draw_dark_challenge(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, arcade.color.BLACK)
