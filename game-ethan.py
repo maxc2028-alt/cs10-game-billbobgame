@@ -104,6 +104,7 @@ class GameView(arcade.View):
         self.repair_spots: list[RepairSpot] = []
         self.friends: list[FriendNPC] = []
         self.befriended_friends: set[str] = set()
+        self.lesson_completed_buildings: set[int] = set()
         self.buildings_cleaned = 0
         self.building_names = ["North House", "Corner Lot", "Old Flat"]
         self.current_building = 0
@@ -227,12 +228,15 @@ class GameView(arcade.View):
         self.ball_x = (left + right) / 2
         self.ball_y = base_y + 35
         self.screen = "playing"
-        self.round_started = bool(self.trash_spots)
+        self.round_started = True
         self.message = "You step back outside."
         if self.trash_spots:
             self.hint = "Keep cleaning trash, or visit another finished house."
         else:
             self.hint = "Press F near the current door when you are ready to go inside."
+
+    def can_finish_current_house(self) -> bool:
+        return self.current_building in self.lesson_completed_buildings
 
     def next_building(self) -> None:
         finished_building = self.building_names[self.current_building]
@@ -278,8 +282,9 @@ class GameView(arcade.View):
             self.friend_hints -= 1
             self.friendship += 1
             self.befriended_friends.add(self.quiz_friend.name)
+            self.lesson_completed_buildings.add(self.current_building)
             self.message = f"Correct. {self.quiz_friend.name} became your friend."
-            self.hint = self.quiz_question["fact"]
+            self.hint = f"{self.quiz_question['fact']} Now you can finish repairing the house."
             self.quiz_friend = None
             self.screen = "playing"
             return
@@ -306,7 +311,7 @@ class GameView(arcade.View):
             return False
 
         for friend in self.friends:
-            if friend.name in self.befriended_friends:
+            if friend.name in self.befriended_friends and self.current_building in self.lesson_completed_buildings:
                 continue
 
             clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 24 ** 2
@@ -352,11 +357,15 @@ class GameView(arcade.View):
             return
 
         if key == arcade.key.E and self.screen == "playing" and not self.trash_spots:
-            self.enter_house()
+            if self.door_index_near_player() == self.current_building:
+                self.enter_house()
+            else:
+                self.message = "Stand by this house's door first."
+                self.hint = "After the trash is clear, press F at the door to go inside."
             return
 
         if key == arcade.key.F:
-            if self.screen == "visit":
+            if self.screen in {"repair", "visit"}:
                 self.leave_house()
                 return
             if self.screen == "playing":
@@ -365,9 +374,6 @@ class GameView(arcade.View):
                     self.visit_house(door_index)
                     return
                 if door_index == self.current_building and not self.trash_spots:
-                    self.enter_house()
-                    return
-                if not self.trash_spots:
                     self.enter_house()
                     return
                 self.message = "Stand near a repaired door to go back inside."
@@ -435,6 +441,11 @@ class GameView(arcade.View):
                 if spot.fixed:
                     continue
                 if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= spot.radius ** 2:
+                    is_final_repair = all(repair.fixed or repair is spot for repair in self.repair_spots)
+                    if is_final_repair and not self.can_finish_current_house():
+                        self.message = "Before finishing the house, answer a friend's question correctly."
+                        self.hint = "Press F to go outside, then press T near a blue friend to learn the lesson."
+                        return
                     if self.money < spot.cost:
                         self.message = f"Need ${spot.cost} to {spot.label}. You have ${self.money}."
                         self.hint = "Trash gives you repair money. Clean outside piles before fixing everything."
@@ -950,7 +961,7 @@ class GameView(arcade.View):
             )
         elif self.screen == "repair":
             arcade.draw_text(
-                "Move with WASD or arrows. Click repair spots to fix this house.",
+                "Click repair spots. Press F to leave and answer a friend's question before the final fix.",
                 400,
                 35,
                 arcade.color.WHITE,
@@ -1049,9 +1060,6 @@ class GameView(arcade.View):
         if self.screen == "game_over":
             self.draw_game_over()
             return
-
-        if self.screen == "playing" and not self.round_started:
-            self.reset_round()
 
         if self.screen in {"repair", "visit"}:
             self.draw_house_interior()
