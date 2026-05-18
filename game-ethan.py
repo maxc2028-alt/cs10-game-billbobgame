@@ -31,31 +31,31 @@ QUIZ_OPTIONS = [
     {
         "question": "Which choice best explains why repairing an abandoned home can reduce loneliness?",
         "answers": [
+            "It raises property values, which automatically fixes loneliness",
             "It creates a safe shared place where people can meet, help, and feel noticed",
-            "It hides the problems so nobody has to talk about them",
-            "It makes every person instantly happy without needing relationships",
+            "It removes every hard feeling as soon as the building looks better",
         ],
-        "correct": 0,
+        "correct": 1,
         "fact": "Empty homes can become safe housing, community rooms, gardens, or youth spaces when people repair them together.",
     },
     {
         "question": "A teen says they feel invisible in their neighborhood. What is the strongest first response?",
         "answers": [
+            "Give quick advice before they explain what is happening",
+            "Plan a big event without asking what they need",
             "Listen seriously, connect them with trusted people, and invite them into safe activities",
-            "Tell them other people have worse problems",
-            "Wait for them to solve it alone so they become tougher",
         ],
-        "correct": 0,
+        "correct": 2,
         "fact": "Connection matters. Friends, mentors, teams, clubs, and safe community spaces can help teens feel less alone.",
     },
     {
         "question": "Why should a cleanup project include the people who live nearby?",
         "answers": [
+            "It keeps the project from needing any rules or planning",
             "They understand what the block needs and feel more ownership when they help decide",
-            "It is faster if nobody asks them what they think",
-            "Only money matters, not relationships or trust",
+            "It makes the project cheaper because neighbors do all the work",
         ],
-        "correct": 0,
+        "correct": 1,
         "fact": "Community repair works best when neighbors are included, respected, and trusted to shape the place they share.",
     },
 ]
