@@ -965,6 +965,15 @@ class GameView(arcade.View):
                 9,
                 anchor_x="center",
             )
+        elif self.screen == "visit":
+            arcade.draw_text(
+                "Move around the repaired house. Press F to go back outside.",
+                400,
+                35,
+                arcade.color.WHITE,
+                11,
+                anchor_x="center",
+            )
         else:
             play_instruction = "Press F to open the door when you are ready."
             if self.trash_spots:
@@ -1044,7 +1053,7 @@ class GameView(arcade.View):
         if self.screen == "playing" and not self.round_started:
             self.reset_round()
 
-        if self.screen == "repair":
+        if self.screen in {"repair", "visit"}:
             self.draw_house_interior()
         else:
             self.draw_scene()
