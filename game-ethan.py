@@ -1071,37 +1071,8 @@ class GameView(arcade.View):
         if self.camera is not None:
             self.camera.use()
 
-        if self.screen == "title":
-            self.draw_background()
-            arcade.draw_text("Neighborhood Cleanup", 400, 395, arcade.color.WHITE, 34, anchor_x="center")
-            arcade.draw_text(
-                "A lonely block becomes a place people want to stay.",
-                400,
-                350,
-                arcade.color.LIGHT_GRAY,
-                16,
-                anchor_x="center",
-            )
-            arcade.draw_text(
-                "Clear trash, earn trust, and unlock a better neighborhood.",
-                400,
-                320,
-                arcade.color.LIGHT_GRAY,
-                14,
-                anchor_x="center",
-            )
-            arcade.draw_text(
-                "You are not just cleaning. You are making room for people to belong.",
-                400,
-                290,
-                arcade.color.LIGHT_GRAY,
-                12,
-                anchor_x="center",
-            )
-            arcade.draw_lrbt_rectangle_filled(180, 620, 190, 250, (18, 22, 31))
-            arcade.draw_lrbt_rectangle_outline(180, 620, 190, 250, arcade.color.WHITE)
-            arcade.draw_text("Press SPACE to start", 400, 222, arcade.color.GOLD, 18, anchor_x="center")
-            arcade.draw_text("Press ESC to quit.", 400, 198, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        if self.screen == "intro":
+            self.draw_intro()
             return
 
         if self.screen == "quiz":
