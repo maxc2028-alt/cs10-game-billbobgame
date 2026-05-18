@@ -28,6 +28,7 @@ ENTRANCE_Y = 300
 ENTRANCE_WIDTH = 55
 ENTRANCE_HEIGHT = 120
 BUILDING_POSITIONS = [(90, 320, 120), (350, 590, 115), (620, 770, 95)]
+FRIEND_NAMES = ["Jane", "Billy Bob", "Max"]
 QUIZ_OPTIONS = [
     {
         "question": "Which choice best explains why repairing an abandoned home can reduce loneliness?",
@@ -116,6 +117,7 @@ class GameView(arcade.View):
         self.repair_spots: list[RepairSpot] = []
         self.friends: list[FriendNPC] = []
         self.befriended_friends: set[str] = set()
+        self.guessed_friend_names: set[str] = set()
         self.lesson_completed_buildings: set[int] = set()
         self.buildings_cleaned = 0
         self.building_names = ["North House", "Corner Lot", "Old Flat"]
@@ -135,6 +137,8 @@ class GameView(arcade.View):
         self.intro_time = 0.0
         self.keys_down: set[int] = set()
         self.quiz_friend: FriendNPC | None = None
+        self.guess_friend: FriendNPC | None = None
+        self.name_guess = ""
         self.quiz_question = QUIZ_OPTIONS[0]
         self.quiz_tries_left = 2
         self.game_over_ready = False
@@ -178,10 +182,9 @@ class GameView(arcade.View):
         for x, y in building_sets[self.current_building]:
             self.trash_spots.append(TrashSpot(x, y))
 
-        friend_names = ["Maya", "Jordan", "Ari"]
         for i in range(3):
             fx, fy = friend_positions[i]
-            self.friends.append(FriendNPC(friend_names[i], fx, fy))
+            self.friends.append(FriendNPC(FRIEND_NAMES[i], fx, fy))
 
         self.ball_x = 400.0
         self.ball_y = 155.0
