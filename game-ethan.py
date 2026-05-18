@@ -452,13 +452,13 @@ class GameView(arcade.View):
             self.fail_round()
 
     def draw_background(self) -> None:
-        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (31, 38, 57))
-        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 120, (45, 58, 46))
-        arcade.draw_circle_filled(95, 525, 34, arcade.color.GOLD)
-        arcade.draw_circle_filled(140, 535, 24, arcade.color.GOLD)
-        arcade.draw_circle_filled(700, 525, 22, arcade.color.LIGHT_BLUE)
-        arcade.draw_circle_filled(735, 545, 30, arcade.color.WHITE)
-        arcade.draw_line(0, 120, 800, 120, (70, 80, 70), 2)
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (18, 22, 32))
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 120, (31, 38, 36))
+        arcade.draw_circle_filled(95, 525, 34, (132, 126, 108))
+        arcade.draw_circle_filled(140, 535, 24, (112, 108, 98))
+        arcade.draw_circle_filled(700, 525, 22, (76, 86, 102))
+        arcade.draw_circle_filled(735, 545, 30, (92, 96, 104))
+        arcade.draw_line(0, 120, 800, 120, (49, 58, 55), 2)
 
     def draw_building(self, left: float, right: float, base_y: float, height: float, roof_color, wall_color) -> None:
         top = base_y + height
@@ -492,9 +492,9 @@ class GameView(arcade.View):
         self.draw_background()
 
         building_colors = [
-            (arcade.color.SIENNA, arcade.color.DIM_GRAY),
-            (arcade.color.MAROON, arcade.color.SLATE_GRAY),
-            (arcade.color.OLIVE, arcade.color.GRAY),
+            ((73, 52, 48), (58, 62, 70)),
+            ((62, 43, 55), (64, 68, 76)),
+            ((61, 63, 49), (70, 72, 76)),
         ]
         building_heights = [220, 235, 195]
         building_positions = [(90, 320, 120), (350, 590, 115), (620, 770, 95)]
@@ -503,11 +503,11 @@ class GameView(arcade.View):
             roof_color, wall_color = building_colors[index]
             height = building_heights[index]
             if index < self.neighborhood_state:
-                wall_color = arcade.color.DARK_SEA_GREEN
-                roof_color = arcade.color.FOREST_GREEN
+                wall_color = (76, 91, 86)
+                roof_color = (54, 77, 69)
             self.draw_building(left, right, base_y, height, roof_color, wall_color)
 
-        arcade.draw_lrbt_rectangle_filled(40, 760, 80, 105, (40, 42, 48))
+        arcade.draw_lrbt_rectangle_filled(40, 760, 80, 105, (30, 32, 38))
         arcade.draw_line(0, 105, 800, 105, arcade.color.BLACK, 3)
 
         arcade.draw_text("bus stop", 675, 138, arcade.color.WHITE, 10)
@@ -518,7 +518,7 @@ class GameView(arcade.View):
             arcade.draw_text(trash.highlight, trash.x, trash.y - 5, arcade.color.WHITE, 8, anchor_x="center")
 
         for friend in self.friends:
-            friend_color = arcade.color.LIGHT_GREEN if friend.name in self.befriended_friends else arcade.color.LIGHT_BLUE
+            friend_color = (118, 139, 129) if friend.name in self.befriended_friends else (86, 104, 123)
             arcade.draw_circle_filled(friend.x, friend.y, 16, friend_color)
             arcade.draw_circle_outline(friend.x, friend.y, 16, arcade.color.BLACK, 2)
             arcade.draw_text(friend.name, friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
