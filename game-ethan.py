@@ -935,16 +935,33 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(bar_left, filled, bar_bottom, bar_top, (174, 151, 82))
         arcade.draw_lrbt_rectangle_outline(bar_left, bar_right, bar_bottom, bar_top, (126, 132, 142))
 
-        arcade.draw_lrbt_rectangle_filled(95, 705, 18, 96, (14, 17, 24))
-        arcade.draw_lrbt_rectangle_outline(95, 705, 18, 96, (126, 132, 142))
-        arcade.draw_text(self.message, 112, 75, (117, 147, 135), 12, width=576, multiline=True)
-        arcade.draw_text(self.hint, 112, 55, (156, 160, 166), 10, width=576, multiline=True)
+        arcade.draw_lrbt_rectangle_filled(105, 695, 16, 50, (14, 17, 24))
+        arcade.draw_lrbt_rectangle_outline(105, 695, 16, 50, (126, 132, 142))
+        arcade.draw_text(self.message, 122, 29, (117, 147, 135), 11, width=552)
+
+        arcade.draw_circle_filled(772, 35, 17, (14, 17, 24))
+        arcade.draw_circle_outline(772, 35, 17, (222, 222, 214), 2)
+        arcade.draw_text("?", 772, 25, (222, 222, 214), 18, anchor_x="center")
+
+        if self.show_instructions:
+            arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
+            arcade.draw_lrbt_rectangle_outline(175, 625, 112, 248, (222, 222, 214), 2)
+            arcade.draw_text("Instructions", 400, 220, (222, 222, 214), 18, anchor_x="center")
+            arcade.draw_text(self.hint, 198, 188, (156, 160, 166), 11, width=404, multiline=True)
+            arcade.draw_text(
+                "Move: WASD/arrows   Talk: T   Door/leave: F   Quit: ESC",
+                400,
+                132,
+                (156, 160, 166),
+                10,
+                anchor_x="center",
+            )
 
         if self.screen == "title":
             arcade.draw_text(
                 "Press SPACE to begin the first cleanup round.",
                 400,
-                35,
+                60,
                 arcade.color.WHITE,
                 11,
                 anchor_x="center",
@@ -953,7 +970,7 @@ class GameView(arcade.View):
             arcade.draw_text(
                 "Press SPACE to move to the next building.",
                 400,
-                35,
+                60,
                 arcade.color.WHITE,
                 11,
                 anchor_x="center",
@@ -962,7 +979,7 @@ class GameView(arcade.View):
             arcade.draw_text(
                 "Press SPACE to try again with a fresh round.",
                 400,
-                35,
+                60,
                 arcade.color.WHITE,
                 11,
                 anchor_x="center",
@@ -971,7 +988,7 @@ class GameView(arcade.View):
             arcade.draw_text(
                 "Click repair spots. Press F to leave and answer a friend's question before the final fix.",
                 400,
-                35,
+                60,
                 arcade.color.WHITE,
                 11,
                 anchor_x="center",
@@ -988,7 +1005,7 @@ class GameView(arcade.View):
             arcade.draw_text(
                 "Move around the repaired house. Press F to go back outside.",
                 400,
-                35,
+                60,
                 arcade.color.WHITE,
                 11,
                 anchor_x="center",
@@ -1000,7 +1017,7 @@ class GameView(arcade.View):
             arcade.draw_text(
                 play_instruction,
                 400,
-                35,
+                60,
                 arcade.color.WHITE,
                 11,
                 anchor_x="center",
