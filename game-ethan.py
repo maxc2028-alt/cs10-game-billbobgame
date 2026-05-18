@@ -974,7 +974,6 @@ class GameView(arcade.View):
         wave = math.sin(self.intro_time * 7) * 10 if arrived else 0
         arcade.draw_ellipse_filled(person_x, 84, 34, 8, (15, 18, 25, 130))
         arcade.draw_line(person_x, 134, person_x, 104, arcade.color.BLACK, 5)
-        arcade.draw_line(person_x - 26, 115, person_x + 8, 119, arcade.color.BLACK, 3)
         if arrived:
             arcade.draw_line(person_x + 8, 119, person_x + 28, 144 + wave, arcade.color.BLACK, 3)
             arcade.draw_circle_filled(person_x + 31, 147 + wave, 4, (177, 154, 82))
