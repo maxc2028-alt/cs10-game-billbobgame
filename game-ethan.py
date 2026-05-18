@@ -600,6 +600,33 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(90, 710, 80, 120, (72, 61, 54))
         arcade.draw_line(90, 120, 710, 120, arcade.color.BLACK, 3)
 
+        arcade.draw_lrbt_rectangle_filled(116, 285, 122, 165, (54, 64, 70))
+        arcade.draw_lrbt_rectangle_outline(116, 285, 122, 165, arcade.color.BLACK, 2)
+        arcade.draw_lrbt_rectangle_filled(126, 245, 162, 192, (62, 73, 78))
+        arcade.draw_lrbt_rectangle_outline(126, 245, 162, 192, arcade.color.BLACK, 2)
+        arcade.draw_line(140, 170, 175, 188, arcade.color.BLACK, 2)
+        arcade.draw_line(215, 166, 238, 187, arcade.color.BLACK, 2)
+
+        arcade.draw_lrbt_rectangle_filled(300, 366, 135, 178, (73, 54, 43))
+        arcade.draw_lrbt_rectangle_outline(300, 366, 135, 178, arcade.color.BLACK, 2)
+        arcade.draw_line(310, 135, 310, 113, arcade.color.BLACK, 3)
+        arcade.draw_line(356, 135, 356, 113, arcade.color.BLACK, 3)
+        arcade.draw_lrbt_rectangle_filled(308, 336, 188, 238, (55, 43, 38))
+        arcade.draw_lrbt_rectangle_outline(308, 336, 188, 238, arcade.color.BLACK, 2)
+
+        arcade.draw_lrbt_rectangle_filled(625, 686, 120, 232, (58, 44, 35))
+        arcade.draw_lrbt_rectangle_outline(625, 686, 120, 232, arcade.color.BLACK, 2)
+        arcade.draw_line(625, 158, 686, 158, arcade.color.BLACK, 2)
+        arcade.draw_line(625, 196, 686, 196, arcade.color.BLACK, 2)
+        arcade.draw_line(651, 120, 651, 232, arcade.color.BLACK, 2)
+
+        arcade.draw_lrbt_rectangle_filled(120, 168, 82, 118, (88, 69, 45))
+        arcade.draw_lrbt_rectangle_outline(120, 168, 82, 118, arcade.color.BLACK, 2)
+        arcade.draw_line(120, 118, 144, 136, arcade.color.BLACK, 2)
+        arcade.draw_lrbt_rectangle_filled(555, 608, 83, 118, (82, 64, 43))
+        arcade.draw_lrbt_rectangle_outline(555, 608, 83, 118, arcade.color.BLACK, 2)
+        arcade.draw_line(555, 118, 582, 134, arcade.color.BLACK, 2)
+
         arcade.draw_lrbt_rectangle_filled(165, 245, 315, 405, (34, 44, 60))
         arcade.draw_lrbt_rectangle_outline(165, 245, 315, 405, arcade.color.BLACK, 2)
         arcade.draw_line(205, 315, 205, 405, arcade.color.BLACK, 2)
@@ -642,21 +669,19 @@ class GameView(arcade.View):
 
         for spot in self.repair_spots:
             if spot.fixed:
-                arcade.draw_circle_filled(spot.x, spot.y, 16, arcade.color.DARK_SEA_GREEN)
+                arcade.draw_circle_outline(spot.x, spot.y, 17, arcade.color.DARK_SEA_GREEN, 3)
                 arcade.draw_text("fixed", spot.x, spot.y - 5, arcade.color.WHITE, 8, anchor_x="center")
                 continue
 
-            arcade.draw_circle_filled(spot.x, spot.y, spot.radius, spot.color)
-            arcade.draw_circle_outline(spot.x, spot.y, spot.radius, arcade.color.WHITE, 3)
+            arcade.draw_circle_outline(spot.x, spot.y, spot.radius, spot.color, 4)
+            arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 3, arcade.color.WHITE, 1)
             arcade.draw_text(
-                spot.label,
-                spot.x - 44,
-                spot.y + 7,
-                arcade.color.BLACK,
-                7,
-                width=88,
-                multiline=True,
-                align="center",
+                f"${spot.cost}",
+                spot.x,
+                spot.y - 5,
+                arcade.color.WHITE,
+                10,
+                anchor_x="center",
             )
 
         self.draw_ball()
