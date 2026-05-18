@@ -123,6 +123,7 @@ class GameView(arcade.View):
         self.quiz_friend: FriendNPC | None = None
         self.quiz_question = QUIZ_OPTIONS[0]
         self.game_over_ready = False
+        self.show_instructions = False
         self.configure_camera()
 
     def on_show_view(self) -> None:
@@ -417,6 +418,10 @@ class GameView(arcade.View):
             world_position = self.camera.unproject((x, y))
             x = world_position.x
             y = world_position.y
+
+        if 755 <= x <= 790 and 18 <= y <= 53:
+            self.show_instructions = not self.show_instructions
+            return
 
         if self.screen == "quiz":
             for index in range(3):
