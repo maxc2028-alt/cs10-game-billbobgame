@@ -165,22 +165,22 @@ class GameView(arcade.View):
     def enter_house(self) -> None:
         repair_sets = [
             [
-                (250, 295, "patch wall", arcade.color.LIGHT_STEEL_BLUE),
-                (400, 190, "fix floor", arcade.color.GOLD),
-                (545, 330, "repair window", arcade.color.LIGHT_BLUE),
-                (510, 225, "paint trim", arcade.color.DARK_SEA_GREEN),
+                (250, 295, "patch cracked wall", arcade.color.LIGHT_STEEL_BLUE),
+                (400, 190, "replace loose floorboard", arcade.color.GOLD),
+                (545, 330, "add new glass pane", arcade.color.LIGHT_BLUE),
+                (510, 225, "paint chipped trim", arcade.color.DARK_SEA_GREEN),
             ],
             [
-                (230, 325, "repair window", arcade.color.LIGHT_BLUE),
-                (350, 200, "fix floor", arcade.color.GOLD),
-                (490, 300, "patch wall", arcade.color.LIGHT_STEEL_BLUE),
-                (585, 210, "fix door", arcade.color.SIENNA),
+                (230, 325, "seal broken window frame", arcade.color.LIGHT_BLUE),
+                (350, 200, "sweep and level floor", arcade.color.GOLD),
+                (490, 300, "cover wall holes", arcade.color.LIGHT_STEEL_BLUE),
+                (585, 210, "tighten old door hinge", arcade.color.SIENNA),
             ],
             [
-                (230, 215, "fix floor", arcade.color.GOLD),
-                (370, 335, "patch wall", arcade.color.LIGHT_STEEL_BLUE),
-                (520, 335, "repair window", arcade.color.LIGHT_BLUE),
-                (575, 220, "paint trim", arcade.color.DARK_SEA_GREEN),
+                (230, 215, "nail down floor plank", arcade.color.GOLD),
+                (370, 335, "smooth damaged wall", arcade.color.LIGHT_STEEL_BLUE),
+                (520, 335, "replace cracked window", arcade.color.LIGHT_BLUE),
+                (575, 220, "brush fresh trim paint", arcade.color.DARK_SEA_GREEN),
             ],
         ]
 
@@ -193,7 +193,7 @@ class GameView(arcade.View):
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.message = f"You enter {self.building_names[self.current_building]}. Click each repair spot."
-        self.hint = "Fix the wall, floor, windows, and door to finish this house."
+        self.hint = "Repair the damaged wall, floor, window, and doorway details to finish this house."
 
     def next_building(self) -> None:
         finished_building = self.building_names[self.current_building]
@@ -585,7 +585,16 @@ class GameView(arcade.View):
 
             arcade.draw_circle_filled(spot.x, spot.y, spot.radius, spot.color)
             arcade.draw_circle_outline(spot.x, spot.y, spot.radius, arcade.color.WHITE, 3)
-            arcade.draw_text(spot.label, spot.x, spot.y - 5, arcade.color.BLACK, 8, anchor_x="center")
+            arcade.draw_text(
+                spot.label,
+                spot.x - 44,
+                spot.y + 7,
+                arcade.color.BLACK,
+                7,
+                width=88,
+                multiline=True,
+                align="center",
+            )
 
         self.draw_ball()
 
