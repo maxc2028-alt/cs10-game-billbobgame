@@ -14,7 +14,7 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Neighborhood Cleanup: South Block"
 
-QUEST_TIME = 12.0
+QUEST_TIME = 7.0
 MAX_UPGRADES = 3
 TRASH_SCORE = 4
 BUILDING_STAGES = 3
@@ -26,6 +26,7 @@ ENTRANCE_X = 720
 ENTRANCE_Y = 300
 ENTRANCE_WIDTH = 55
 ENTRANCE_HEIGHT = 120
+BUILDING_POSITIONS = [(90, 320, 120), (350, 590, 115), (620, 770, 95)]
 QUIZ_OPTIONS = [
     {
         "question": "What is one helpful way an abandoned home could be used?",
@@ -106,6 +107,7 @@ class GameView(arcade.View):
         self.buildings_cleaned = 0
         self.building_names = ["North House", "Corner Lot", "Old Flat"]
         self.current_building = 0
+        self.inside_building = 0
         self.house_styles: dict[int, tuple[tuple[int, int, int], tuple[int, int, int]]] = {}
         self.style_options = [
             ("Garden green", (54, 77, 69), (86, 112, 98)),
@@ -169,6 +171,13 @@ class GameView(arcade.View):
         self.screen = "playing"
         self.round_started = True
 
+    def door_index_near_player(self) -> int | None:
+        for index, (left, right, base_y) in enumerate(BUILDING_POSITIONS):
+            door_center = (left + right) / 2
+            if abs(self.ball_x - door_center) <= 45 and abs(self.ball_y - (base_y + 34)) <= 62:
+                return index
+        return None
+
     def enter_house(self) -> None:
         repair_sets = [
             [
@@ -195,12 +204,35 @@ class GameView(arcade.View):
             RepairSpot(x, y, label, color, cost)
             for x, y, label, color, cost in repair_sets[self.current_building]
         ]
+        self.inside_building = self.current_building
         self.screen = "repair"
         self.round_started = False
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.message = f"You enter {self.building_names[self.current_building]}. Click each repair spot."
         self.hint = "Repair the damaged wall, floor, window, and doorway details to finish this house."
+
+    def visit_house(self, building_index: int) -> None:
+        self.inside_building = building_index
+        self.repair_spots = []
+        self.screen = "visit"
+        self.round_started = False
+        self.ball_x = 400.0
+        self.ball_y = 155.0
+        self.message = f"You went back inside {self.building_names[building_index]}."
+        self.hint = "This house is repaired now. Press F by the door to go back outside."
+
+    def leave_house(self) -> None:
+        left, right, base_y = BUILDING_POSITIONS[self.inside_building]
+        self.ball_x = (left + right) / 2
+        self.ball_y = base_y + 35
+        self.screen = "playing"
+        self.round_started = bool(self.trash_spots)
+        self.message = "You step back outside."
+        if self.trash_spots:
+            self.hint = "Keep cleaning trash, or visit another finished house."
+        else:
+            self.hint = "Press F near the current door when you are ready to go inside."
 
     def next_building(self) -> None:
         finished_building = self.building_names[self.current_building]
@@ -324,8 +356,22 @@ class GameView(arcade.View):
             return
 
         if key == arcade.key.F:
-            if self.screen == "playing" and not self.trash_spots:
-                self.enter_house()
+            if self.screen == "visit":
+                self.leave_house()
+                return
+            if self.screen == "playing":
+                door_index = self.door_index_near_player()
+                if door_index is not None and door_index in self.house_styles:
+                    self.visit_house(door_index)
+                    return
+                if door_index == self.current_building and not self.trash_spots:
+                    self.enter_house()
+                    return
+                if not self.trash_spots:
+                    self.enter_house()
+                    return
+                self.message = "Stand near a repaired door to go back inside."
+                self.hint = "The current building opens after you clear the trash."
                 return
 
         if key == arcade.key.T:
@@ -580,9 +626,7 @@ class GameView(arcade.View):
             ((61, 63, 49), (70, 72, 76)),
         ]
         building_heights = [220, 235, 195]
-        building_positions = [(90, 320, 120), (350, 590, 115), (620, 770, 95)]
-
-        for index, (left, right, base_y) in enumerate(building_positions):
+        for index, (left, right, base_y) in enumerate(BUILDING_POSITIONS):
             roof_color, wall_color = building_colors[index]
             height = building_heights[index]
             repaired = index in self.house_styles
@@ -617,9 +661,15 @@ class GameView(arcade.View):
                     base_y + 15,
                     (31, 30, 32),
                 )
-            if index == self.current_building and not self.trash_spots:
+            if index in self.house_styles:
+                door_label = "Press F to go inside"
+            elif index == self.current_building and not self.trash_spots:
+                door_label = "Press F to open door"
+            else:
+                door_label = ""
+            if door_label:
                 arcade.draw_text(
-                    "Press F to open door",
+                    door_label,
                     door_center,
                     base_y + door_height + 10,
                     (222, 222, 214),
