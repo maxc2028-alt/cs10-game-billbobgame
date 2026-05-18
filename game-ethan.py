@@ -59,12 +59,13 @@ class TrashSpot:
 
 
 class RepairSpot:
-    def __init__(self, x: float, y: float, label: str, color) -> None:
+    def __init__(self, x: float, y: float, label: str, color, cost: int) -> None:
         self.x = x
         self.y = y
         self.label = label
         self.color = color
-        self.radius = 28
+        self.cost = cost
+        self.radius = 24
         self.fixed = False
 
 
@@ -165,28 +166,28 @@ class GameView(arcade.View):
     def enter_house(self) -> None:
         repair_sets = [
             [
-                (250, 295, "patch cracked wall", arcade.color.LIGHT_STEEL_BLUE),
-                (400, 190, "replace loose floorboard", arcade.color.GOLD),
-                (545, 330, "add new glass pane", arcade.color.LIGHT_BLUE),
-                (510, 225, "paint chipped trim", arcade.color.DARK_SEA_GREEN),
+                (250, 295, "patch cracked wall", arcade.color.LIGHT_STEEL_BLUE, 5),
+                (400, 190, "replace loose floorboard", arcade.color.GOLD, 4),
+                (545, 330, "add new glass pane", arcade.color.LIGHT_BLUE, 6),
+                (510, 225, "paint chipped trim", arcade.color.DARK_SEA_GREEN, 4),
             ],
             [
-                (230, 325, "seal broken window frame", arcade.color.LIGHT_BLUE),
-                (350, 200, "sweep and level floor", arcade.color.GOLD),
-                (490, 300, "cover wall holes", arcade.color.LIGHT_STEEL_BLUE),
-                (585, 210, "tighten old door hinge", arcade.color.SIENNA),
+                (230, 325, "seal broken window frame", arcade.color.LIGHT_BLUE, 6),
+                (350, 200, "sweep and level floor", arcade.color.GOLD, 4),
+                (490, 300, "cover wall holes", arcade.color.LIGHT_STEEL_BLUE, 5),
+                (585, 210, "tighten old door hinge", arcade.color.SIENNA, 4),
             ],
             [
-                (230, 215, "nail down floor plank", arcade.color.GOLD),
-                (370, 335, "smooth damaged wall", arcade.color.LIGHT_STEEL_BLUE),
-                (520, 335, "replace cracked window", arcade.color.LIGHT_BLUE),
-                (575, 220, "brush fresh trim paint", arcade.color.DARK_SEA_GREEN),
+                (230, 215, "nail down floor plank", arcade.color.GOLD, 4),
+                (370, 335, "smooth damaged wall", arcade.color.LIGHT_STEEL_BLUE, 5),
+                (520, 335, "replace cracked window", arcade.color.LIGHT_BLUE, 6),
+                (575, 220, "brush fresh trim paint", arcade.color.DARK_SEA_GREEN, 4),
             ],
         ]
 
         self.repair_spots = [
-            RepairSpot(x, y, label, color)
-            for x, y, label, color in repair_sets[self.current_building]
+            RepairSpot(x, y, label, color, cost)
+            for x, y, label, color, cost in repair_sets[self.current_building]
         ]
         self.screen = "repair"
         self.round_started = False
@@ -199,7 +200,6 @@ class GameView(arcade.View):
         finished_building = self.building_names[self.current_building]
         self.current_building = (self.current_building + 1) % len(self.building_names)
         self.buildings_cleaned += 1
-        self.money += 15 + self.upgrades * 3
         self.friendship += 1
         self.upgrades = min(MAX_UPGRADES, self.upgrades + 1)
         self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
@@ -208,7 +208,6 @@ class GameView(arcade.View):
         self.screen = "complete"
 
     def finish_repair(self) -> None:
-        self.money += 10 + self.upgrades * 2
         self.friendship += 1
         self.next_building()
 
@@ -361,10 +360,14 @@ class GameView(arcade.View):
                 if spot.fixed:
                     continue
                 if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= spot.radius ** 2:
+                    if self.money < spot.cost:
+                        self.message = f"Need ${spot.cost} to {spot.label}. You have ${self.money}."
+                        self.hint = "Trash gives you repair money. Clean outside piles before fixing everything."
+                        return
                     spot.fixed = True
-                    self.money += 3 + self.upgrades
-                    self.message = f"Fixed: {spot.label}."
-                    self.hint = "Keep repairing the marked spots until the house is ready."
+                    self.money -= spot.cost
+                    self.message = f"Spent ${spot.cost} to {spot.label}."
+                    self.hint = "Keep repairing the damaged spots until the house is ready."
                     if all(repair.fixed for repair in self.repair_spots):
                         self.finish_repair()
                     return
