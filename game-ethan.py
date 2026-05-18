@@ -970,11 +970,25 @@ class GameView(arcade.View):
         arcade.draw_line(55, 125, 745, 125, arcade.color.BLACK, 3)
 
         person_x = self.intro_walk_x
+        arrived = person_x >= 285
+        wave = math.sin(self.intro_time * 7) * 10 if arrived else 0
         arcade.draw_ellipse_filled(person_x, 84, 34, 8, (15, 18, 25, 130))
+        arcade.draw_line(person_x + 17, 162, person_x + 52, 94, (70, 45, 28), 4)
+        arcade.draw_circle_filled(person_x + 52, 91, 13, (80, 55, 42))
+        arcade.draw_circle_outline(person_x + 52, 91, 13, arcade.color.BLACK, 2)
         arcade.draw_line(person_x, 134, person_x, 104, arcade.color.BLACK, 5)
-        arcade.draw_line(person_x - 14, 120, person_x + 14, 120, arcade.color.BLACK, 3)
+        arcade.draw_line(person_x - 14, 120, person_x + 8, 119, arcade.color.BLACK, 3)
+        if arrived:
+            arcade.draw_line(person_x + 8, 119, person_x + 28, 144 + wave, arcade.color.BLACK, 3)
+            arcade.draw_circle_filled(person_x + 31, 147 + wave, 4, (177, 154, 82))
+            arcade.draw_text("Press START", person_x + 80, 214, (222, 222, 214), 13, anchor_x="center")
+            arcade.draw_text("I am ready.", person_x + 80, 196, (156, 160, 166), 10, anchor_x="center")
+        else:
+            arcade.draw_line(person_x + 8, 119, person_x + 20, 104, arcade.color.BLACK, 3)
         arcade.draw_line(person_x, 104, person_x - 11, 88, arcade.color.BLACK, 3)
         arcade.draw_line(person_x, 104, person_x + 12, 89, arcade.color.BLACK, 3)
+        arcade.draw_circle_filled(person_x - 14, 128, 10, (74, 56, 43))
+        arcade.draw_circle_outline(person_x - 14, 128, 10, arcade.color.BLACK, 2)
         arcade.draw_circle_filled(person_x, 150, 16, (177, 154, 82))
         arcade.draw_circle_outline(person_x, 150, 16, arcade.color.BLACK, 2)
 
