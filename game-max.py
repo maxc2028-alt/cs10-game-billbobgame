@@ -49,6 +49,29 @@ QUIZ_OPTIONS = [
     },
 ]
 
+HOUSE_UPGRADE_OPTIONS = [
+    {
+        "name": "Solar Panels",
+        "description": "Gain extra money now and make future building rewards bigger.",
+        "effect": "money",
+    },
+    {
+        "name": "Community Porch",
+        "description": "Gain extra friendship now and make the block feel more welcoming.",
+        "effect": "friendship",
+    },
+    {
+        "name": "Rain Garden",
+        "description": "Gain an extra friend hint now and help the neighborhood recover.",
+        "effect": "hints",
+    },
+    {
+        "name": "Fresh Paint",
+        "description": "Brighten the neighborhood level right away.",
+        "effect": "neighborhood",
+    },
+]
+
 
 class TrashSpot:
     def __init__(self, x: float, y: float) -> None:
@@ -96,6 +119,9 @@ class GameView(arcade.View):
         self.friend_hints = 0
         self.cleaned = 0
         self.upgrades = 0
+        self.selected_house_upgrades: list[str] = []
+        self.upgrade_choices: list[dict[str, str]] = []
+        self.upgrade_choice_made = False
         self.message = "Press SPACE to begin."
         self.hint = "Clear every trash pile to move to the next building."
         self.trash_spots: list[TrashSpot] = []
@@ -137,6 +163,8 @@ class GameView(arcade.View):
         self.time_left = QUEST_TIME
         self.cleaned = 0
         self.repair_spots = []
+        self.upgrade_choices = []
+        self.upgrade_choice_made = False
         self.message = "Click trash piles to clean the building."
         self.hint = "Move the ball close to trash with WASD or arrows, then click to pick it up."
         self.trash_spots = []
@@ -195,22 +223,51 @@ class GameView(arcade.View):
         self.message = f"You enter {self.building_names[self.current_building]}. Click each repair spot."
         self.hint = "Fix the wall, floor, windows, and door to finish this house."
 
-    def next_building(self) -> None:
+    def start_upgrade_choice(self) -> None:
         finished_building = self.building_names[self.current_building]
+        self.upgrade_choices = random.sample(HOUSE_UPGRADE_OPTIONS, 3)
+        self.upgrade_choice_made = False
+        self.screen = "complete"
+        self.message = f"{finished_building} is repaired. Pick a house upgrade."
+        self.hint = "Press 1, 2, or 3 to choose an upgrade, then press SPACE to start the next building."
+
+    def advance_to_next_building(self) -> None:
         self.current_building = (self.current_building + 1) % len(self.building_names)
         self.buildings_cleaned += 1
         self.money += 15 + self.upgrades * 3
         self.friendship += 1
-        self.upgrades = min(MAX_UPGRADES, self.upgrades + 1)
         self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
-        self.message = f"{finished_building} is repaired. {self.building_names[self.current_building]} is next."
-        self.hint = "Fresh starts open up as you finish one building and move to the next."
-        self.screen = "complete"
+        self.upgrade_choices = []
+        self.upgrade_choice_made = False
+        self.reset_round()
+
+    def choose_house_upgrade(self, choice_index: int) -> None:
+        if self.screen != "complete" or self.upgrade_choice_made:
+            return
+        if choice_index < 0 or choice_index >= len(self.upgrade_choices):
+            return
+
+        choice = self.upgrade_choices[choice_index]
+        self.upgrade_choice_made = True
+        self.upgrades = min(MAX_UPGRADES, self.upgrades + 1)
+        self.selected_house_upgrades.append(choice["name"])
+
+        if choice["effect"] == "money":
+            self.money += 20
+        elif choice["effect"] == "friendship":
+            self.friendship += 1
+        elif choice["effect"] == "hints":
+            self.friend_hints += 1
+        elif choice["effect"] == "neighborhood":
+            self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
+
+        self.message = f"Selected {choice['name']}. Press SPACE to move to the next building."
+        self.hint = "You can still move around while you decide, but the next round starts with SPACE."
 
     def finish_repair(self) -> None:
         self.money += 10 + self.upgrades * 2
         self.friendship += 1
-        self.next_building()
+        self.start_upgrade_choice()
 
     def fail_round(self) -> None:
         self.screen = "failed"
@@ -316,6 +373,18 @@ class GameView(arcade.View):
             self.try_befriend()
             return
 
+        if self.screen == "complete":
+            if key in (arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3):
+                self.choose_house_upgrade({arcade.key.KEY_1: 0, arcade.key.KEY_2: 1, arcade.key.KEY_3: 2}[key])
+                return
+            if key == arcade.key.SPACE:
+                if self.upgrade_choice_made:
+                    self.advance_to_next_building()
+                else:
+                    self.message = "Pick a house upgrade first with 1, 2, or 3."
+                    self.hint = "Choose the upgrade you want before starting the next building."
+                return
+
         if self.screen == "quiz" and key in (arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3):
             self.answer_quiz({arcade.key.KEY_1: 0, arcade.key.KEY_2: 1, arcade.key.KEY_3: 2}[key])
             return
@@ -365,6 +434,17 @@ class GameView(arcade.View):
                     self.hint = "Keep repairing the marked spots until the house is ready."
                     if all(repair.fixed for repair in self.repair_spots):
                         self.finish_repair()
+                    return
+            return
+
+        if self.screen == "complete":
+            card_x_positions = [130, 310, 490]
+            for index, left in enumerate(card_x_positions):
+                right = left + 140
+                bottom = 210
+                top = 350
+                if left <= x <= right and bottom <= y <= top:
+                    self.choose_house_upgrade(index)
                     return
             return
 
@@ -647,6 +727,15 @@ class GameView(arcade.View):
         arcade.draw_text(f"Hints: {self.friend_hints}", 390, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
+        if self.selected_house_upgrades:
+            arcade.draw_text(
+                f"House upgrades: {', '.join(self.selected_house_upgrades)}",
+                22,
+                495,
+                (156, 160, 166),
+                10,
+                width=740,
+            )
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
@@ -684,10 +773,32 @@ class GameView(arcade.View):
                 anchor_x="center",
             )
         elif self.screen == "complete":
+            if self.upgrade_choices:
+                card_x_positions = [130, 310, 490]
+                for index, choice in enumerate(self.upgrade_choices):
+                    left = card_x_positions[index]
+                    right = left + 140
+                    bottom = 210
+                    top = 350
+                    fill_color = (44, 58, 72) if not self.upgrade_choice_made else (34, 42, 51)
+                    if self.upgrade_choice_made and self.selected_house_upgrades and self.selected_house_upgrades[-1] == choice["name"]:
+                        fill_color = (72, 92, 64)
+                    arcade.draw_lrbt_rectangle_filled(left, right, bottom, top, fill_color)
+                    arcade.draw_lrbt_rectangle_outline(left, right, bottom, top, arcade.color.LIGHT_GRAY, 2)
+                    arcade.draw_text(f"{index + 1}. {choice['name']}", left + 70, top - 24, arcade.color.WHITE, 13, anchor_x="center")
+                    arcade.draw_text(choice["description"], left + 10, bottom + 20, arcade.color.LIGHT_GRAY, 9, width=120, multiline=True)
+                arcade.draw_text(
+                    "Choose one upgrade with 1, 2, or 3.",
+                    400,
+                    175,
+                    arcade.color.WHITE,
+                    11,
+                    anchor_x="center",
+                )
             arcade.draw_text(
                 "Press SPACE to move to the next building.",
                 400,
-                35,
+                145,
                 arcade.color.WHITE,
                 11,
                 anchor_x="center",
