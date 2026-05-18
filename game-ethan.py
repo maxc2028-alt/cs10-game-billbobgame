@@ -386,10 +386,10 @@ class GameView(arcade.View):
                 self.hint = "Move near another ball and press F or click them to become friends."
                 if self.cleaned % 2 == 0:
                     self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
+                if not self.trash_spots:
+                    self.message = "The outside is clear. Press E when you want to go inside."
+                    self.hint = "You can talk to friends first, or enter the building when you are ready."
                 break
-
-        if not self.trash_spots:
-            self.enter_house()
 
     def draw_ball(self) -> None:
         if self.screen == "playing":
@@ -699,8 +699,11 @@ class GameView(arcade.View):
                 anchor_x="center",
             )
         else:
+            play_instruction = "Press E to enter the building when you are ready."
+            if self.trash_spots:
+                play_instruction = "Move close to trash and click it. Press F near blue balls to make friends."
             arcade.draw_text(
-                "Move close to trash and click it. Press F near blue balls to make friends.",
+                play_instruction,
                 400,
                 35,
                 arcade.color.WHITE,
