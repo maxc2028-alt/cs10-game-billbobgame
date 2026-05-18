@@ -310,6 +310,9 @@ class GameView(arcade.View):
             return
 
         if key == arcade.key.F:
+            if self.screen == "playing" and not self.trash_spots:
+                self.enter_house()
+                return
             self.try_befriend()
             return
 
@@ -387,8 +390,8 @@ class GameView(arcade.View):
                 if self.cleaned % 2 == 0:
                     self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
                 if not self.trash_spots:
-                    self.message = "The outside is clear. Press E when you want to go inside."
-                    self.hint = "You can talk to friends first, or enter the building when you are ready."
+                    self.message = "The outside is clear. Press F to open the door."
+                    self.hint = "You can talk to friends first, or open the door when you are ready."
                 break
 
     def draw_ball(self) -> None:
@@ -506,6 +509,23 @@ class GameView(arcade.View):
                 wall_color = (76, 91, 86)
                 roof_color = (54, 77, 69)
             self.draw_building(left, right, base_y, height, roof_color, wall_color)
+            door_width = 34
+            door_height = 68
+            door_center = (left + right) / 2
+            door_left = door_center - door_width / 2
+            door_right = door_center + door_width / 2
+            arcade.draw_lrbt_rectangle_filled(door_left, door_right, base_y, base_y + door_height, (45, 36, 34))
+            arcade.draw_lrbt_rectangle_outline(door_left, door_right, base_y, base_y + door_height, arcade.color.BLACK, 2)
+            arcade.draw_circle_filled(door_right - 8, base_y + 34, 3, (150, 132, 82))
+            if index == self.current_building and not self.trash_spots:
+                arcade.draw_text(
+                    "Press F to open door",
+                    door_center,
+                    base_y + door_height + 10,
+                    (222, 222, 214),
+                    10,
+                    anchor_x="center",
+                )
 
         arcade.draw_lrbt_rectangle_filled(40, 760, 80, 105, (30, 32, 38))
         arcade.draw_line(0, 105, 800, 105, arcade.color.BLACK, 3)
@@ -699,7 +719,7 @@ class GameView(arcade.View):
                 anchor_x="center",
             )
         else:
-            play_instruction = "Press E to enter the building when you are ready."
+            play_instruction = "Press F to open the door when you are ready."
             if self.trash_spots:
                 play_instruction = "Move close to trash and click it. Press F near blue balls to make friends."
             arcade.draw_text(
