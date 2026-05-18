@@ -147,7 +147,7 @@ class GameView(arcade.View):
             [(420, 165), (495, 120), (560, 145), (610, 190), (460, 225), (535, 220)],
             [(650, 120), (705, 165), (715, 245), (640, 225), (690, 190), (755, 120)],
         ]
-        friend_positions = [(110, 255), (390, 285), (680, 285)]
+        friend_positions = [(105, 122), (392, 118), (680, 122)]
 
         for x, y in building_sets[self.current_building]:
             self.trash_spots.append(TrashSpot(x, y))
@@ -577,6 +577,11 @@ class GameView(arcade.View):
 
         for friend in self.friends:
             friend_color = (118, 139, 129) if friend.name in self.befriended_friends else (86, 104, 123)
+            arcade.draw_line(friend.x, friend.y - 16, friend.x, friend.y - 42, arcade.color.BLACK, 4)
+            arcade.draw_line(friend.x - 12, friend.y - 28, friend.x + 12, friend.y - 28, arcade.color.BLACK, 3)
+            arcade.draw_line(friend.x, friend.y - 42, friend.x - 10, friend.y - 58, arcade.color.BLACK, 3)
+            arcade.draw_line(friend.x, friend.y - 42, friend.x + 10, friend.y - 58, arcade.color.BLACK, 3)
+            arcade.draw_ellipse_filled(friend.x, friend.y - 60, 28, 7, (15, 18, 25, 120))
             arcade.draw_circle_filled(friend.x, friend.y, 16, friend_color)
             arcade.draw_circle_outline(friend.x, friend.y, 16, arcade.color.BLACK, 2)
             arcade.draw_text(friend.name, friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
