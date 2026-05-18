@@ -106,6 +106,12 @@ class GameView(arcade.View):
         self.buildings_cleaned = 0
         self.building_names = ["North House", "Corner Lot", "Old Flat"]
         self.current_building = 0
+        self.house_styles: dict[int, tuple[tuple[int, int, int], tuple[int, int, int]]] = {}
+        self.style_options = [
+            ("Garden green", (54, 77, 69), (86, 112, 98)),
+            ("Warm brick", (89, 52, 48), (121, 76, 65)),
+            ("Soft blue", (53, 68, 92), (86, 103, 126)),
+        ]
         self.neighborhood_state = 0
         self.round_started = False
         self.ball_x = 400.0
@@ -204,11 +210,20 @@ class GameView(arcade.View):
         self.upgrades = min(MAX_UPGRADES, self.upgrades + 1)
         self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
         self.message = f"{finished_building} is repaired. {self.building_names[self.current_building]} is next."
-        self.hint = "Fresh starts open up as you finish one building and move to the next."
-        self.screen = "complete"
+        self.hint = "The next cleanup starts right away."
+        self.reset_round()
 
     def finish_repair(self) -> None:
         self.friendship += 1
+        self.screen = "decorate"
+        self.round_started = False
+        self.keys_down.clear()
+        self.message = "Choose how this repaired house should look."
+        self.hint = "Press 1, 2, or 3 to pick a style. The next cleanup starts after your choice."
+
+    def choose_house_style(self, style_index: int) -> None:
+        _, roof_color, wall_color = self.style_options[style_index]
+        self.house_styles[self.current_building] = (roof_color, wall_color)
         self.next_building()
 
     def fail_round(self) -> None:
@@ -317,7 +332,12 @@ class GameView(arcade.View):
             self.try_befriend()
             return
 
-        if self.screen == "quiz" and key in (arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3):
+        number_keys = (arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3)
+        if self.screen == "decorate" and key in number_keys:
+            self.choose_house_style({arcade.key.KEY_1: 0, arcade.key.KEY_2: 1, arcade.key.KEY_3: 2}[key])
+            return
+
+        if self.screen == "quiz" and key in number_keys:
             self.answer_quiz({arcade.key.KEY_1: 0, arcade.key.KEY_2: 1, arcade.key.KEY_3: 2}[key])
             return
 
@@ -352,6 +372,15 @@ class GameView(arcade.View):
                 bottom = top - 46
                 if 130 <= x <= 670 and bottom <= y <= top:
                     self.answer_quiz(index)
+                    return
+            return
+
+        if self.screen == "decorate":
+            for index in range(3):
+                left = 150 + index * 175
+                right = left + 130
+                if left <= x <= right and 235 <= y <= 385:
+                    self.choose_house_style(index)
                     return
             return
 
@@ -537,7 +566,9 @@ class GameView(arcade.View):
         for index, (left, right, base_y) in enumerate(building_positions):
             roof_color, wall_color = building_colors[index]
             height = building_heights[index]
-            if index < self.neighborhood_state:
+            if index in self.house_styles:
+                roof_color, wall_color = self.house_styles[index]
+            elif index < self.neighborhood_state:
                 wall_color = (76, 91, 86)
                 roof_color = (54, 77, 69)
             self.draw_building(left, right, base_y, height, roof_color, wall_color)
