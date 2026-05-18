@@ -7,6 +7,7 @@ small upgrades that make the neighborhood feel more alive.
 from __future__ import annotations
 
 import random
+import math
 
 import arcade
 
@@ -131,6 +132,7 @@ class GameView(arcade.View):
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.intro_walk_x = 85.0
+        self.intro_time = 0.0
         self.keys_down: set[int] = set()
         self.quiz_friend: FriendNPC | None = None
         self.quiz_question = QUIZ_OPTIONS[0]
@@ -595,9 +597,10 @@ class GameView(arcade.View):
 
     def on_update(self, delta_time: float) -> None:
         if self.screen == "intro":
+            self.intro_time += delta_time
             self.intro_walk_x += 55 * delta_time
-            if self.intro_walk_x > 455:
-                self.intro_walk_x = 455
+            if self.intro_walk_x > 285:
+                self.intro_walk_x = 285
             return
 
         self.update_ball(delta_time)
