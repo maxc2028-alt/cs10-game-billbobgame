@@ -9,7 +9,7 @@ import arcade
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-SCREEN_TITLE = "Neighborhood Cleanup: South Block"
+SCREEN_TITLE = "Alone"
 
 QUEST_TIME = 30.0
 MAX_UPGRADES = 3
@@ -30,11 +30,8 @@ HOUSE_BASE_Y = 120
 HOUSE_WIDTHS = [140, 170, 120]
 HOUSE_HEIGHTS = [220, 235, 195]
 
-# New friend names with meaning-based riddle clues
-# Name meanings: Rosa=rose/flower, Leo=lion, Maya=water/illusion
 FRIEND_NAMES = ["Rosa", "Leo", "Maya"]
 
-# Riddle clues keyed to name meaning
 FRIEND_RIDDLES = {
     "Rosa": {
         "riddle": "I bloom in your garden, red or pink or white.\nI smell so sweet and I have thorns to bite.\nPeople give me on Valentine's Day.\nWhat flower am I? (That's the name — take a guess!)",
@@ -112,6 +109,7 @@ INTERIOR_REPAIR_SETS = [
         (590, 175, "straighten the hanging frame", arcade.color.DARK_SEA_GREEN, 4),
     ],
 ]
+
 INTERIOR_UPGRADE_SETS = [
     [
         (225, 330, "add a reading nook", arcade.color.GOLD, 4),
@@ -171,7 +169,7 @@ class TrashSpot:
         self.radius = 22
         self.trash_type = random.choice(["can", "bag", "box", "rubble"])
         self.rotation = random.uniform(0, 360)
-        self.pulse = random.uniform(0, math.pi * 2)  # For glowing animation
+        self.pulse = random.uniform(0, math.pi * 2)
 
 
 class RepairSpot:
@@ -239,7 +237,6 @@ class GameView(arcade.View):
         self.intro_time = 0.0
         self.start_countdown = 0.0
         self.keys_down: set[int] = set()
-        # Friend interaction state
         self.active_conversation_friend: FriendNPC | None = None
         self.conversation_step = 0
         self.in_conversation = False
@@ -252,7 +249,6 @@ class GameView(arcade.View):
         self.game_over_ready = False
         self.show_instructions = False
         self.pulse_time = 0.0
-        # World state
         self.generated_houses: dict[int, tuple[float, float, int, int, tuple, tuple]] = {}
         self.configure_camera()
 
@@ -309,7 +305,7 @@ class GameView(arcade.View):
         self.cleaned = 0
         self.repair_spots = []
         self.message = "Click trash piles to clean the building!"
-        self.hint = "Move near trash with WASD/arrows, then click it to pick up. Collect all trash to proceed."
+        self.hint = "Move near trash with WASD/arrows, then click it to pick it up. Collect all trash to proceed."
         self.trash_spots = []
         self.friends = []
         self.in_conversation = False
@@ -319,25 +315,18 @@ class GameView(arcade.View):
         left, right, base_y, height = self.get_house_position(self.current_building)
         building_center_x = (left + right) / 2
 
-        # Trash positions — scattered in the street in FRONT of the building
-        # base_y is ~120, HUD bottom is ~490. Player min_y ~111. Trash at ~160-220 is reachable.
-        relative_positions = [
-            (-80, 55), (-40, 65), (0, 50), (50, 70), (85, 55), (25, 60)
-        ]
+        relative_positions = [(-80, 55), (-40, 65), (0, 50), (50, 70), (85, 55), (25, 60)]
         for rel_x, rel_y in relative_positions:
             self.trash_spots.append(TrashSpot(building_center_x + rel_x, base_y + rel_y))
 
-        # Friends stand at DIFFERENT buildings nearby — one per adjacent house
         for i in range(3):
             friend_name = FRIEND_NAMES[i % len(FRIEND_NAMES)]
-            # Each friend is at a different building index around the current one
-            building_offset = i - 1  # -1, 0, +1 relative buildings
+            building_offset = i - 1
             target_idx = self.current_building + building_offset
             fl, fr, fb, _ = self.get_house_position(target_idx)
             fx = (fl + fr) / 2
-            fy = fb + 50  # Stand just above ground, in front of their building
-            f = FriendNPC(friend_name, fx, fy)
-            self.friends.append(f)
+            fy = fb + 35
+            self.friends.append(FriendNPC(friend_name, fx, fy))
 
         self.ball_x = building_center_x
         self.ball_y = base_y + 40
@@ -438,7 +427,6 @@ class GameView(arcade.View):
         return self.current_building in self.lesson_completed_buildings
 
     def current_target_friend_name(self) -> str:
-        # The target friend is always the one placed at the current building (index 1, offset 0)
         if self.friends:
             return self.friends[1].name
         return FRIEND_NAMES[self.current_building % len(FRIEND_NAMES)]
@@ -488,10 +476,7 @@ class GameView(arcade.View):
         self.hint = "You needed to clear the trash before time ran out."
         self.round_started = False
 
-    # ---- Conversation / Riddle system ----
-
     def start_conversation(self, friend: FriendNPC) -> None:
-        """Start the life-conversation with a friend before the riddle."""
         self.active_conversation_friend = friend
         self.conversation_step = 0
         self.in_conversation = True
@@ -499,14 +484,12 @@ class GameView(arcade.View):
         self.screen = "conversation"
 
     def advance_conversation(self) -> None:
-        """Move through conversation lines; transition to riddle at end."""
         if self.active_conversation_friend is None:
             return
         data = FRIEND_RIDDLES[self.active_conversation_friend.name]
         convo = data["conversation"]
         self.conversation_step += 1
         if self.conversation_step >= len(convo):
-            # Move to riddle
             self.in_conversation = False
             self.in_riddle = True
             self.riddle_guess = ""
@@ -523,10 +506,8 @@ class GameView(arcade.View):
             self.in_riddle = False
             self.active_conversation_friend = None
             self.riddle_guess = ""
-            # Start quiz
             self.start_friend_quiz(friend)
         else:
-            # Show next hint
             if self.riddle_hint_shown < 2:
                 self.riddle_hint_shown += 1
                 self.message = f"Not quite... Hint: {data['hint_stages'][self.riddle_hint_shown]}"
@@ -597,7 +578,7 @@ class GameView(arcade.View):
                 self.start_conversation(friend)
                 return True
         if x is None and y is None:
-            self.message = "Move close to a friend before pressing T."
+            self.message = "Move close to a friend before pressing H."
         return True
 
     def on_key_press(self, key: int, modifiers: int) -> None:
@@ -653,7 +634,7 @@ class GameView(arcade.View):
                 self.message = "Stand near a repaired door to go inside."
                 return
 
-        if key == arcade.key.T:
+        if key == arcade.key.H:
             self.try_befriend()
             return
 
@@ -701,7 +682,6 @@ class GameView(arcade.View):
             return
 
         if self.screen == "riddle":
-            # Check hint button
             if 220 <= x <= 420 and 90 <= y <= 125 and self.riddle_hint_shown < 2:
                 self.riddle_hint_shown += 1
                 data = FRIEND_RIDDLES[self.active_conversation_friend.name]
@@ -738,7 +718,7 @@ class GameView(arcade.View):
                     is_final_repair = all(r.fixed or r is spot for r in self.repair_spots)
                     if is_final_repair and not self.can_finish_current_house():
                         self.message = "Before finishing, answer a friend's question correctly."
-                        self.hint = "Press F to go outside, then press T near a friend."
+                        self.hint = "Press F to go outside, then press H near a friend."
                         return
                     if self.money < spot.cost:
                         self.message = f"Need ${spot.cost} to {spot.label}. You have ${self.money}."
@@ -786,9 +766,8 @@ class GameView(arcade.View):
                 self.cleaned += 1
                 self.money += TRASH_SCORE + self.upgrades
                 if not self.trash_spots:
-                    target_name = self.current_target_friend_name()
-                    self.message = f"Outside is clear! Move close to a friend and press T to talk."
-                    self.hint = "Press T when near the glowing friend to start a conversation."
+                    self.message = "Outside is clear! Move close to a friend and press H to talk."
+                    self.hint = "Press H when near the glowing friend to start a conversation."
                 else:
                     remaining = len(self.trash_spots)
                     self.message = f"Good! {remaining} trash pile{'s' if remaining != 1 else ''} left. +${TRASH_SCORE + self.upgrades}"
@@ -838,15 +817,10 @@ class GameView(arcade.View):
         arcade.draw_circle_filled(self.ball_x + 2, self.ball_y + 10, 1.5, arcade.color.BLACK)
 
     def draw_trash(self, trash: TrashSpot, pulse: float = 0.0) -> None:
-        """Draw trash with a faint glow so it's visible but not overwhelming."""
         x, y = trash.x, trash.y
-
-        # Faint soft glow — subtle, not distracting
         glow_alpha = int(35 + 20 * math.sin(pulse + trash.pulse))
         arcade.draw_circle_filled(x, y, 30, (255, 220, 80, glow_alpha))
-        # Thin glow ring outline
         arcade.draw_circle_outline(x, y, 26, (255, 200, 60, 80), 2)
-
         if trash.trash_type == "can":
             arcade.draw_lrbt_rectangle_filled(x - 10, x + 10, y - 12, y + 8, (160, 160, 160))
             arcade.draw_lrbt_rectangle_outline(x - 10, x + 10, y - 12, y + 8, arcade.color.BLACK, 2)
@@ -871,8 +845,6 @@ class GameView(arcade.View):
             arcade.draw_polygon_filled([(x+4, y-11), (x+13, y-8), (x+11, y+3), (x+2, y+2)], (120, 110, 98))
             arcade.draw_polygon_filled([(x-4, y+4), (x+7, y+2), (x+9, y+11), (x, y+13)], (105, 95, 82))
             arcade.draw_line(x - 8, y - 2, x + 4, y + 5, (70, 60, 50), 2)
-
-        # "TRASH" label below
         arcade.draw_text("TRASH", x, y - 30, (255, 120, 50), 9, anchor_x="center", bold=True)
 
     def update_ball(self, delta_time: float) -> None:
@@ -959,32 +931,21 @@ class GameView(arcade.View):
     def draw_friend_character(self, friend: FriendNPC, x: float, y: float, highlight: bool = False,
                                show_line: bool = True, name_override: str | None = None,
                                line_override: str | None = None) -> None:
-        """Draw a grounded stick-figure friend."""
         friend_color = (118, 139, 129) if friend.name in self.befriended_friends else (86, 104, 123)
         if highlight:
             friend_color = (214, 181, 95)
-            # Glow rings
             arcade.draw_circle_filled(x, y + 28, 36, (255, 235, 150, 60))
             arcade.draw_circle_outline(x, y + 28, 28, arcade.color.GOLD, 3)
-
-        # Shadow on ground
         arcade.draw_ellipse_filled(x, y - 2, 28, 6, (15, 18, 25, 120))
-
-        # Legs (start from feet at y, go up to body center at y+18)
         arcade.draw_line(x - 5, y, x, y + 18, arcade.color.BLACK, 3)
         arcade.draw_line(x + 5, y, x, y + 18, arcade.color.BLACK, 3)
-        # Body
         arcade.draw_line(x, y + 18, x, y + 36, arcade.color.BLACK, 5)
-        # Arms
         arcade.draw_line(x, y + 28, x - 12, y + 20, arcade.color.BLACK, 3)
         arcade.draw_line(x, y + 28, x + 12, y + 20, arcade.color.BLACK, 3)
-        # Head
         arcade.draw_circle_filled(x, y + 44, 14, friend_color)
         arcade.draw_circle_outline(x, y + 44, 14, arcade.color.BLACK, 2)
         if highlight:
             arcade.draw_circle_outline(x, y + 44, 19, arcade.color.GOLD, 2)
-
-        # Name above head
         arcade.draw_text(name_override or friend.name, x, y + 62, arcade.color.WHITE, 11, anchor_x="center")
         if show_line:
             arcade.draw_text(
@@ -1078,15 +1039,12 @@ class GameView(arcade.View):
             if door_label:
                 arcade.draw_text(door_label, door_center, base_y + door_height + 10, (222, 222, 214), 10, anchor_x="center")
 
-        # Ground
         arcade.draw_lrbt_rectangle_filled(0, 10000, 0, HOUSE_BASE_Y, (31, 38, 36))
         arcade.draw_line(0, HOUSE_BASE_Y, 10000, HOUSE_BASE_Y, (49, 58, 55), 2)
 
-        # Trash — draw with pulse animation
         for trash in self.trash_spots:
             self.draw_trash(trash, self.pulse_time)
 
-        # Friends — grounded
         target_name = self.current_target_friend_name() if not self.trash_spots else ""
         for friend in self.friends:
             is_highlighted = (not self.trash_spots and friend.name == target_name
@@ -1099,14 +1057,12 @@ class GameView(arcade.View):
 
         self.draw_ball()
 
-        # "COLLECT TRASH!" sign if trash is left
         if self.trash_spots:
             arcade.draw_lrbt_rectangle_filled(260, 540, 420, 448, (200, 60, 60, 200))
             arcade.draw_text(f"COLLECT ALL TRASH! ({len(self.trash_spots)} left)",
                              400, 426, arcade.color.WHITE, 14, anchor_x="center", bold=True)
 
     def draw_conversation(self) -> None:
-        """Draw the life-conversation between player and friend."""
         if self.active_conversation_friend is None:
             return
         friend = self.active_conversation_friend
@@ -1116,13 +1072,11 @@ class GameView(arcade.View):
         speaker, line = convo[step]
 
         self.draw_background()
-        # Dark panel
         arcade.draw_lrbt_rectangle_filled(60, 740, 90, 500, (15, 18, 28))
         arcade.draw_lrbt_rectangle_outline(60, 740, 90, 500, (180, 160, 100), 3)
 
         arcade.draw_text("A Conversation", 400, 460, arcade.color.GOLD, 22, anchor_x="center")
 
-        # Draw friend character in scene
         is_player = speaker == "You"
         if is_player:
             arcade.draw_text("[You]", 400, 410, (160, 220, 180), 16, anchor_x="center", bold=True)
@@ -1130,7 +1084,6 @@ class GameView(arcade.View):
             arcade.draw_text(f"[{friend.name}]", 400, 410, (220, 180, 120), 16, anchor_x="center", bold=True)
             self.draw_friend_character(friend, 200, 200, highlight=False, show_line=False, name_override="???")
 
-        # Speech bubble
         arcade.draw_lrbt_rectangle_filled(120, 680, 240, 380, (30, 35, 50))
         arcade.draw_lrbt_rectangle_outline(120, 680, 240, 380, (180, 160, 100), 2)
         arcade.draw_text(
@@ -1139,14 +1092,12 @@ class GameView(arcade.View):
             width=520, multiline=True, anchor_x="center", align="center",
         )
 
-        # Progress
         arcade.draw_text(f"({step + 1}/{len(convo)})", 400, 210, (120, 120, 140), 12, anchor_x="center")
         arcade.draw_lrbt_rectangle_filled(220, 580, 108, 140, (40, 90, 60))
         arcade.draw_lrbt_rectangle_outline(220, 580, 108, 140, arcade.color.WHITE, 2)
         arcade.draw_text("SPACE or CLICK to continue", 400, 116, arcade.color.WHITE, 14, anchor_x="center")
 
     def draw_riddle(self) -> None:
-        """Draw the name-riddle screen."""
         if self.active_conversation_friend is None:
             return
         friend = self.active_conversation_friend
@@ -1160,10 +1111,8 @@ class GameView(arcade.View):
         arcade.draw_text(f"{friend.name[0]}{'_' * (len(friend.name)-1)}  ({len(friend.name)} letters)",
                          400, 468, arcade.color.LIGHT_GRAY, 14, anchor_x="center")
 
-        # Draw friend character
         self.draw_friend_character(friend, 160, 280, highlight=True, show_line=False, name_override="???")
 
-        # Riddle text
         arcade.draw_lrbt_rectangle_filled(220, 700, 290, 450, (25, 28, 42))
         arcade.draw_lrbt_rectangle_outline(220, 700, 290, 450, (120, 120, 160), 2)
         arcade.draw_text(
@@ -1172,19 +1121,16 @@ class GameView(arcade.View):
             width=440, multiline=True, anchor_x="center", align="left",
         )
 
-        # Hint display
         if self.riddle_hint_shown > 0:
             arcade.draw_lrbt_rectangle_filled(220, 700, 240, 290, (40, 50, 30))
             arcade.draw_text(f"Hint: {data['hint_stages'][min(self.riddle_hint_shown, len(data['hint_stages'])-1)]}",
                              460, 258, arcade.color.LIGHT_GREEN, 11, width=440, multiline=True, anchor_x="center")
 
-        # Hint button
         if self.riddle_hint_shown < 2:
             arcade.draw_lrbt_rectangle_filled(220, 420, 90, 128, (60, 50, 30))
             arcade.draw_lrbt_rectangle_outline(220, 420, 90, 128, arcade.color.GOLD, 2)
             arcade.draw_text("Click for Hint", 320, 100, arcade.color.GOLD, 13, anchor_x="center")
 
-        # Input box
         arcade.draw_lrbt_rectangle_filled(430, 700, 90, 128, (35, 45, 60))
         arcade.draw_lrbt_rectangle_outline(430, 700, 90, 128, arcade.color.WHITE, 2)
         display = self.riddle_guess or "type your guess..."
@@ -1261,7 +1207,7 @@ class GameView(arcade.View):
 
     def draw_intro(self) -> None:
         self.draw_background()
-        arcade.draw_text("Neighborhood Cleanup", 400, 505, (222, 222, 214), 32, anchor_x="center", font_name="Georgia")
+        arcade.draw_text("Alone", 400, 505, (222, 222, 214), 32, anchor_x="center", font_name="Georgia")
         intro_buildings = [
             (430, 525, 185, 150, (73, 52, 48), (58, 62, 70)),
             (540, 650, 175, 170, (62, 43, 55), (64, 68, 76)),
@@ -1374,7 +1320,7 @@ class GameView(arcade.View):
             arcade.draw_lrbt_rectangle_outline(175, 625, 112, 248, (222, 222, 214), 2)
             arcade.draw_text("Instructions", 400, 220, (222, 222, 214), 18, anchor_x="center")
             arcade.draw_text(
-                "Move: WASD/arrows  |  Talk to friend: T  |  Enter/leave house: F  |  Quit: ESC\n"
+                "Move: WASD/arrows  |  Talk to friend: H  |  Enter/leave house: F  |  Quit: ESC\n"
                 "Click trash when nearby to collect it. Talk to friends after trash is clear.",
                 400, 170, (156, 160, 166), 11, width=420, multiline=True, anchor_x="center"
             )
