@@ -949,7 +949,7 @@ class GameView(arcade.View):
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.message = "The neighborhood comes together in one shared home."
-        self.hint = "Press SPACE to play again, or ESC to quit."
+        self.hint = "Press SPACE to play again."
 
 
     def start_game_countdown(self) -> None:
@@ -2161,7 +2161,7 @@ class GameView(arcade.View):
     def draw_game_over(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, arcade.color.BLACK)
         arcade.draw_text("GAME OVER", 400, 330, arcade.color.GOLD, 64, anchor_x="center")
-        arcade.draw_text("Press ESC to quit.", 400, 265, arcade.color.WHITE, 16, anchor_x="center")
+        arcade.draw_text("Press SPACE to continue.", 400, 265, arcade.color.WHITE, 16, anchor_x="center")
         arcade.draw_text(self.quiz_question["fact"], 170, 215, arcade.color.LIGHT_GRAY, 13, width=460, multiline=True)
 
 
@@ -2171,7 +2171,7 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_outline(150, 650, 180, 450, arcade.color.WHITE, 3)
         arcade.draw_text("GAME OVER", 400, 380, arcade.color.GOLD, 64, anchor_x="center")
         arcade.draw_text("You ran out of time picking up trash.", 400, 310, arcade.color.WHITE, 18, anchor_x="center")
-        arcade.draw_text("Press SPACE to try again or ESC to quit.", 400, 260, arcade.color.LIGHT_GRAY, 14, anchor_x="center")
+        arcade.draw_text("Press SPACE to try again.", 400, 260, arcade.color.LIGHT_GRAY, 14, anchor_x="center")
 
 
     def draw_conclusion(self) -> None:
@@ -2279,7 +2279,7 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(130, 670, 68, 104, (18, 22, 31, 225))
         arcade.draw_lrbt_rectangle_outline(130, 670, 68, 104, arcade.color.WHITE, 2)
         arcade.draw_text("One big house. All of the friends together.", 400, 86, arcade.color.WHITE, 13, anchor_x="center")
-        arcade.draw_text("Press SPACE to play again or ESC to quit.", 400, 68, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+        arcade.draw_text("Press SPACE to play again.", 400, 68, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
 
     def draw_hud(self) -> None:
@@ -2348,7 +2348,7 @@ class GameView(arcade.View):
             arcade.draw_text("Instructions", 400, 220, (222, 222, 214), 18, anchor_x="center")
             arcade.draw_text(self.hint, 198, 188, (156, 160, 166), 11, width=404, multiline=True)
             arcade.draw_text(
-                "Move: WASD/arrows   Talk: T   Door/leave: F   Quit: ESC",
+                "Move: WASD/arrows   Talk: T   Door/leave: F   Pause: P",
                 400,
                 132,
                 (156, 160, 166),
