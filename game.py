@@ -1237,11 +1237,11 @@ class GameView(arcade.View):
             y = world_position.y
 
         if self.menu_open:
-            if 540 <= screen_x <= 720 and 352 <= screen_y <= 400:
+            if 540 <= x <= 720 and 352 <= y <= 400:
                 self.reset_round()
                 self.menu_open = False
                 return
-            if 540 <= screen_x <= 720 and 302 <= screen_y <= 348:
+            if 540 <= x <= 720 and 302 <= y <= 348:
                 self.menu_open = False
                 self.screen = "intro"
                 self.intro_time = 0.0
@@ -1249,17 +1249,17 @@ class GameView(arcade.View):
                 self.message = "Press SPACE to begin."
                 self.hint = "Clear every trash pile to move to the next building."
                 return
-            if 540 <= screen_x <= 720 and 252 <= screen_y <= 298:
+            if 540 <= x <= 720 and 252 <= y <= 298:
                 if self.window is not None:
                     self.window.close()
                 return
             return
 
-        if 10 <= screen_x <= 45 and 18 <= screen_y <= 53:
+        if 10 <= x <= 45 and 18 <= y <= 53:
             self.show_instructions = not self.show_instructions
             return
 
-        if 10 <= screen_x <= 45 and 518 <= screen_y <= 553:
+        if 10 <= x <= 45 and 518 <= y <= 553:
             self.show_instructions = not self.show_instructions
             return
 
@@ -1805,7 +1805,6 @@ class GameView(arcade.View):
 
     def draw_scene(self) -> None:
         self.draw_background()
-        self.draw_clouds()
 
         # Draw visible buildings (determine which ones are on screen)
         player_building_idx = int(self.ball_x / HOUSE_SPACING)
@@ -1871,6 +1870,7 @@ class GameView(arcade.View):
             )
 
         self.draw_ball()
+        self.draw_clouds()
 
 
     def draw_building_decay(self, left: float, right: float, base_y: float, height: float) -> None:
