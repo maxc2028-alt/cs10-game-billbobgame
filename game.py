@@ -1670,19 +1670,21 @@ class GameView(arcade.View):
 
     def draw_clouds(self) -> None:
         cloud_sets = [
-            (110, 520, 0.0, 1.0),
-            (350, 545, 1.7, 0.8),
-            (610, 530, 3.2, 0.9),
+            (100, 555, 0.0, 1.15),
+            (340, 565, 1.7, 1.0),
+            (600, 548, 3.2, 1.1),
+            (760, 560, 4.6, 0.9),
         ]
         for base_x, base_y, phase, scale in cloud_sets:
             drift_x = (self.sky_time * 10 * scale + phase * 40) % 920 - 60
             x = base_x + drift_x
             y = base_y
-            cloud_color = (236, 238, 244, 90)
-            arcade.draw_circle_filled(x, y, 18 * scale, cloud_color)
-            arcade.draw_circle_filled(x + 16 * scale, y + 6, 22 * scale, cloud_color)
-            arcade.draw_circle_filled(x + 34 * scale, y, 16 * scale, cloud_color)
-            arcade.draw_ellipse_filled(x + 18 * scale, y - 4, 56 * scale, 16 * scale, (236, 238, 244, 55))
+            cloud_color = (244, 246, 250, 140)
+            shadow_color = (244, 246, 250, 80)
+            arcade.draw_circle_filled(x, y, 22 * scale, cloud_color)
+            arcade.draw_circle_filled(x + 18 * scale, y + 8, 28 * scale, cloud_color)
+            arcade.draw_circle_filled(x + 40 * scale, y + 2, 20 * scale, cloud_color)
+            arcade.draw_ellipse_filled(x + 20 * scale, y - 5, 68 * scale, 20 * scale, shadow_color)
 
 
     def draw_friend_character(
