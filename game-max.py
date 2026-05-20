@@ -994,9 +994,10 @@ class GameView(arcade.View):
         friend_color = (118, 139, 129) if friend.name in self.befriended_friends else (86, 104, 123)
         if highlight:
             friend_color = (214, 181, 95)
-            arcade.draw_circle_filled(x, y + 36, 28, (255, 232, 148, 70))
-            arcade.draw_circle_outline(x, y + 36, 28, arcade.color.GOLD, 3)
-            arcade.draw_circle_outline(x, y + 36, 40, (255, 240, 198, 80), 2)
+            arcade.draw_circle_filled(x, y + 36, 34, (255, 235, 150, 90))
+            arcade.draw_circle_filled(x, y + 36, 46, (255, 240, 198, 40))
+            arcade.draw_circle_outline(x, y + 36, 30, arcade.color.GOLD, 4)
+            arcade.draw_circle_outline(x, y + 36, 44, (255, 240, 198, 100), 3)
 
         arcade.draw_ellipse_filled(x, y - 16, 28, 7, (15, 18, 25, 120))
         arcade.draw_line(x, y + 28, x, y - 2, arcade.color.BLACK, 5)
@@ -1348,16 +1349,16 @@ class GameView(arcade.View):
         if self.quiz_friend is not None:
             self.draw_friend_character(
                 self.quiz_friend,
-                210,
-                235,
+                204,
+                212,
                 highlight=True,
                 name_override=self.quiz_friend.name,
                 line_override="The person asking the question",
             )
 
 
-        arcade.draw_lrbt_rectangle_filled(290, 662, 228, 390, (44, 58, 72))
-        arcade.draw_lrbt_rectangle_outline(290, 662, 228, 390, arcade.color.LIGHT_GRAY, 2)
+        arcade.draw_lrbt_rectangle_filled(298, 662, 228, 390, (44, 58, 72))
+        arcade.draw_lrbt_rectangle_outline(298, 662, 228, 390, arcade.color.LIGHT_GRAY, 2)
         arcade.draw_text(
             self.quiz_question["question"],
             312,
@@ -1372,8 +1373,8 @@ class GameView(arcade.View):
         for index, answer in enumerate(self.quiz_question["answers"]):
             top = 306 - index * 62
             bottom = top - 46
-            arcade.draw_lrbt_rectangle_filled(290, 662, bottom, top, (30, 40, 52))
-            arcade.draw_lrbt_rectangle_outline(290, 662, bottom, top, arcade.color.LIGHT_GRAY, 2)
+            arcade.draw_lrbt_rectangle_filled(298, 662, bottom, top, (30, 40, 52))
+            arcade.draw_lrbt_rectangle_outline(298, 662, bottom, top, arcade.color.LIGHT_GRAY, 2)
             arcade.draw_text(f"{index + 1}. {answer}", 308, bottom + 15, arcade.color.WHITE, 13, width=320)
 
 
