@@ -251,6 +251,7 @@ class GameView(arcade.View):
         self.quiz_friend: FriendNPC | None = None
         self.quiz_question = QUIZ_OPTIONS[0]
         self.quiz_tries_left = 2
+        self.quiz_completed = False
         self.game_over_ready = False
         self.show_instructions = False
         self.pulse_time = 0.0
@@ -549,6 +550,7 @@ class GameView(arcade.View):
         self.inside_building = self.current_building
         self.message = f"You and {friend.name} are talking. Answer this question."
         self.hint = "You get 2 tries. Read carefully."
+        self.quiz_completed = False
 
     def answer_quiz(self, answer_index: int) -> None:
         if self.quiz_friend is None:
@@ -559,15 +561,23 @@ class GameView(arcade.View):
             self.lesson_completed_buildings.add(self.current_building)
             self.friend_inside_by_building[self.current_building] = self.quiz_friend.name
             self.message = f"Correct! {self.quiz_friend.name} is now your friend."
-            self.hint = f"{self.quiz_question['fact']} Now you can finish repairing the house."
-            self.quiz_friend = None
-            self.screen = "playing"
+            self.hint = f"{self.quiz_question['fact']} Click or press SPACE to continue."
+            self.quiz_completed = True
             return
         self.quiz_tries_left -= 1
         if self.quiz_tries_left > 0:
             self.message = f"Not quite. Try again. Tries left: {self.quiz_tries_left}."
             return
         self.start_dark_game_over()
+
+    def finish_quiz(self) -> None:
+        if not self.quiz_completed:
+            return
+        self.quiz_friend = None
+        self.quiz_completed = False
+        self.screen = "playing"
+        self.message = "Nice work. Keep going."
+        self.hint = "Move around, collect trash, and keep helping the neighborhood."
 
     def start_dark_game_over(self) -> None:
         self.screen = "dark"
@@ -675,6 +685,10 @@ class GameView(arcade.View):
             self.answer_quiz({arcade.key.KEY_1: 0, arcade.key.KEY_2: 1, arcade.key.KEY_3: 2}[key])
             return
 
+        if self.screen == "quiz" and self.quiz_completed and key in {arcade.key.SPACE, arcade.key.RETURN}:
+            self.finish_quiz()
+            return
+
         if key != arcade.key.SPACE:
             return
 
@@ -722,6 +736,9 @@ class GameView(arcade.View):
             return
 
         if self.screen == "quiz":
+            if self.quiz_completed:
+                self.finish_quiz()
+                return
             for index in range(3):
                 top = 340 - index * 72
                 bottom = top - 54
@@ -1323,6 +1340,11 @@ class GameView(arcade.View):
         arcade.draw_text(f"Tries left: {self.quiz_tries_left}", 400, 475, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text(self.quiz_question["question"], 400, 400, arcade.color.WHITE, 16,
                          width=560, multiline=True, anchor_x="center")
+        if self.quiz_completed:
+            arcade.draw_lrbt_rectangle_filled(150, 650, 270, 340, (34, 74, 52))
+            arcade.draw_lrbt_rectangle_outline(150, 650, 270, 340, arcade.color.GOLD, 2)
+            arcade.draw_text("Correct! Click or press SPACE to continue.", 400, 305,
+                             arcade.color.WHITE, 15, anchor_x="center")
         for index, answer in enumerate(self.quiz_question["answers"]):
             top = 340 - index * 72
             bottom = top - 54
