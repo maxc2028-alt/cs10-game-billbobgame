@@ -1248,23 +1248,21 @@ class GameView(arcade.View):
             return
 
         if self.menu_open:
-            if 540 <= screen_x <= 720 and 250 <= screen_y <= 390:
-                if 560 <= screen_x <= 700 and 360 <= screen_y <= 396:
-                    self.reset_round()
-                    self.menu_open = False
-                    return
-                if 560 <= screen_x <= 700 and 310 <= screen_y <= 346:
-                    self.menu_open = False
-                    self.screen = "intro"
-                    self.intro_time = 0.0
-                    self.intro_walk_x = 85.0
-                    self.message = "Press SPACE to begin."
-                    self.hint = "Clear every trash pile to move to the next building."
-                    return
-                if 560 <= screen_x <= 700 and 260 <= screen_y <= 296:
-                    if self.window is not None:
-                        self.window.close()
-                    return
+            if 560 <= screen_x <= 700 and 360 <= screen_y <= 396:
+                self.reset_round()
+                self.menu_open = False
+                return
+            if 560 <= screen_x <= 700 and 310 <= screen_y <= 346:
+                self.menu_open = False
+                self.screen = "intro"
+                self.intro_time = 0.0
+                self.intro_walk_x = 85.0
+                self.message = "Press SPACE to begin."
+                self.hint = "Clear every trash pile to move to the next building."
+                return
+            if 560 <= screen_x <= 700 and 260 <= screen_y <= 296:
+                if self.window is not None:
+                    self.window.close()
                 return
             return
 
@@ -1661,6 +1659,16 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (18, 22, 32))
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 120, (31, 38, 36))
 
+        self.draw_clouds()
+
+        arcade.draw_circle_filled(95, 525, 34, (132, 126, 108))
+        arcade.draw_circle_filled(140, 535, 24, (112, 108, 98))
+        arcade.draw_circle_filled(700, 525, 22, (76, 86, 102))
+        arcade.draw_circle_filled(735, 545, 30, (92, 96, 104))
+        arcade.draw_line(0, 120, 800, 120, (49, 58, 55), 2)
+
+
+    def draw_clouds(self) -> None:
         cloud_sets = [
             (110, 520, 0.0, 1.0),
             (350, 545, 1.7, 0.8),
@@ -1675,12 +1683,6 @@ class GameView(arcade.View):
             arcade.draw_circle_filled(x + 16 * scale, y + 6, 22 * scale, cloud_color)
             arcade.draw_circle_filled(x + 34 * scale, y, 16 * scale, cloud_color)
             arcade.draw_ellipse_filled(x + 18 * scale, y - 4, 56 * scale, 16 * scale, (236, 238, 244, 55))
-
-        arcade.draw_circle_filled(95, 525, 34, (132, 126, 108))
-        arcade.draw_circle_filled(140, 535, 24, (112, 108, 98))
-        arcade.draw_circle_filled(700, 525, 22, (76, 86, 102))
-        arcade.draw_circle_filled(735, 545, 30, (92, 96, 104))
-        arcade.draw_line(0, 120, 800, 120, (49, 58, 55), 2)
 
 
     def draw_friend_character(
@@ -1803,6 +1805,7 @@ class GameView(arcade.View):
 
     def draw_scene(self) -> None:
         self.draw_background()
+        self.draw_clouds()
 
         # Draw visible buildings (determine which ones are on screen)
         player_building_idx = int(self.ball_x / HOUSE_SPACING)
@@ -1919,6 +1922,7 @@ class GameView(arcade.View):
 
     def draw_house_interior(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (25, 24, 31))
+        self.draw_clouds()
         repaired_inside = self.inside_building in self.inside_repaired_buildings
         upgrade_level = self.interior_upgrade_levels.get(self.inside_building, 0)
         wall_color = (93, 102, 100) if repaired_inside else (68, 65, 76)
