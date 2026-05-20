@@ -23,6 +23,7 @@ SCREEN_TITLE = "Neighborhood Cleanup: South Block"
 
 QUEST_TIME = 11.0
 MAX_UPGRADES = 3
+MAX_INTERIOR_UPGRADES = 3
 TRASH_SCORE = 4
 BUILDING_STAGES = 3
 BALL_SPEED = 220
@@ -51,6 +52,23 @@ INTERIOR_REPAIR_SETS = [
         (215, 345, "seal the window gap", arcade.color.LIGHT_BLUE, 3),
         (405, 250, "repair the floor seam", arcade.color.GOLD, 4),
         (590, 175, "straighten the hanging frame", arcade.color.DARK_SEA_GREEN, 4),
+    ],
+]
+INTERIOR_UPGRADE_SETS = [
+    [
+        (225, 330, "add a reading nook", arcade.color.GOLD, 4),
+        (405, 245, "set up a warm lamp", arcade.color.LIGHT_STEEL_BLUE, 4),
+        (585, 185, "place a potted plant", arcade.color.DARK_SEA_GREEN, 5),
+    ],
+    [
+        (215, 345, "hang bright curtains", arcade.color.LIGHT_BLUE, 5),
+        (405, 250, "bring in a soft rug", arcade.color.GOLD, 5),
+        (590, 175, "install a shelf", arcade.color.LIGHT_STEEL_BLUE, 6),
+    ],
+    [
+        (230, 320, "add art to the walls", arcade.color.LIGHT_STEEL_BLUE, 6),
+        (405, 240, "upgrade the seating", arcade.color.GOLD, 6),
+        (575, 190, "finish the cozy corner", arcade.color.DARK_SEA_GREEN, 7),
     ],
 ]
 QUIZ_OPTIONS = [
@@ -143,6 +161,7 @@ class GameView(arcade.View):
         self.friend_name_hints: dict[str, int] = {}
         self.cleaned = 0
         self.upgrades = 0
+        self.interior_upgrade_levels: dict[int, int] = {}
         self.message = "Press SPACE to begin."
         self.hint = "Clear every trash pile to move to the next building."
         self.trash_spots: list[TrashSpot] = []
@@ -157,6 +176,7 @@ class GameView(arcade.View):
         self.building_names = ["North House", "Corner Lot", "Old Flat"]
         self.current_building = 0
         self.inside_building = 0
+        self.interior_mode = "repair"
         self.house_styles: dict[int, tuple[tuple[int, int, int], tuple[int, int, int]]] = {}
         self.style_options = [
             ("Garden green", (54, 77, 69), (86, 112, 98)),
@@ -284,18 +304,34 @@ class GameView(arcade.View):
     def visit_house(self, building_index: int) -> None:
         self.time_left = QUEST_TIME
         self.inside_building = building_index
-        self.interior_spots = [
-            RepairSpot(x, y, label, color, cost)
-            for x, y, label, color, cost in INTERIOR_REPAIR_SETS[building_index]
-        ]
-        if building_index in self.inside_repaired_buildings:
-            self.interior_spots = []
+        repaired = building_index in self.inside_repaired_buildings
+        self.interior_mode = "upgrade" if repaired else "repair"
+        if repaired:
+            upgrade_level = self.interior_upgrade_levels.get(building_index, 0)
+            if upgrade_level < MAX_INTERIOR_UPGRADES:
+                self.interior_spots = [
+                    RepairSpot(x, y, label, color, cost)
+                    for x, y, label, color, cost in INTERIOR_UPGRADE_SETS[upgrade_level]
+                ]
+            else:
+                self.interior_spots = []
+        else:
+            self.interior_spots = [
+                RepairSpot(x, y, label, color, cost)
+                for x, y, label, color, cost in INTERIOR_REPAIR_SETS[building_index]
+            ]
         self.screen = "visit"
         self.round_started = False
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.message = f"You went back inside {self.building_names[building_index]}."
-        self.hint = "Click the inside repair spots to fix the room, or press F by the door to go back outside."
+        if repaired:
+            if self.interior_spots:
+                self.hint = "Click the upgrade spots to improve the inside, or press F by the door to go back outside."
+            else:
+                self.hint = "This house is fully upgraded. Press F by the door to go back outside."
+        else:
+            self.hint = "Click the inside repair spots to fix the room, or press F by the door to go back outside."
 
 
     def leave_house(self) -> None:
@@ -313,9 +349,26 @@ class GameView(arcade.View):
 
     def finish_interior_repair(self) -> None:
         self.inside_repaired_buildings.add(self.inside_building)
+        self.interior_upgrade_levels.setdefault(self.inside_building, 0)
         self.interior_spots = []
         self.message = f"The inside of {self.building_names[self.inside_building]} is fixed."
-        self.hint = "Press F by the door to go back outside."
+        self.hint = "Press F by the door to go back outside, then revisit later for interior upgrades."
+
+
+    def finish_interior_upgrade(self) -> None:
+        current_level = self.interior_upgrade_levels.get(self.inside_building, 0)
+        next_level = min(MAX_INTERIOR_UPGRADES, current_level + 1)
+        self.interior_upgrade_levels[self.inside_building] = next_level
+        self.message = f"{self.building_names[self.inside_building]} reached interior upgrade tier {next_level}."
+        if next_level < MAX_INTERIOR_UPGRADES:
+            self.interior_spots = [
+                RepairSpot(x, y, label, color, cost)
+                for x, y, label, color, cost in INTERIOR_UPGRADE_SETS[next_level]
+            ]
+            self.hint = "Keep upgrading the inside, or press F by the door to go back outside."
+        else:
+            self.interior_spots = []
+            self.hint = "This house is fully upgraded. Press F by the door to go back outside."
 
 
     def can_finish_current_house(self) -> bool:
@@ -331,19 +384,23 @@ class GameView(arcade.View):
 
 
     def name_hint_pattern(self, name: str) -> str:
+        return self.scrambled_name_hint(name)
+
+
+    def scrambled_name_hint(self, name: str) -> str:
         known_letters = self.known_name_letters(name)
-        revealed = 0
-        pattern: list[str] = []
-        for char in name:
-            if char == " ":
-                pattern.append(" ")
-                continue
-            if revealed < known_letters:
-                pattern.append(char)
-                revealed += 1
-            else:
-                pattern.append("_")
-        return "".join(pattern)
+        if known_letters <= 0:
+            return "".join(" " if char == " " else "_" for char in name)
+
+        letter_positions = [index for index, char in enumerate(name) if char != " "]
+        letters = [char for char in name if char != " "]
+        rng = random.Random(f"{name}:{known_letters}")
+        revealed_letters = letters[:known_letters]
+        rng.shuffle(revealed_letters)
+        scrambled = [" " if char == " " else "_" for char in name]
+        for position, letter in zip(rng.sample(letter_positions, k=min(known_letters, len(letter_positions))), revealed_letters):
+            scrambled[position] = letter
+        return "".join(scrambled)
 
 
     def friend_display_name(self, friend: FriendNPC) -> str:
@@ -353,7 +410,7 @@ class GameView(arcade.View):
 
 
     def display_name_from_hint(self, name: str) -> str:
-        return self.name_hint_pattern(name)
+        return self.scrambled_name_hint(name)
 
 
     def friend_action_hint(self) -> str:
@@ -361,10 +418,10 @@ class GameView(arcade.View):
             return ""
         target_name = self.current_target_friend_name()
         if self.trash_spots:
-            return "Clean trash first to reveal friend name clues."
+            return "Clean trash first to reveal scrambled friend name clues."
         if self.known_name_letters(target_name) < len(target_name):
             return f"Friend clues: {self.display_name_from_hint(target_name)}."
-        return "Move close to the blue friend and press T, or click them, to type the full name."
+        return "Move close to the blue friend and press T, or click them, to unscramble the full name."
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
@@ -404,18 +461,16 @@ class GameView(arcade.View):
     def reveal_friend_name_hint(self) -> str:
         name = self.current_target_friend_name()
         known_letters = self.known_name_letters(name)
-        clues: list[str] = []
         clues_per_pickup = 3 if len(name) > 6 else 2
         if known_letters < len(name):
             for _ in range(clues_per_pickup):
                 if known_letters >= len(name):
                     break
                 known_letters += 1
-                clues.append(self.letter_clue(name[known_letters - 1], known_letters))
             self.friend_name_hints[name] = known_letters
         if known_letters >= len(name):
-            return f"Name clues complete: {self.name_hint_pattern(name)}. Move close and press T, or click the friend, to guess the name."
-        return f"Name clue: {self.name_hint_pattern(name)}. Keep cleaning trash for more letters."
+            return f"Scrambled clue complete: {self.name_hint_pattern(name)}. Move close and press T, or click the friend, to guess the name."
+        return f"Scrambled clue: {self.name_hint_pattern(name)}. Keep cleaning trash for more letters."
 
 
     def next_building(self) -> None:
@@ -465,8 +520,8 @@ class GameView(arcade.View):
         self.guess_friend = friend
         self.name_guess = ""
         self.screen = "name_guess"
-        self.message = f"Type the friend's full name. Pattern: {self.name_hint_pattern(friend.name)}"
-        self.hint = "Press ENTER to guess. Use BACKSPACE to erase. The pattern above shows what is already known."
+        self.message = f"Unscramble the friend's full name. Clue: {self.name_hint_pattern(friend.name)}"
+        self.hint = "Press ENTER to guess. Use BACKSPACE to erase. The scrambled clue above shows what is already known."
 
 
     def submit_name_guess(self) -> None:
@@ -484,7 +539,7 @@ class GameView(arcade.View):
 
 
         self.message = "That name is not right yet."
-        self.hint = f"Check the pattern: {self.name_hint_pattern(self.guess_friend.name)}. Then try again."
+        self.hint = f"Check the scrambled clue: {self.name_hint_pattern(self.guess_friend.name)}. Then try again."
 
 
     def answer_quiz(self, answer_index: int) -> None:
@@ -750,9 +805,12 @@ class GameView(arcade.View):
                     spot.fixed = True
                     self.money -= spot.cost
                     self.message = f"Spent ${spot.cost} to {spot.label}."
-                    self.hint = "Keep fixing the inside until every spot is done."
+                    self.hint = "Keep improving the inside until every spot is done."
                     if all(interior.fixed for interior in self.interior_spots):
-                        self.finish_interior_repair()
+                        if self.interior_mode == "repair":
+                            self.finish_interior_repair()
+                        else:
+                            self.finish_interior_upgrade()
                     return
             return
 
@@ -1053,6 +1111,7 @@ class GameView(arcade.View):
     def draw_house_interior(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (25, 24, 31))
         repaired_inside = self.inside_building in self.inside_repaired_buildings
+        upgrade_level = self.interior_upgrade_levels.get(self.inside_building, 0)
         wall_color = (93, 102, 100) if repaired_inside else (68, 65, 76)
         floor_color = (92, 72, 52) if repaired_inside else (72, 61, 54)
         arcade.draw_lrbt_rectangle_filled(90, 710, 120, 470, wall_color)
@@ -1124,6 +1183,22 @@ class GameView(arcade.View):
             arcade.draw_lrbt_rectangle_filled(630, 685, 120, 132, (54, 88, 60))
             arcade.draw_circle_filled(140, 140, 8, (185, 148, 84))
             arcade.draw_circle_filled(660, 140, 8, (185, 148, 84))
+            if upgrade_level >= 1:
+                arcade.draw_lrbt_rectangle_filled(140, 230, 150, 182, (92, 74, 61))
+                arcade.draw_lrbt_rectangle_outline(140, 230, 150, 182, arcade.color.BLACK, 2)
+                arcade.draw_circle_filled(175, 190, 13, (154, 186, 120))
+            if upgrade_level >= 2:
+                arcade.draw_lrbt_rectangle_filled(520, 650, 155, 210, (58, 76, 88))
+                arcade.draw_lrbt_rectangle_outline(520, 650, 155, 210, arcade.color.BLACK, 2)
+                arcade.draw_lrbt_rectangle_filled(545, 148, 148, 155, (219, 206, 170))
+                arcade.draw_line(545, 155, 545, 148, arcade.color.BLACK, 2)
+                arcade.draw_line(590, 155, 590, 148, arcade.color.BLACK, 2)
+            if upgrade_level >= 3:
+                arcade.draw_lrbt_rectangle_filled(320, 485, 280, 304, (206, 192, 164))
+                arcade.draw_lrbt_rectangle_outline(320, 485, 280, 304, arcade.color.BLACK, 2)
+                arcade.draw_line(343, 304, 462, 304, arcade.color.BLACK, 2)
+                arcade.draw_circle_filled(355, 318, 7, arcade.color.GOLD)
+                arcade.draw_circle_filled(450, 318, 7, arcade.color.GOLD)
         else:
             arcade.draw_line(145, 285, 188, 260, arcade.color.BLACK, 2)
             arcade.draw_line(188, 260, 177, 235, arcade.color.BLACK, 2)
@@ -1144,7 +1219,17 @@ class GameView(arcade.View):
         )
         if self.screen == "visit":
             if repaired_inside:
-                arcade.draw_text("The inside is fixed.", 400, 458, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+                if upgrade_level < MAX_INTERIOR_UPGRADES:
+                    arcade.draw_text(
+                        f"Upgrade tier {upgrade_level}/{MAX_INTERIOR_UPGRADES}. Click the glow spots to improve it.",
+                        400,
+                        458,
+                        arcade.color.LIGHT_GRAY,
+                        12,
+                        anchor_x="center",
+                    )
+                else:
+                    arcade.draw_text("The inside is fully upgraded.", 400, 458, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
             else:
                 arcade.draw_text("Click the inside repair spots to finish this room.", 400, 458, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
 
@@ -1209,12 +1294,12 @@ class GameView(arcade.View):
         arcade.draw_text("Guess The Name", 400, 382, arcade.color.GOLD, 26, anchor_x="center")
         arcade.draw_text(f"Who is {friend_label}?", 400, 342, arcade.color.LIGHT_GRAY, 15, anchor_x="center")
         if self.guess_friend is not None:
-            arcade.draw_text(f"Clue pattern: {self.name_hint_pattern(self.guess_friend.name)}", 400, 318, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+            arcade.draw_text(f"Clue: {self.name_hint_pattern(self.guess_friend.name)}", 400, 318, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_lrbt_rectangle_filled(210, 590, 265, 315, (34, 44, 60))
         arcade.draw_lrbt_rectangle_outline(210, 590, 265, 315, arcade.color.LIGHT_GRAY, 2)
         arcade.draw_text(self.name_guess or "type name here", 400, 282, arcade.color.WHITE, 18, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases", 400, 220, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
-        arcade.draw_text("Use the trash clues to spell the full name.", 400, 196, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+        arcade.draw_text("Use the trash clues to unscramble the full name.", 400, 196, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
 
     def draw_decorate(self) -> None:
@@ -1354,6 +1439,15 @@ class GameView(arcade.View):
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
             arcade.draw_text(f"Repairs: {fixed_count}/{repair_total}", 260, 538, (156, 160, 166), 12)
+        elif self.screen == "visit":
+            upgrade_level = self.interior_upgrade_levels.get(self.inside_building, 0)
+            arcade.draw_text(
+                f"Interior upgrades: {upgrade_level}/{MAX_INTERIOR_UPGRADES}",
+                260,
+                538,
+                (156, 160, 166),
+                12,
+            )
         else:
             arcade.draw_text(
                 f"Neighborhood level: {self.neighborhood_state + 1}/{BUILDING_STAGES}",
