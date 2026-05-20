@@ -878,7 +878,7 @@ class GameView(arcade.View):
             return "Clean trash first to reveal scrambled friend name clues."
         if self.known_name_letters(target_name) < len(target_name):
             return f"Friend clues: {self.display_name_from_hint(target_name)}."
-        return f"Move close to {FRIEND_NAMES[0]} and press T, or click them, to unscramble the full name."
+        return "Move close to the next friend and press T, or click them, to solve the name riddles."
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
@@ -2061,15 +2061,10 @@ class GameView(arcade.View):
 
     def draw_name_guess(self) -> None:
         self.draw_background()
-        friend_label = "the person"
-        if self.guess_friend is not None:
-            friend_label = self.guess_friend.name
-
 
         arcade.draw_lrbt_rectangle_filled(120, 680, 180, 430, (20, 20, 30))
         arcade.draw_lrbt_rectangle_outline(120, 680, 180, 430, arcade.color.WHITE, 3)
         arcade.draw_text("Riddle Name Challenge", 400, 382, arcade.color.GOLD, 26, anchor_x="center")
-        arcade.draw_text(f"Who is {friend_label}?", 400, 342, arcade.color.LIGHT_GRAY, 15, anchor_x="center")
         if self.guess_friend is not None:
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
             arcade.draw_text(f"Riddle {self.name_riddle_index + 1} of 4: {riddle['question']}", 400, 318, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
@@ -2078,7 +2073,7 @@ class GameView(arcade.View):
         arcade.draw_text(self.name_guess or "answer the riddle here", 400, 282, arcade.color.WHITE, 18, anchor_x="center")
         arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 244, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases", 400, 220, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
-        arcade.draw_text("The bottom text now shows the NPC name.", 400, 196, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+        arcade.draw_text("Solve 4 riddles to reveal the name.", 400, 196, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
 
     def draw_decorate(self) -> None:
@@ -2321,7 +2316,6 @@ class GameView(arcade.View):
         arcade.draw_text(f"Money: ${self.money}", 125, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, (214, 215, 212), 12)
         target_name = self.current_target_friend_name()
-        arcade.draw_text(f"NPC: {target_name}", 390, 538, (156, 160, 166), 10, width=248, align="left")
         arcade.draw_text(f"Clues: {self.display_name_from_hint(target_name)}", 390, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
