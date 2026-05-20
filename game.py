@@ -2442,6 +2442,7 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(700, 760, 18, 46, (14, 17, 24))
         arcade.draw_lrbt_rectangle_outline(700, 760, 18, 46, (222, 222, 214), 2)
         arcade.draw_text("≡", 730, 32, (222, 222, 214), 20, anchor_x="center", anchor_y="center")
+        arcade.draw_text("Menu", 730, 12, (156, 160, 166), 9, anchor_x="center")
 
         if self.menu_open:
             arcade.draw_lrbt_rectangle_filled(490, 770, 220, 430, (14, 17, 24, 240))
@@ -2471,10 +2472,8 @@ class GameView(arcade.View):
                 anchor_x="center",
             )
 
-        if self.paused and self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"}:
+        if self.menu_open and self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"}:
             arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, 110))
-            arcade.draw_text("PAUSED", 400, 320, arcade.color.WHITE, 34, anchor_x="center")
-            arcade.draw_text("Press P or click the button to resume.", 400, 280, arcade.color.LIGHT_GRAY, 14, anchor_x="center")
 
 
 
