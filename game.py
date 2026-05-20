@@ -1248,11 +1248,11 @@ class GameView(arcade.View):
             return
 
         if self.menu_open:
-            if 560 <= screen_x <= 700 and 360 <= screen_y <= 396:
+            if 540 <= screen_x <= 720 and 350 <= screen_y <= 402:
                 self.reset_round()
                 self.menu_open = False
                 return
-            if 560 <= screen_x <= 700 and 310 <= screen_y <= 346:
+            if 540 <= screen_x <= 720 and 300 <= screen_y <= 352:
                 self.menu_open = False
                 self.screen = "intro"
                 self.intro_time = 0.0
@@ -1260,7 +1260,7 @@ class GameView(arcade.View):
                 self.message = "Press SPACE to begin."
                 self.hint = "Clear every trash pile to move to the next building."
                 return
-            if 560 <= screen_x <= 700 and 260 <= screen_y <= 296:
+            if 540 <= screen_x <= 720 and 250 <= screen_y <= 302:
                 if self.window is not None:
                     self.window.close()
                 return
