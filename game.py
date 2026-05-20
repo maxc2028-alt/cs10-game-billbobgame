@@ -1233,6 +1233,22 @@ class GameView(arcade.View):
             world_position = self.camera.unproject((x, y))
             x = world_position.x
             y = world_position.y
+        if screen_y >= 492:
+            if 700 <= screen_x <= 760 and 558 <= screen_y <= 586:
+                if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
+                    self.paused = not self.paused
+                    if self.paused:
+                        self.keys_down.clear()
+                        self.message = "Game paused."
+                        self.hint = "Press P or click the pause button to resume."
+                return
+
+            if 10 <= screen_x <= 45 and 518 <= screen_y <= 553:
+                self.show_instructions = not self.show_instructions
+                return
+
+            return
+
         if screen_y <= 120:
             if 700 <= screen_x <= 760 and 18 <= screen_y <= 46:
                 if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
