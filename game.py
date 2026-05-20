@@ -679,16 +679,13 @@ class GameView(arcade.View):
         for rel_x, rel_y in relative_positions:
             self.trash_spots.append(TrashSpot(building_center_x + rel_x, base_y + 100 + rel_y))
 
-        # Place friends for this building
-        friend_y = base_y + 26
-        friend_positions = [
-            left - 28,
-            building_center_x,
-            right + 28,
-        ]
-        for i in range(3):
-            friend_name = FRIEND_NAMES[i % len(FRIEND_NAMES)]
-            self.friends.append(FriendNPC(friend_name, friend_positions[i], friend_y))
+        # Place one friend by each house in the block
+        self.friends = []
+        for building_index, friend_name in enumerate(FRIEND_NAMES):
+            house_left, house_right, house_base_y, _ = self.get_house_position(building_index)
+            friend_x = house_right + 26
+            friend_y = house_base_y + 26
+            self.friends.append(FriendNPC(friend_name, friend_x, friend_y))
 
         # Start at building entrance
         self.ball_x = building_center_x
