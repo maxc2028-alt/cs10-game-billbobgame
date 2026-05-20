@@ -723,9 +723,9 @@ class GameView(arcade.View):
 
         if self.screen == "quiz":
             for index in range(3):
-                top = 300 - index * 62
-                bottom = top - 46
-                if 130 <= x <= 670 and bottom <= y <= top:
+                top = 340 - index * 72
+                bottom = top - 54
+                if 100 <= x <= 700 and bottom <= y <= top:
                     self.answer_quiz(index)
                     return
             return
@@ -1324,11 +1324,15 @@ class GameView(arcade.View):
         arcade.draw_text(self.quiz_question["question"], 400, 400, arcade.color.WHITE, 16,
                          width=560, multiline=True, anchor_x="center")
         for index, answer in enumerate(self.quiz_question["answers"]):
-            top = 330 - index * 62
-            bottom = top - 46
-            arcade.draw_lrbt_rectangle_filled(130, 670, bottom, top, (40, 50, 65))
-            arcade.draw_lrbt_rectangle_outline(130, 670, bottom, top, arcade.color.WHITE, 2)
-            arcade.draw_text(f"{index + 1}. {answer}", 150, bottom + 15, arcade.color.WHITE, 13, width=500)
+            top = 340 - index * 72
+            bottom = top - 54
+            arcade.draw_lrbt_rectangle_filled(100, 700, bottom, top, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(100, 700, bottom, top, arcade.color.WHITE, 2)
+            arcade.draw_text(
+                f"{index + 1}. {answer}",
+                400, bottom + 27, arcade.color.WHITE, 13,
+                width=560, multiline=True, anchor_x="center", align="center",
+            )
 
     def draw_decorate(self) -> None:
         self.draw_background()
