@@ -608,6 +608,7 @@ class GameView(arcade.View):
         self.name_guess = ""
         self.name_riddle_index = 0
         self.name_riddle_progress = ""
+        self.unlocked_riddle_hints: list[str] = []
         self.quiz_question = QUIZ_OPTIONS[0]
         self.quiz_tries_left = 2
         self.game_over_ready = False
@@ -993,6 +994,7 @@ class GameView(arcade.View):
         self.name_guess = ""
         self.name_riddle_index = 0
         self.name_riddle_progress = ""
+        self.unlocked_riddle_hints = []
         self.screen = "name_guess"
         self.message = f"Riddle 1 of 4 for {friend.name}."
         self.hint = "Answer each riddle to reveal one letter. Four correct answers reveal the full name."
@@ -1006,6 +1008,8 @@ class GameView(arcade.View):
         if self.name_guess.strip().lower() == riddle["answer"]:
             self.name_riddle_progress += riddle["letter"]
             self.name_riddle_index += 1
+            if riddle["question"] not in self.unlocked_riddle_hints:
+                self.unlocked_riddle_hints.append(riddle["question"])
             self.name_guess = ""
             if self.name_riddle_index >= 4:
                 friend = self.guess_friend
@@ -1375,7 +1379,7 @@ class GameView(arcade.View):
                 self.cleaned += 1
                 self.money += TRASH_SCORE + self.upgrades
                 self.message = self.reveal_friend_name_hint()
-                self.hint = "When the full name is revealed, move near that person and press T, or click them, to continue."
+                self.hint = "Each trash pickup unlocks another riddle clue."
                 if self.cleaned % 2 == 0:
                     self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
                 if not self.trash_spots:
@@ -1463,6 +1467,8 @@ class GameView(arcade.View):
     def draw_trash(self, trash: TrashSpot) -> None:
         """Draw detailed trash objects instead of simple circles."""
         x, y = trash.x, trash.y
+        glow_color = (255, 240, 170, 35)
+        arcade.draw_circle_filled(x, y, 24, glow_color)
 
         if trash.trash_type == "can":
             # Draw a trash can
@@ -2072,6 +2078,20 @@ class GameView(arcade.View):
         arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 244, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases", 400, 220, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("Solve 4 riddles to reveal the name.", 400, 196, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+
+        arcade.draw_lrbt_rectangle_filled(620, 760, 180, 430, (20, 20, 30))
+        arcade.draw_lrbt_rectangle_outline(620, 760, 180, 430, arcade.color.WHITE, 3)
+        arcade.draw_text("Unlocked Hints", 690, 382, arcade.color.GOLD, 18, anchor_x="center")
+        if self.trash_spots:
+            arcade.draw_text("Clear all trash to unlock the hint list.", 690, 345, arcade.color.LIGHT_GRAY, 11, width=118, multiline=True, anchor_x="center")
+        else:
+            if self.unlocked_riddle_hints:
+                y = 340
+                for i, clue in enumerate(self.unlocked_riddle_hints[-4:]):
+                    arcade.draw_text(f"{i + 1}. {clue}", 632, y, arcade.color.LIGHT_GRAY, 10, width=110, multiline=True)
+                    y -= 58
+            else:
+                arcade.draw_text("No hints unlocked yet.", 690, 330, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
 
     def draw_decorate(self) -> None:
