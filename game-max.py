@@ -1436,7 +1436,7 @@ class GameView(arcade.View):
 
     def draw_intro(self) -> None:
         self.draw_background()
-        arcade.draw_text("Alone", 400, 505, (222, 222, 214), 36, anchor_x="center")
+        arcade.draw_text("Alone", 400, 505, (222, 222, 214), 36, anchor_x="center", font_name="Georgia")
 
 
         intro_buildings = [
