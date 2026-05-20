@@ -1355,32 +1355,27 @@ class GameView(arcade.View):
 
     def draw_quiz(self) -> None:
         self.draw_house_interior()
-        arcade.draw_lrbt_rectangle_filled(108, 692, 122, 444, (17, 20, 28, 235))
-        arcade.draw_lrbt_rectangle_outline(108, 692, 122, 444, arcade.color.WHITE, 3)
         arcade.draw_text("Community Question", 400, 446, arcade.color.GOLD, 24, anchor_x="center")
         arcade.draw_text(f"Tries left: {self.quiz_tries_left}", 400, 424, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("You are inside the house now.", 400, 404, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
 
-        arcade.draw_lrbt_rectangle_filled(298, 662, 228, 390, (44, 58, 72))
-        arcade.draw_lrbt_rectangle_outline(298, 662, 228, 390, arcade.color.LIGHT_GRAY, 2)
         arcade.draw_text(
             self.quiz_question["question"],
-            312,
+            400,
             352,
             arcade.color.WHITE,
             16,
-            width=326,
+            width=560,
             multiline=True,
+            anchor_x="center",
         )
 
 
         for index, answer in enumerate(self.quiz_question["answers"]):
             top = 306 - index * 62
             bottom = top - 46
-            arcade.draw_lrbt_rectangle_filled(298, 662, bottom, top, (30, 40, 52))
-            arcade.draw_lrbt_rectangle_outline(298, 662, bottom, top, arcade.color.LIGHT_GRAY, 2)
-            arcade.draw_text(f"{index + 1}. {answer}", 308, bottom + 15, arcade.color.WHITE, 13, width=320)
+            arcade.draw_text(f"{index + 1}. {answer}", 150, bottom + 15, arcade.color.WHITE, 13, width=520)
 
 
     def draw_name_guess(self) -> None:
