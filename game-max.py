@@ -167,7 +167,8 @@ QUIZ_OPTIONS = [
 class TrashSpot:
     def __init__(self, x: float, y: float) -> None:
         self.x = x
-        self.y = y
+        # Keep trash sitting on the ground instead of floating at arbitrary spawn heights.
+        self.y = HOUSE_BASE_Y + 14
         self.radius = 22
         self.trash_type = random.choice(["can", "bag", "box", "rubble"])
         self.rotation = random.uniform(0, 360)
@@ -792,9 +793,9 @@ class GameView(arcade.View):
                     self.message = "Move the ball closer to pick that up."
                     self.hint = "Use WASD or arrow keys to get near the trash, then click it."
                     return
-                trash.collected = True
                 self.cleaned += 1
                 self.money += TRASH_SCORE + self.upgrades
+                self.trash_spots.remove(trash)
                 if not self.has_uncollected_trash():
                     self.message = f"Outside is clear! Move close to a friend and press T to talk."
                     self.hint = "Press T when near the glowing friend to start a conversation."
@@ -848,10 +849,12 @@ class GameView(arcade.View):
 
     def draw_trash(self, trash: TrashSpot, pulse: float = 0.0) -> None:
         """Draw trash with a faint glow so it's visible but not overwhelming."""
+        if trash.collected:
+            return
         x, y = trash.x, trash.y
 
         # Faint soft glow — subtle, not distracting
-        glow_alpha = int(20 + 10 * math.sin(pulse + trash.pulse)) if not trash.collected else 0
+        glow_alpha = int(20 + 10 * math.sin(pulse + trash.pulse))
         if glow_alpha > 0:
             arcade.draw_circle_filled(x, y, 30, (255, 220, 80, glow_alpha))
             arcade.draw_circle_outline(x, y, 26, (255, 200, 60, 60), 2)
@@ -882,8 +885,7 @@ class GameView(arcade.View):
             arcade.draw_line(x - 8, y - 2, x + 4, y + 5, (70, 60, 50), 2)
 
         # "TRASH" label below
-        label_color = (255, 120, 50) if not trash.collected else (140, 140, 140)
-        arcade.draw_text("TRASH", x, y - 30, label_color, 9, anchor_x="center", bold=True)
+        arcade.draw_text("TRASH", x, y - 30, (255, 120, 50), 9, anchor_x="center", bold=True)
 
     def update_ball(self, delta_time: float) -> None:
         if self.screen not in {"playing", "repair", "visit", "dark"}:
@@ -1440,4 +1442,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
