@@ -1115,8 +1115,17 @@ class GameView(arcade.View):
 
     def on_key_press(self, key: int, modifiers: int) -> None:
         if key == arcade.key.ESCAPE:
+            if self.menu_open:
+                self.menu_open = False
+                return
             if self.window is not None:
-                self.window.close()
+                if self.screen in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"}:
+                    self.window.close()
+                else:
+                    self.menu_open = True
+                    self.keys_down.clear()
+                    self.message = "Menu opened."
+                    self.hint = "Choose restart, intro, or quit."
             return
 
         if key == arcade.key.P:
@@ -1226,15 +1235,6 @@ class GameView(arcade.View):
             world_position = self.camera.unproject((x, y))
             x = world_position.x
             y = world_position.y
-
-        if 688 <= screen_x <= 772 and 10 <= screen_y <= 54:
-            if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
-                self.menu_open = not self.menu_open
-                if self.menu_open:
-                    self.keys_down.clear()
-                    self.message = "Menu opened."
-                    self.hint = "Choose restart, intro, or quit."
-            return
 
         if 10 <= screen_x <= 45 and 18 <= screen_y <= 53:
             self.show_instructions = not self.show_instructions
@@ -2427,12 +2427,6 @@ class GameView(arcade.View):
         arcade.draw_circle_filled(28, 35, 17, (14, 17, 24))
         arcade.draw_circle_outline(28, 35, 17, (222, 222, 214), 2)
         arcade.draw_text("?", 28, 25, (222, 222, 214), 18, anchor_x="center")
-
-        arcade.draw_lrbt_rectangle_filled(688, 772, 10, 54, (14, 17, 24))
-        arcade.draw_lrbt_rectangle_outline(688, 772, 10, 54, (222, 222, 214), 2)
-        arcade.draw_line(716, 38, 744, 38, (222, 222, 214), 2)
-        arcade.draw_line(716, 30, 744, 30, (222, 222, 214), 2)
-        arcade.draw_line(716, 22, 744, 22, (222, 222, 214), 2)
 
         if self.menu_open:
             arcade.draw_lrbt_rectangle_filled(490, 770, 220, 430, (14, 17, 24, 240))
