@@ -258,8 +258,9 @@ class PipeMinigame:
         arcade.draw_lrbt_rectangle_filled(100, 700, 100, 500, (30, 30, 40))
         arcade.draw_lrbt_rectangle_outline(100, 700, 100, 500, arcade.color.WHITE, 3)
 
-        arcade.draw_text("Connect the pipes!", 400, 460, arcade.color.GOLD, 18, anchor_x="center")
-        arcade.draw_text(f"Time: {self.time_left:.1f}s", 400, 430, arcade.color.WHITE, 14, anchor_x="center")
+        arcade.draw_text("Connect the pipes!", 400, 475, arcade.color.GOLD, 18, anchor_x="center")
+        arcade.draw_text("Click a pipe to rotate it. Make all pipes turn once to win.", 400, 448, arcade.color.LIGHT_GRAY, 11, anchor_x="center", width=520, multiline=True)
+        arcade.draw_text(f"Time: {self.time_left:.1f}s", 400, 418, arcade.color.WHITE, 14, anchor_x="center")
 
         for (row, col), pipe in self.pipes.items():
             px = self.start_x + col * self.cell_size
@@ -371,8 +372,9 @@ class BlockBlastMinigame:
         arcade.draw_lrbt_rectangle_filled(100, 700, 80, 500, (30, 30, 40))
         arcade.draw_lrbt_rectangle_outline(100, 700, 80, 500, arcade.color.WHITE, 3)
 
-        arcade.draw_text("Clear the blocks!", 400, 460, arcade.color.GOLD, 18, anchor_x="center")
-        arcade.draw_text(f"Score: {self.score} | Time: {self.time_left:.1f}s", 400, 430, arcade.color.WHITE, 12, anchor_x="center")
+        arcade.draw_text("Clear the blocks!", 400, 475, arcade.color.GOLD, 18, anchor_x="center")
+        arcade.draw_text("Click a group of 2 or more matching colors to clear them.", 400, 448, arcade.color.LIGHT_GRAY, 11, anchor_x="center", width=520, multiline=True)
+        arcade.draw_text(f"Score: {self.score} | Time: {self.time_left:.1f}s", 400, 418, arcade.color.WHITE, 12, anchor_x="center")
 
         for (row, col), block in self.grid.items():
             if not block["active"]:
