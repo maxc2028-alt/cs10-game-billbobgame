@@ -1107,7 +1107,7 @@ class GameView(arcade.View):
 
 
         if x is None and y is None:
-            self.message = f"Move close to {FRIEND_NAMES[0]} before pressing T."
+            self.message = "Move closer to the NPC to talk."
             self.hint = "Pick up trash for hints, then use those hints near other friends."
             return True
 
