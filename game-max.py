@@ -18,8 +18,8 @@ TRASH_SCORE = 4
 BUILDING_STAGES = 3
 BALL_SPEED = 220
 BALL_RADIUS = 16
-COLLECT_DISTANCE = 70
-TRASH_CLICK_RADIUS = 38
+COLLECT_DISTANCE = 90
+TRASH_CLICK_RADIUS = 50
 FRIEND_DISTANCE = 75
 ENTRANCE_X = 720
 ENTRANCE_Y = 300
@@ -172,6 +172,7 @@ class TrashSpot:
         self.trash_type = random.choice(["can", "bag", "box", "rubble"])
         self.rotation = random.uniform(0, 360)
         self.pulse = random.uniform(0, math.pi * 2)  # For glowing animation
+        self.collected = False
 
 
 class RepairSpot:
@@ -443,6 +444,12 @@ class GameView(arcade.View):
             return self.friends[1].name
         return FRIEND_NAMES[self.current_building % len(FRIEND_NAMES)]
 
+    def has_uncollected_trash(self) -> bool:
+        return any(not trash.collected for trash in self.trash_spots)
+
+    def uncollected_trash_count(self) -> int:
+        return sum(1 for trash in self.trash_spots if not trash.collected)
+
     def friend_display_name(self, friend: FriendNPC) -> str:
         if friend.name in self.befriended_friends or friend.name in self.guessed_friend_names:
             return friend.name
@@ -454,7 +461,7 @@ class GameView(arcade.View):
         target = self.current_target_friend_name()
         if friend.name != target:
             return "not yet"
-        if self.trash_spots:
+        if self.has_uncollected_trash():
             return "clean trash first"
         return "press T to talk"
 
@@ -588,7 +595,7 @@ class GameView(arcade.View):
                 if not near_ball:
                     self.message = "Move closer to the person first."
                     return True
-                if self.trash_spots:
+                if self.has_uncollected_trash():
                     self.message = "Clean all the trash first before talking to friends."
                     return True
                 if friend.name != self.current_target_friend_name():
@@ -647,7 +654,7 @@ class GameView(arcade.View):
                 if door_index is not None and door_index in self.house_styles:
                     self.visit_house(door_index)
                     return
-                if door_index == self.current_building and not self.trash_spots:
+                if door_index == self.current_building and not self.has_uncollected_trash():
                     self.enter_house()
                     return
                 self.message = "Stand near a repaired door to go inside."
@@ -777,20 +784,21 @@ class GameView(arcade.View):
             return
 
         for trash in list(self.trash_spots):
+            if trash.collected:
+                continue
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= TRASH_CLICK_RADIUS ** 2:
                 if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
                     self.message = "Move the ball closer to pick that up."
                     self.hint = "Use WASD or arrow keys to get near the trash, then click it."
                     return
-                self.trash_spots.remove(trash)
+                trash.collected = True
                 self.cleaned += 1
                 self.money += TRASH_SCORE + self.upgrades
-                if not self.trash_spots:
-                    target_name = self.current_target_friend_name()
+                if not self.has_uncollected_trash():
                     self.message = f"Outside is clear! Move close to a friend and press T to talk."
                     self.hint = "Press T when near the glowing friend to start a conversation."
                 else:
-                    remaining = len(self.trash_spots)
+                    remaining = self.uncollected_trash_count()
                     self.message = f"Good! {remaining} trash pile{'s' if remaining != 1 else ''} left. +${TRASH_SCORE + self.upgrades}"
                     self.hint = "Keep collecting! Move close to trash then click it."
                 if self.cleaned % 2 == 0:
@@ -842,10 +850,10 @@ class GameView(arcade.View):
         x, y = trash.x, trash.y
 
         # Faint soft glow — subtle, not distracting
-        glow_alpha = int(35 + 20 * math.sin(pulse + trash.pulse))
-        arcade.draw_circle_filled(x, y, 30, (255, 220, 80, glow_alpha))
-        # Thin glow ring outline
-        arcade.draw_circle_outline(x, y, 26, (255, 200, 60, 80), 2)
+        glow_alpha = int(20 + 10 * math.sin(pulse + trash.pulse)) if not trash.collected else 0
+        if glow_alpha > 0:
+            arcade.draw_circle_filled(x, y, 30, (255, 220, 80, glow_alpha))
+            arcade.draw_circle_outline(x, y, 26, (255, 200, 60, 60), 2)
 
         if trash.trash_type == "can":
             arcade.draw_lrbt_rectangle_filled(x - 10, x + 10, y - 12, y + 8, (160, 160, 160))
@@ -873,7 +881,8 @@ class GameView(arcade.View):
             arcade.draw_line(x - 8, y - 2, x + 4, y + 5, (70, 60, 50), 2)
 
         # "TRASH" label below
-        arcade.draw_text("TRASH", x, y - 30, (255, 120, 50), 9, anchor_x="center", bold=True)
+        label_color = (255, 120, 50) if not trash.collected else (140, 140, 140)
+        arcade.draw_text("TRASH", x, y - 30, label_color, 9, anchor_x="center", bold=True)
 
     def update_ball(self, delta_time: float) -> None:
         if self.screen not in {"playing", "repair", "visit", "dark"}:
@@ -932,7 +941,7 @@ class GameView(arcade.View):
         if self.screen != "playing":
             return
 
-        if not self.trash_spots:
+        if not self.has_uncollected_trash():
             return
 
         self.time_left -= delta_time
@@ -1071,7 +1080,7 @@ class GameView(arcade.View):
             arcade.draw_circle_filled(door_right - 8, base_y + 34, 3, (150, 132, 82))
             if building_idx in self.house_styles:
                 door_label = "F: go inside"
-            elif building_idx == self.current_building and not self.trash_spots:
+            elif building_idx == self.current_building and not self.has_uncollected_trash():
                 door_label = "F: open door"
             else:
                 door_label = ""
@@ -1087,9 +1096,9 @@ class GameView(arcade.View):
             self.draw_trash(trash, self.pulse_time)
 
         # Friends — grounded
-        target_name = self.current_target_friend_name() if not self.trash_spots else ""
+        target_name = self.current_target_friend_name() if not self.has_uncollected_trash() else ""
         for friend in self.friends:
-            is_highlighted = (not self.trash_spots and friend.name == target_name
+            is_highlighted = (not self.has_uncollected_trash() and friend.name == target_name
                               and friend.name not in self.befriended_friends)
             self.draw_friend_character(
                 friend, friend.x, friend.y,
@@ -1100,9 +1109,9 @@ class GameView(arcade.View):
         self.draw_ball()
 
         # "COLLECT TRASH!" sign if trash is left
-        if self.trash_spots:
+        if self.has_uncollected_trash():
             arcade.draw_lrbt_rectangle_filled(260, 540, 420, 448, (200, 60, 60, 200))
-            arcade.draw_text(f"COLLECT ALL TRASH! ({len(self.trash_spots)} left)",
+            arcade.draw_text(f"COLLECT ALL TRASH! ({self.uncollected_trash_count()} left)",
                              400, 426, arcade.color.WHITE, 14, anchor_x="center", bold=True)
 
     def draw_conversation(self) -> None:
@@ -1430,6 +1439,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 
 
