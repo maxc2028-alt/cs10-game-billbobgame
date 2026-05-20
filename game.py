@@ -853,7 +853,7 @@ class GameView(arcade.View):
             return "Clean trash first to reveal scrambled friend name clues."
         if self.known_name_letters(target_name) < len(target_name):
             return f"Friend clues: {self.display_name_from_hint(target_name)}."
-        return "Move close to the blue friend and press T, or click them, to unscramble the full name."
+        return f"Move close to {FRIEND_NAMES[0]} and press T, or click them, to unscramble the full name."
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
@@ -1071,8 +1071,8 @@ class GameView(arcade.View):
 
 
         if x is None and y is None:
-            self.message = "Move close to a blue ball before pressing T."
-            self.hint = "Pick up trash for hints, then use those hints near other balls."
+            self.message = f"Move close to {FRIEND_NAMES[0]} before pressing T."
+            self.hint = "Pick up trash for hints, then use those hints near other friends."
             return True
 
 
@@ -1261,7 +1261,7 @@ class GameView(arcade.View):
                     is_final_repair = all(repair.fixed or repair is spot for repair in self.repair_spots)
                     if is_final_repair and not self.can_finish_current_house():
                         self.message = "Before finishing the house, answer a friend's question correctly."
-                        self.hint = "Press F to go outside, then press T near a blue friend to learn the lesson."
+                        self.hint = f"Press F to go outside, then press T near {FRIEND_NAMES[0]} to learn the lesson."
                         return
                     if self.money < spot.cost:
                         self.message = f"Need ${spot.cost} to {spot.label}. You have ${self.money}."
