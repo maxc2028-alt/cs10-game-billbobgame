@@ -1227,18 +1227,26 @@ class GameView(arcade.View):
         if button != arcade.MOUSE_BUTTON_LEFT:
             return
 
+        screen_x = x
+        screen_y = y
         if self.camera is not None:
             world_position = self.camera.unproject((x, y))
             x = world_position.x
             y = world_position.y
+        if screen_y <= 120:
+            if 700 <= screen_x <= 760 and 18 <= screen_y <= 46:
+                if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
+                    self.paused = not self.paused
+                    if self.paused:
+                        self.keys_down.clear()
+                        self.message = "Game paused."
+                        self.hint = "Press P or click the pause button to resume."
+                return
 
-        if 700 <= x <= 760 and 18 <= y <= 46:
-            if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
-                self.paused = not self.paused
-                if self.paused:
-                    self.keys_down.clear()
-                    self.message = "Game paused."
-                    self.hint = "Press P or click the pause button to resume."
+            if 10 <= screen_x <= 45 and 18 <= screen_y <= 53:
+                self.show_instructions = not self.show_instructions
+                return
+
             return
 
         # Handle mini-game clicks
