@@ -1197,7 +1197,7 @@ class GameView(arcade.View):
             x = world_position.x
             y = world_position.y
 
-        if 720 <= x <= 780 and 558 <= y <= 586:
+        if 688 <= x <= 748 and 18 <= y <= 46:
             if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
                 self.paused = not self.paused
                 if self.paused:
@@ -2333,10 +2333,10 @@ class GameView(arcade.View):
         arcade.draw_circle_outline(28, 35, 17, (222, 222, 214), 2)
         arcade.draw_text("?", 28, 25, (222, 222, 214), 18, anchor_x="center")
 
-        arcade.draw_lrbt_rectangle_filled(720, 780, 558, 586, (14, 17, 24))
-        arcade.draw_lrbt_rectangle_outline(720, 780, 558, 586, (222, 222, 214), 2)
-        arcade.draw_text("||" if not self.paused else ">", 750, 569, (222, 222, 214), 18, anchor_x="center")
-        arcade.draw_text("Pause" if not self.paused else "Resume", 750, 548, (156, 160, 166), 9, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(688, 748, 18, 46, (14, 17, 24))
+        arcade.draw_lrbt_rectangle_outline(688, 748, 18, 46, (222, 222, 214), 2)
+        arcade.draw_text("||" if not self.paused else ">", 718, 30, (222, 222, 214), 18, anchor_x="center")
+        arcade.draw_text("Pause" if not self.paused else "Resume", 718, 12, (156, 160, 166), 9, anchor_x="center")
 
         if self.show_instructions:
             arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
