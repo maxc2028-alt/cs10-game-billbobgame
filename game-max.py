@@ -776,7 +776,7 @@ class GameView(arcade.View):
 
 
     def leave_house(self) -> None:
-        left, right, base_y = BUILDING_POSITIONS[self.inside_building]
+        left, right, base_y, _ = self.get_house_position(self.inside_building)
         self.ball_x = (left + right) / 2
         self.ball_y = base_y + 35
         self.screen = "playing"
