@@ -664,7 +664,7 @@ class GameView(arcade.View):
             if key == arcade.key.BACKSPACE:
                 self.name_guess = self.name_guess[:-1]
                 return
-        if key == arcade.key.SPACE and self.name_guess and len(self.name_guess) < 16:
+            if key == arcade.key.SPACE and self.name_guess and len(self.name_guess) < 16:
                 self.name_guess += " "
                 return
             if arcade.key.A <= key <= arcade.key.Z and len(self.name_guess) < 16:
@@ -1715,6 +1715,11 @@ class GameView(arcade.View):
 
         if self.screen == "intro":
             self.draw_intro()
+            return
+
+
+        if self.screen == "countdown":
+            self.draw_countdown()
             return
 
 
