@@ -2365,7 +2365,7 @@ class GameView(arcade.View):
 
         arcade.draw_lrbt_rectangle_filled(700, 760, 18, 46, (14, 17, 24))
         arcade.draw_lrbt_rectangle_outline(700, 760, 18, 46, (222, 222, 214), 2)
-        arcade.draw_text("||" if not self.paused else ">", 730, 30, (222, 222, 214), 18, anchor_x="center")
+        arcade.draw_text("||" if not self.paused else ">", 730, 32, (222, 222, 214), 18, anchor_x="center", anchor_y="center")
 
         if self.show_instructions:
             arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
