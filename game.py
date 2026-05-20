@@ -40,6 +40,28 @@ HOUSE_BASE_Y = 120  # Base Y position for all houses
 FRIEND_NAMES = ["Jane", "Billy Bob", "Max"]
 HOUSE_WIDTHS = [140, 170, 120]  # Different widths for variety
 HOUSE_HEIGHTS = [220, 235, 195]  # Different heights for variety
+RIDDLE_QUESTIONS = [
+    {
+        "question": "I shine at night and guide travelers home. What am I?",
+        "answer": "moon",
+        "letter": "m",
+    },
+    {
+        "question": "I have pages and stories, and I help you learn. What am I?",
+        "answer": "book",
+        "letter": "b",
+    },
+    {
+        "question": "I grow tall and have leaves and branches. What am I?",
+        "answer": "tree",
+        "letter": "t",
+    },
+    {
+        "question": "I can open doors and solve puzzles. What am I?",
+        "answer": "key",
+        "letter": "k",
+    },
+]
 INTERIOR_REPAIR_SETS = [
     [
         (205, 355, "fix the ceiling crack", arcade.color.LIGHT_STEEL_BLUE, 3),
@@ -584,6 +606,8 @@ class GameView(arcade.View):
         self.quiz_friend: FriendNPC | None = None
         self.guess_friend: FriendNPC | None = None
         self.name_guess = ""
+        self.name_riddle_index = 0
+        self.name_riddle_progress = ""
         self.quiz_question = QUIZ_OPTIONS[0]
         self.quiz_tries_left = 2
         self.game_over_ready = False
@@ -972,27 +996,38 @@ class GameView(arcade.View):
     def start_name_guess(self, friend: FriendNPC) -> None:
         self.guess_friend = friend
         self.name_guess = ""
+        self.name_riddle_index = 0
+        self.name_riddle_progress = ""
         self.screen = "name_guess"
-        self.message = f"Unscramble the friend's full name. Clue: {self.name_hint_pattern(friend.name)}"
-        self.hint = "Press ENTER to guess. Use BACKSPACE to erase. The scrambled clue above shows what is already known."
+        self.message = f"Riddle 1 of 4 for {friend.name}."
+        self.hint = "Answer each riddle to reveal one letter. Four correct answers reveal the full name."
 
 
-    def submit_name_guess(self) -> None:
+    def submit_name_riddle(self) -> None:
         if self.guess_friend is None:
             return
 
-
-        if self.name_guess.strip().lower() == self.guess_friend.name.lower():
-            friend = self.guess_friend
-            self.guessed_friend_names.add(friend.name)
-            self.guess_friend = None
+        riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+        if self.name_guess.strip().lower() == riddle["answer"]:
+            self.name_riddle_progress += riddle["letter"]
+            self.name_riddle_index += 1
             self.name_guess = ""
-            self.start_friend_quiz(friend)
+            if self.name_riddle_index >= 4:
+                friend = self.guess_friend
+                self.guessed_friend_names.add(friend.name)
+                self.message = f"You revealed {friend.name}."
+                self.hint = f"All 4 riddles are complete. {friend.name} is the full name."
+                self.guess_friend = None
+                self.start_friend_quiz(friend)
+                return
+
+            next_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+            self.message = f"Correct. Letter revealed: {self.name_riddle_progress.upper()}."
+            self.hint = f"Riddle {self.name_riddle_index + 1} of 4: {next_riddle['question']}"
             return
 
-
-        self.message = "That name is not right yet."
-        self.hint = f"Check the scrambled clue: {self.name_hint_pattern(self.guess_friend.name)}. Then try again."
+        self.message = "That answer is not right."
+        self.hint = f"Try again: {riddle['question']}"
 
 
     def answer_quiz(self, answer_index: int) -> None:
@@ -1098,13 +1133,10 @@ class GameView(arcade.View):
 
         if self.screen == "name_guess":
             if key == arcade.key.ENTER:
-                self.submit_name_guess()
+                self.submit_name_riddle()
                 return
             if key == arcade.key.BACKSPACE:
                 self.name_guess = self.name_guess[:-1]
-                return
-            if key == arcade.key.SPACE and self.name_guess and len(self.name_guess) < 16:
-                self.name_guess += " "
                 return
             if arcade.key.A <= key <= arcade.key.Z and len(self.name_guess) < 16:
                 self.name_guess += chr(key).lower()
@@ -1197,7 +1229,7 @@ class GameView(arcade.View):
             x = world_position.x
             y = world_position.y
 
-        if 688 <= x <= 748 and 18 <= y <= 46:
+        if 628 <= x <= 688 and 18 <= y <= 46:
             if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
                 self.paused = not self.paused
                 if self.paused:
@@ -2033,20 +2065,22 @@ class GameView(arcade.View):
         self.draw_background()
         friend_label = "the person"
         if self.guess_friend is not None:
-            friend_label = "???"
+            friend_label = self.guess_friend.name
 
 
         arcade.draw_lrbt_rectangle_filled(120, 680, 180, 430, (20, 20, 30))
         arcade.draw_lrbt_rectangle_outline(120, 680, 180, 430, arcade.color.WHITE, 3)
-        arcade.draw_text("Guess The Name", 400, 382, arcade.color.GOLD, 26, anchor_x="center")
+        arcade.draw_text("Riddle Name Challenge", 400, 382, arcade.color.GOLD, 26, anchor_x="center")
         arcade.draw_text(f"Who is {friend_label}?", 400, 342, arcade.color.LIGHT_GRAY, 15, anchor_x="center")
         if self.guess_friend is not None:
-            arcade.draw_text(f"Clue: {self.name_hint_pattern(self.guess_friend.name)}", 400, 318, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+            riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+            arcade.draw_text(f"Riddle {self.name_riddle_index + 1} of 4: {riddle['question']}", 400, 318, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
         arcade.draw_lrbt_rectangle_filled(210, 590, 265, 315, (40, 50, 65))
         arcade.draw_lrbt_rectangle_outline(210, 590, 265, 315, arcade.color.LIGHT_GRAY, 2)
-        arcade.draw_text(self.name_guess or "type name here", 400, 282, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_text(self.name_guess or "answer the riddle here", 400, 282, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 244, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases", 400, 220, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
-        arcade.draw_text("Use the trash clues to unscramble the full name.", 400, 196, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+        arcade.draw_text("The bottom text now shows the NPC name.", 400, 196, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
 
     def draw_decorate(self) -> None:
@@ -2289,6 +2323,7 @@ class GameView(arcade.View):
         arcade.draw_text(f"Money: ${self.money}", 125, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, (214, 215, 212), 12)
         target_name = self.current_target_friend_name()
+        arcade.draw_text(f"NPC: {target_name}", 390, 538, (156, 160, 166), 10, width=248, align="left")
         arcade.draw_text(f"Clues: {self.display_name_from_hint(target_name)}", 390, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
@@ -2333,10 +2368,10 @@ class GameView(arcade.View):
         arcade.draw_circle_outline(28, 35, 17, (222, 222, 214), 2)
         arcade.draw_text("?", 28, 25, (222, 222, 214), 18, anchor_x="center")
 
-        arcade.draw_lrbt_rectangle_filled(688, 748, 18, 46, (14, 17, 24))
-        arcade.draw_lrbt_rectangle_outline(688, 748, 18, 46, (222, 222, 214), 2)
-        arcade.draw_text("||" if not self.paused else ">", 718, 30, (222, 222, 214), 18, anchor_x="center")
-        arcade.draw_text("Pause" if not self.paused else "Resume", 718, 12, (156, 160, 166), 9, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(628, 688, 18, 46, (14, 17, 24))
+        arcade.draw_lrbt_rectangle_outline(628, 688, 18, 46, (222, 222, 214), 2)
+        arcade.draw_text("||" if not self.paused else ">", 658, 30, (222, 222, 214), 18, anchor_x="center")
+        arcade.draw_text("Pause" if not self.paused else "Resume", 658, 12, (156, 160, 166), 9, anchor_x="center")
 
         if self.show_instructions:
             arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
