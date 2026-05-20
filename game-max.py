@@ -1190,7 +1190,7 @@ class GameView(arcade.View):
             if upgrade_level >= 2:
                 arcade.draw_lrbt_rectangle_filled(520, 650, 155, 210, (58, 76, 88))
                 arcade.draw_lrbt_rectangle_outline(520, 650, 155, 210, arcade.color.BLACK, 2)
-                arcade.draw_lrbt_rectangle_filled(545, 148, 148, 155, (219, 206, 170))
+                arcade.draw_lrbt_rectangle_filled(545, 620, 148, 155, (219, 206, 170))
                 arcade.draw_line(545, 155, 545, 148, arcade.color.BLACK, 2)
                 arcade.draw_line(590, 155, 590, 148, arcade.color.BLACK, 2)
             if upgrade_level >= 3:
@@ -1434,7 +1434,7 @@ class GameView(arcade.View):
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
         arcade.draw_text(self.friend_action_hint(), 520, 538, (156, 160, 166), 10, width=248, align="left")
-        arcade.draw_text(f"Name hint: {self.name_hint_pattern(target_name)}", 22, 494, (156, 160, 166), 10)
+        arcade.draw_text(f"Scramble: {self.name_hint_pattern(target_name)}", 22, 494, (156, 160, 166), 10)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
