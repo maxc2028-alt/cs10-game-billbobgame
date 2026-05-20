@@ -21,7 +21,7 @@ SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Neighborhood Cleanup: South Block"
 
 
-QUEST_TIME = 11.0
+QUEST_TIME = 4.0
 MAX_UPGRADES = 3
 MAX_INTERIOR_UPGRADES = 3
 TRASH_SCORE = 4
@@ -1138,9 +1138,7 @@ class GameView(arcade.View):
             if key == arcade.key.BACKSPACE:
                 self.name_guess = self.name_guess[:-1]
                 return
-            if arcade.key.A <= key <= arcade.key.Z and len(self.name_guess) < 16:
-                self.name_guess += chr(key).lower()
-                return
+            return
 
 
         if key in (
@@ -1220,6 +1218,11 @@ class GameView(arcade.View):
         self.keys_down.discard(key)
 
 
+    def on_text(self, text: str) -> None:
+        if self.screen == "name_guess" and text.isalpha() and len(self.name_guess) < 16:
+            self.name_guess += text.lower()
+
+
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
         if button != arcade.MOUSE_BUTTON_LEFT:
             return
@@ -1229,7 +1232,7 @@ class GameView(arcade.View):
             x = world_position.x
             y = world_position.y
 
-        if 628 <= x <= 688 and 18 <= y <= 46:
+        if 700 <= x <= 760 and 18 <= y <= 46:
             if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
                 self.paused = not self.paused
                 if self.paused:
@@ -2360,10 +2363,10 @@ class GameView(arcade.View):
         arcade.draw_circle_outline(28, 35, 17, (222, 222, 214), 2)
         arcade.draw_text("?", 28, 25, (222, 222, 214), 18, anchor_x="center")
 
-        arcade.draw_lrbt_rectangle_filled(628, 688, 18, 46, (14, 17, 24))
-        arcade.draw_lrbt_rectangle_outline(628, 688, 18, 46, (222, 222, 214), 2)
-        arcade.draw_text("||" if not self.paused else ">", 658, 30, (222, 222, 214), 18, anchor_x="center")
-        arcade.draw_text("Pause" if not self.paused else "Resume", 658, 12, (156, 160, 166), 9, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(700, 760, 18, 46, (14, 17, 24))
+        arcade.draw_lrbt_rectangle_outline(700, 760, 18, 46, (222, 222, 214), 2)
+        arcade.draw_text("||" if not self.paused else ">", 730, 30, (222, 222, 214), 18, anchor_x="center")
+        arcade.draw_text("Pause" if not self.paused else "Resume", 730, 12, (156, 160, 166), 9, anchor_x="center")
 
         if self.show_instructions:
             arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
