@@ -606,6 +606,7 @@ class GameView(arcade.View):
         self.start_countdown = 0.0
         self.keys_down: set[int] = set()
         self.menu_open = False
+        self.hud_collapsed = False
         self.quiz_friend: FriendNPC | None = None
         self.guess_friend: FriendNPC | None = None
         self.name_guess = ""
@@ -1257,6 +1258,10 @@ class GameView(arcade.View):
 
         if 10 <= x <= 45 and 18 <= y <= 53:
             self.show_instructions = not self.show_instructions
+            return
+
+        if 748 <= x <= 790 and 558 <= y <= 590:
+            self.hud_collapsed = not self.hud_collapsed
             return
 
         if 10 <= x <= 45 and 518 <= y <= 553:
