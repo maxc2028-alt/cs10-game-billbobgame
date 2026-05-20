@@ -1236,6 +1236,25 @@ class GameView(arcade.View):
             x = world_position.x
             y = world_position.y
 
+        if self.menu_open:
+            if 540 <= screen_x <= 720 and 352 <= screen_y <= 400:
+                self.reset_round()
+                self.menu_open = False
+                return
+            if 540 <= screen_x <= 720 and 302 <= screen_y <= 348:
+                self.menu_open = False
+                self.screen = "intro"
+                self.intro_time = 0.0
+                self.intro_walk_x = 85.0
+                self.message = "Press SPACE to begin."
+                self.hint = "Clear every trash pile to move to the next building."
+                return
+            if 540 <= screen_x <= 720 and 252 <= screen_y <= 298:
+                if self.window is not None:
+                    self.window.close()
+                return
+            return
+
         if 10 <= screen_x <= 45 and 18 <= screen_y <= 53:
             self.show_instructions = not self.show_instructions
             return
@@ -1245,25 +1264,6 @@ class GameView(arcade.View):
             return
 
         if screen_y >= 492:
-            return
-
-        if self.menu_open:
-            if 540 <= screen_x <= 720 and 350 <= screen_y <= 402:
-                self.reset_round()
-                self.menu_open = False
-                return
-            if 540 <= screen_x <= 720 and 300 <= screen_y <= 352:
-                self.menu_open = False
-                self.screen = "intro"
-                self.intro_time = 0.0
-                self.intro_walk_x = 85.0
-                self.message = "Press SPACE to begin."
-                self.hint = "Clear every trash pile to move to the next building."
-                return
-            if 540 <= screen_x <= 720 and 250 <= screen_y <= 302:
-                if self.window is not None:
-                    self.window.close()
-                return
             return
 
         # Handle mini-game clicks
