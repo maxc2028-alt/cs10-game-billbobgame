@@ -605,7 +605,7 @@ class GameView(arcade.View):
         self.intro_time = 0.0
         self.start_countdown = 0.0
         self.keys_down: set[int] = set()
-        self.paused = False
+        self.menu_open = False
         self.quiz_friend: FriendNPC | None = None
         self.guess_friend: FriendNPC | None = None
         self.name_guess = ""
@@ -1121,11 +1121,11 @@ class GameView(arcade.View):
 
         if key == arcade.key.P:
             if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
-                self.paused = not self.paused
-                if self.paused:
+                self.menu_open = not self.menu_open
+                if self.menu_open:
                     self.keys_down.clear()
-                    self.message = "Game paused."
-                    self.hint = "Press P or click the pause button to resume."
+                    self.message = "Menu opened."
+                    self.hint = "Choose restart, intro, or quit."
             return
 
 
@@ -1229,11 +1229,11 @@ class GameView(arcade.View):
         if screen_y >= 492:
             if 700 <= screen_x <= 760 and 558 <= screen_y <= 586:
                 if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
-                    self.paused = not self.paused
-                    if self.paused:
+                    self.menu_open = not self.menu_open
+                    if self.menu_open:
                         self.keys_down.clear()
-                        self.message = "Game paused."
-                        self.hint = "Press P or click the pause button to resume."
+                        self.message = "Menu opened."
+                        self.hint = "Choose restart, intro, or quit."
                 return
 
             if 10 <= screen_x <= 45 and 518 <= screen_y <= 553:
@@ -1245,17 +1245,38 @@ class GameView(arcade.View):
         if screen_y <= 120:
             if 700 <= screen_x <= 760 and 18 <= screen_y <= 46:
                 if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
-                    self.paused = not self.paused
-                    if self.paused:
+                    self.menu_open = not self.menu_open
+                    if self.menu_open:
                         self.keys_down.clear()
-                        self.message = "Game paused."
-                        self.hint = "Press P or click the pause button to resume."
+                        self.message = "Menu opened."
+                        self.hint = "Choose restart, intro, or quit."
                 return
 
             if 10 <= screen_x <= 45 and 18 <= screen_y <= 53:
                 self.show_instructions = not self.show_instructions
                 return
 
+            return
+
+        if self.menu_open:
+            if 560 <= screen_x <= 750 and 240 <= screen_y <= 420:
+                if 585 <= screen_x <= 725 and 370 <= screen_y <= 404:
+                    self.reset_round()
+                    self.menu_open = False
+                    return
+                if 585 <= screen_x <= 725 and 320 <= screen_y <= 354:
+                    self.menu_open = False
+                    self.screen = "intro"
+                    self.intro_time = 0.0
+                    self.intro_walk_x = 85.0
+                    self.message = "Press SPACE to begin."
+                    self.hint = "Clear every trash pile to move to the next building."
+                    return
+                if 585 <= screen_x <= 725 and 270 <= screen_y <= 304:
+                    if self.window is not None:
+                        self.window.close()
+                    return
+                return
             return
 
         # Handle mini-game clicks
@@ -1591,7 +1612,7 @@ class GameView(arcade.View):
     def on_update(self, delta_time: float) -> None:
         self.sky_time += delta_time
 
-        if self.paused and self.screen not in {"intro", "countdown"}:
+        if self.menu_open and self.screen not in {"intro", "countdown"}:
             return
 
         # Handle mini-game updates
@@ -2420,7 +2441,21 @@ class GameView(arcade.View):
 
         arcade.draw_lrbt_rectangle_filled(700, 760, 18, 46, (14, 17, 24))
         arcade.draw_lrbt_rectangle_outline(700, 760, 18, 46, (222, 222, 214), 2)
-        arcade.draw_text("||" if not self.paused else ">", 730, 32, (222, 222, 214), 18, anchor_x="center", anchor_y="center")
+        arcade.draw_text("≡", 730, 32, (222, 222, 214), 20, anchor_x="center", anchor_y="center")
+
+        if self.menu_open:
+            arcade.draw_lrbt_rectangle_filled(490, 770, 220, 430, (14, 17, 24, 240))
+            arcade.draw_lrbt_rectangle_outline(490, 770, 220, 430, (222, 222, 214), 2)
+            arcade.draw_text("Menu", 630, 398, arcade.color.GOLD, 24, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(585, 725, 370, 404, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(585, 725, 370, 404, arcade.color.WHITE, 2)
+            arcade.draw_text("Restart Game", 655, 384, arcade.color.WHITE, 14, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(585, 725, 320, 354, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(585, 725, 320, 354, arcade.color.WHITE, 2)
+            arcade.draw_text("Back to Intro", 655, 334, arcade.color.WHITE, 14, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(585, 725, 270, 304, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(585, 725, 270, 304, arcade.color.WHITE, 2)
+            arcade.draw_text("Quit Game", 655, 284, arcade.color.WHITE, 14, anchor_x="center")
 
         if self.show_instructions:
             arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
