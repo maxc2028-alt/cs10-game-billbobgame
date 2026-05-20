@@ -189,6 +189,7 @@ class GameView(arcade.View):
         self.ball_y = 155.0
         self.intro_walk_x = 85.0
         self.intro_time = 0.0
+        self.start_countdown = 0.0
         self.keys_down: set[int] = set()
         self.quiz_friend: FriendNPC | None = None
         self.guess_friend: FriendNPC | None = None
@@ -513,6 +514,15 @@ class GameView(arcade.View):
         self.hint = "Press SPACE to play again, or ESC to quit."
 
 
+    def start_game_countdown(self) -> None:
+        self.screen = "countdown"
+        self.round_started = False
+        self.keys_down.clear()
+        self.start_countdown = 3.0
+        self.message = "Get ready."
+        self.hint = "The game starts when the countdown reaches zero."
+
+
     def fail_round(self) -> None:
         self.screen = "trash_game_over"
         self.message = "Game over. The timer ran out."
@@ -525,7 +535,8 @@ class GameView(arcade.View):
         self.quiz_question = QUIZ_OPTIONS[(self.current_building + self.friendship) % len(QUIZ_OPTIONS)]
         self.quiz_tries_left = 2
         self.screen = "quiz"
-        self.message = f"You know {friend.name}'s name. Answer their question."
+        self.inside_building = self.current_building
+        self.message = f"You and {friend.name} are inside the house. Answer their question."
         self.hint = "You get 2 tries. Read the choices carefully before you pick one."
 
 
@@ -653,7 +664,7 @@ class GameView(arcade.View):
             if key == arcade.key.BACKSPACE:
                 self.name_guess = self.name_guess[:-1]
                 return
-            if key == arcade.key.SPACE and self.name_guess and len(self.name_guess) < 16:
+        if key == arcade.key.SPACE and self.name_guess and len(self.name_guess) < 16:
                 self.name_guess += " "
                 return
             if arcade.key.A <= key <= arcade.key.Z and len(self.name_guess) < 16:
@@ -724,6 +735,8 @@ class GameView(arcade.View):
         try:
             if self.screen in {"complete", "failed", "trash_game_over", "conclusion"}:
                 self.reset_round()
+            elif self.screen == "intro":
+                self.start_game_countdown()
             elif self.screen == "playing" and not self.round_started:
                 self.reset_round()
         except Exception as exc:
@@ -749,7 +762,11 @@ class GameView(arcade.View):
 
         if self.screen == "intro":
             if 310 <= x <= 490 and 135 <= y <= 190:
-                self.reset_round()
+                self.start_game_countdown()
+            return
+
+
+        if self.screen == "countdown":
             return
 
 
@@ -921,6 +938,15 @@ class GameView(arcade.View):
             return
 
 
+        if self.screen == "countdown":
+            self.intro_time += delta_time
+            self.start_countdown -= delta_time
+            if self.start_countdown <= 0:
+                self.start_countdown = 0
+                self.reset_round()
+            return
+
+
         self.update_ball(delta_time)
 
 
@@ -953,6 +979,47 @@ class GameView(arcade.View):
         arcade.draw_circle_filled(700, 525, 22, (76, 86, 102))
         arcade.draw_circle_filled(735, 545, 30, (92, 96, 104))
         arcade.draw_line(0, 120, 800, 120, (49, 58, 55), 2)
+
+
+    def draw_friend_character(
+        self,
+        friend: FriendNPC,
+        x: float,
+        y: float,
+        highlight: bool = False,
+        show_line: bool = True,
+        name_override: str | None = None,
+        line_override: str | None = None,
+    ) -> None:
+        friend_color = (118, 139, 129) if friend.name in self.befriended_friends else (86, 104, 123)
+        if highlight:
+            friend_color = (214, 181, 95)
+            arcade.draw_circle_filled(x, y + 36, 28, (255, 232, 148, 70))
+            arcade.draw_circle_outline(x, y + 36, 28, arcade.color.GOLD, 3)
+            arcade.draw_circle_outline(x, y + 36, 40, (255, 240, 198, 80), 2)
+
+        arcade.draw_ellipse_filled(x, y - 16, 28, 7, (15, 18, 25, 120))
+        arcade.draw_line(x, y + 28, x, y - 2, arcade.color.BLACK, 5)
+        arcade.draw_line(x + 8, y + 13, x + 24, y + 31, arcade.color.BLACK, 3)
+        arcade.draw_line(x, y + 13, x - 12, y - 2, arcade.color.BLACK, 3)
+        arcade.draw_line(x, y - 2, x - 10, y - 18, arcade.color.BLACK, 3)
+        arcade.draw_line(x, y - 2, x + 10, y - 18, arcade.color.BLACK, 3)
+        arcade.draw_circle_filled(x, y + 32, 16, friend_color)
+        arcade.draw_circle_outline(x, y + 32, 16, arcade.color.BLACK, 2)
+        if highlight:
+            arcade.draw_circle_outline(x, y + 32, 21, arcade.color.GOLD, 3)
+        arcade.draw_text(name_override or friend.name, x, y + 58, arcade.color.WHITE, 11, anchor_x="center")
+        if show_line:
+            arcade.draw_text(
+                line_override or friend.line,
+                x,
+                y - 42,
+                arcade.color.LIGHT_GRAY,
+                9,
+                width=120,
+                align="center",
+                anchor_x="center",
+            )
 
 
     def draw_building(
@@ -1106,16 +1173,15 @@ class GameView(arcade.View):
 
 
         for friend in self.friends:
-            friend_color = (118, 139, 129) if friend.name in self.befriended_friends else (86, 104, 123)
-            arcade.draw_line(friend.x, friend.y - 16, friend.x, friend.y - 42, arcade.color.BLACK, 4)
-            arcade.draw_line(friend.x - 12, friend.y - 28, friend.x + 12, friend.y - 28, arcade.color.BLACK, 3)
-            arcade.draw_line(friend.x, friend.y - 42, friend.x - 10, friend.y - 58, arcade.color.BLACK, 3)
-            arcade.draw_line(friend.x, friend.y - 42, friend.x + 10, friend.y - 58, arcade.color.BLACK, 3)
-            arcade.draw_ellipse_filled(friend.x, friend.y - 60, 28, 7, (15, 18, 25, 120))
-            arcade.draw_circle_filled(friend.x, friend.y, 16, friend_color)
-            arcade.draw_circle_outline(friend.x, friend.y, 16, arcade.color.BLACK, 2)
-            arcade.draw_text(self.friend_display_name(friend), friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
-            arcade.draw_text(self.friend_label_text(friend), friend.x, friend.y - 34, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
+            is_highlighted = self.quiz_friend is not None and friend.name == self.quiz_friend.name
+            self.draw_friend_character(
+                friend,
+                friend.x,
+                friend.y,
+                highlight=is_highlighted,
+                name_override=self.friend_display_name(friend),
+                line_override=self.friend_label_text(friend),
+            )
 
 
         self.draw_ball()
@@ -1271,28 +1337,44 @@ class GameView(arcade.View):
 
 
     def draw_quiz(self) -> None:
-        self.draw_background()
-        arcade.draw_lrbt_rectangle_filled(90, 710, 130, 500, (18, 22, 31))
-        arcade.draw_lrbt_rectangle_outline(90, 710, 130, 500, arcade.color.WHITE, 3)
-        arcade.draw_text("Community Question", 400, 460, arcade.color.GOLD, 24, anchor_x="center")
-        arcade.draw_text(f"Tries left: {self.quiz_tries_left}", 400, 438, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        self.draw_house_interior()
+        arcade.draw_lrbt_rectangle_filled(108, 692, 122, 444, (17, 20, 28, 235))
+        arcade.draw_lrbt_rectangle_outline(108, 692, 122, 444, arcade.color.WHITE, 3)
+        arcade.draw_text("Community Question", 400, 446, arcade.color.GOLD, 24, anchor_x="center")
+        arcade.draw_text(f"Tries left: {self.quiz_tries_left}", 400, 424, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_text("You are inside the house now.", 400, 404, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+
+
+        if self.quiz_friend is not None:
+            self.draw_friend_character(
+                self.quiz_friend,
+                210,
+                235,
+                highlight=True,
+                name_override=self.quiz_friend.name,
+                line_override="The person asking the question",
+            )
+
+
+        arcade.draw_lrbt_rectangle_filled(290, 662, 228, 390, (44, 58, 72))
+        arcade.draw_lrbt_rectangle_outline(290, 662, 228, 390, arcade.color.LIGHT_GRAY, 2)
         arcade.draw_text(
             self.quiz_question["question"],
-            130,
-            395,
+            312,
+            352,
             arcade.color.WHITE,
             16,
-            width=540,
+            width=326,
             multiline=True,
         )
 
 
         for index, answer in enumerate(self.quiz_question["answers"]):
-            top = 300 - index * 62
+            top = 306 - index * 62
             bottom = top - 46
-            arcade.draw_lrbt_rectangle_filled(130, 670, bottom, top, (44, 58, 72))
-            arcade.draw_lrbt_rectangle_outline(130, 670, bottom, top, arcade.color.LIGHT_GRAY, 2)
-            arcade.draw_text(f"{index + 1}. {answer}", 150, bottom + 15, arcade.color.WHITE, 13, width=500)
+            arcade.draw_lrbt_rectangle_filled(290, 662, bottom, top, (30, 40, 52))
+            arcade.draw_lrbt_rectangle_outline(290, 662, bottom, top, arcade.color.LIGHT_GRAY, 2)
+            arcade.draw_text(f"{index + 1}. {answer}", 308, bottom + 15, arcade.color.WHITE, 13, width=320)
 
 
     def draw_name_guess(self) -> None:
@@ -1398,6 +1480,15 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(310, 490, 135, 190, (174, 151, 82))
         arcade.draw_lrbt_rectangle_outline(310, 490, 135, 190, arcade.color.BLACK, 3)
         arcade.draw_text("START", 400, 153, arcade.color.BLACK, 22, anchor_x="center")
+
+
+    def draw_countdown(self) -> None:
+        self.draw_intro()
+        arcade.draw_lrbt_rectangle_filled(225, 575, 210, 390, (15, 18, 25, 220))
+        arcade.draw_lrbt_rectangle_outline(225, 575, 210, 390, arcade.color.WHITE, 3)
+        arcade.draw_text("Starting in", 400, 350, arcade.color.LIGHT_GRAY, 18, anchor_x="center")
+        arcade.draw_text(f"{math.ceil(self.start_countdown)}", 400, 272, arcade.color.GOLD, 72, anchor_x="center")
+        arcade.draw_text("Get ready to clean the block.", 400, 228, arcade.color.WHITE, 14, anchor_x="center")
 
 
     def draw_dark_challenge(self) -> None:
