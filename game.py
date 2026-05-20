@@ -878,7 +878,7 @@ class GameView(arcade.View):
         target_name = self.current_target_friend_name()
         if self.trash_spots:
             return "Clean trash first to reveal riddle clues."
-        return "Move close to the next friend and press T, or click them, to solve the riddles."
+        return "Move close to the next friend and click Talk, or press T, to solve the riddles."
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
@@ -890,7 +890,7 @@ class GameView(arcade.View):
             return "find clues"
         if friend.name in self.guessed_friend_names:
             return "quiz time"
-        return "press T"
+        return "Talk"
 
 
     def letter_clue(self, letter: str, position: int) -> str:
@@ -1107,7 +1107,7 @@ class GameView(arcade.View):
 
 
         if x is None and y is None:
-            self.message = "Move closer to the NPC to talk."
+            self.message = "Move closer to the NPC and click Talk."
             self.hint = "Pick up trash for hints, then use those hints near other friends."
             return True
 
