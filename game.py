@@ -596,6 +596,7 @@ class GameView(arcade.View):
         ]
         self.neighborhood_state = 0
         self.round_started = False
+        self.sky_time = 0.0
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.intro_walk_x = 85.0
@@ -1567,6 +1568,8 @@ class GameView(arcade.View):
 
 
     def on_update(self, delta_time: float) -> None:
+        self.sky_time += delta_time
+
         if self.paused and self.screen not in {"intro", "countdown"}:
             return
 
@@ -1626,6 +1629,22 @@ class GameView(arcade.View):
     def draw_background(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (18, 22, 32))
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 120, (31, 38, 36))
+
+        cloud_sets = [
+            (110, 520, 0.0, 1.0),
+            (350, 545, 1.7, 0.8),
+            (610, 530, 3.2, 0.9),
+        ]
+        for base_x, base_y, phase, scale in cloud_sets:
+            drift_x = (self.sky_time * 10 * scale + phase * 40) % 920 - 60
+            x = base_x + drift_x
+            y = base_y
+            cloud_color = (236, 238, 244, 90)
+            arcade.draw_circle_filled(x, y, 18 * scale, cloud_color)
+            arcade.draw_circle_filled(x + 16 * scale, y + 6, 22 * scale, cloud_color)
+            arcade.draw_circle_filled(x + 34 * scale, y, 16 * scale, cloud_color)
+            arcade.draw_ellipse_filled(x + 18 * scale, y - 4, 56 * scale, 16 * scale, (236, 238, 244, 55))
+
         arcade.draw_circle_filled(95, 525, 34, (132, 126, 108))
         arcade.draw_circle_filled(140, 535, 24, (112, 108, 98))
         arcade.draw_circle_filled(700, 525, 22, (76, 86, 102))
