@@ -605,7 +605,8 @@ class GameView(arcade.View):
                 return True
         if x is None and y is None:
             self.message = "Move close to a friend before pressing T."
-        return True
+            return True
+        return False
 
     def on_key_press(self, key: int, modifiers: int) -> None:
         if key == arcade.key.ESCAPE:
@@ -1439,5 +1440,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 
