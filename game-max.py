@@ -1436,7 +1436,7 @@ class GameView(arcade.View):
 
     def draw_intro(self) -> None:
         self.draw_background()
-        arcade.draw_text("Neighborhood Cleanup", 400, 505, (222, 222, 214), 36, anchor_x="center")
+        arcade.draw_text("Simply Alone", 400, 505, (222, 222, 214), 36, anchor_x="center")
         arcade.draw_text(
             "Walk to the homes, learn who lives nearby, and help repair the block.",
             400,
@@ -1469,7 +1469,6 @@ class GameView(arcade.View):
             arcade.draw_line(person_x + 8, 119, person_x + 28, 144 + wave, arcade.color.BLACK, 3)
             arcade.draw_circle_filled(person_x + 31, 147 + wave, 4, (177, 154, 82))
             arcade.draw_text("Press START", person_x + 80, 214, (222, 222, 214), 13, anchor_x="center")
-            arcade.draw_text("I am ready.", person_x + 80, 196, (156, 160, 166), 10, anchor_x="center")
         else:
             arcade.draw_line(person_x + 8, 119, person_x + 20, 104, arcade.color.BLACK, 3)
         arcade.draw_line(person_x, 104, person_x - 11, 88, arcade.color.BLACK, 3)
