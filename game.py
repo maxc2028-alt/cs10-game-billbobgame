@@ -681,10 +681,14 @@ class GameView(arcade.View):
 
         # Place friends for this building
         friend_y = base_y + 26
+        friend_positions = [
+            left - 28,
+            building_center_x,
+            right + 28,
+        ]
         for i in range(3):
             friend_name = FRIEND_NAMES[i % len(FRIEND_NAMES)]
-            offset = (i - 1) * 120  # Spread them out
-            self.friends.append(FriendNPC(friend_name, building_center_x + offset, friend_y))
+            self.friends.append(FriendNPC(friend_name, friend_positions[i], friend_y))
 
         # Start at building entrance
         self.ball_x = building_center_x
