@@ -1093,10 +1093,6 @@ class GameView(arcade.View):
                     self.message = "Move closer to the person first."
                     self.hint = "Friend balls can only hear you when your ball is nearby."
                     return True
-                if self.known_name_letters(friend.name) < len(friend.name):
-                    self.message = "You do not know this person's full name yet."
-                    self.hint = "Pick up trash to find name hints, then come back when the name is complete."
-                    return True
                 if friend.name not in self.guessed_friend_names:
                     self.start_name_guess(friend)
                     return True
@@ -1155,15 +1151,6 @@ class GameView(arcade.View):
             return
 
 
-        if key == arcade.key.E and self.screen == "playing" and not self.trash_spots:
-            if self.door_index_near_player() == self.current_building:
-                self.enter_house()
-            else:
-                self.message = "Stand by this house's door first."
-                self.hint = "After the trash is clear, press F at the door to go inside."
-            return
-
-
         if key == arcade.key.F:
             if self.screen in {"repair", "visit"}:
                 self.leave_house()
@@ -1176,13 +1163,17 @@ class GameView(arcade.View):
                 if door_index == self.current_building and not self.trash_spots:
                     self.enter_house()
                     return
-                self.message = "Stand near a repaired door to go back inside."
-                self.hint = "The current building opens after you clear the trash."
+                self.message = "Stand near the door to enter the house."
+                self.hint = "Clear the trash first, then press F by the door."
                 return
 
 
         if key == arcade.key.T:
-            self.try_befriend()
+            if self.screen == "playing":
+                if self.try_befriend():
+                    return
+                self.message = "Move closer to the NPC to talk."
+                self.hint = "Press T near a friend to start the dialogue."
             return
 
 
