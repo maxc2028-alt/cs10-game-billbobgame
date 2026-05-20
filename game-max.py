@@ -352,6 +352,9 @@ class GameView(arcade.View):
         self.interior_upgrade_levels.setdefault(self.inside_building, 0)
         self.interior_spots = []
         self.message = f"The inside of {self.building_names[self.inside_building]} is fixed."
+        if len(self.inside_repaired_buildings) >= len(self.building_names):
+            self.finish_neighborhood()
+            return
         self.hint = "Press F by the door to go back outside, then revisit later for interior upgrades."
 
 
@@ -480,9 +483,6 @@ class GameView(arcade.View):
         self.friendship += 1
         self.upgrades = min(MAX_UPGRADES, self.upgrades + 1)
         self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
-        if self.buildings_cleaned >= len(self.building_names):
-            self.finish_neighborhood()
-            return
         self.message = f"{finished_building} is repaired. {self.building_names[self.current_building]} is next."
         self.hint = "The next cleanup starts right away."
         self.reset_round()
