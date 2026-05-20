@@ -1248,12 +1248,12 @@ class GameView(arcade.View):
             return
 
         if self.menu_open:
-            if 560 <= screen_x <= 750 and 240 <= screen_y <= 420:
-                if 585 <= screen_x <= 725 and 370 <= screen_y <= 404:
+            if 540 <= screen_x <= 720 and 250 <= screen_y <= 390:
+                if 560 <= screen_x <= 700 and 360 <= screen_y <= 396:
                     self.reset_round()
                     self.menu_open = False
                     return
-                if 585 <= screen_x <= 725 and 320 <= screen_y <= 354:
+                if 560 <= screen_x <= 700 and 310 <= screen_y <= 346:
                     self.menu_open = False
                     self.screen = "intro"
                     self.intro_time = 0.0
@@ -1261,7 +1261,7 @@ class GameView(arcade.View):
                     self.message = "Press SPACE to begin."
                     self.hint = "Clear every trash pile to move to the next building."
                     return
-                if 585 <= screen_x <= 725 and 270 <= screen_y <= 304:
+                if 560 <= screen_x <= 700 and 260 <= screen_y <= 296:
                     if self.window is not None:
                         self.window.close()
                     return
@@ -2383,12 +2383,10 @@ class GameView(arcade.View):
         arcade.draw_text(f"Trash: {self.cleaned}", 22, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Money: ${self.money}", 125, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, (214, 215, 212), 12)
-        target_name = self.current_target_friend_name()
         arcade.draw_text(f"Riddles: {self.name_riddle_progress.upper() or '-'}", 390, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
         arcade.draw_text(self.friend_action_hint(), 520, 538, (156, 160, 166), 10, width=248, align="left")
-        arcade.draw_text(f"Target: {target_name}", 22, 494, (156, 160, 166), 10)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
@@ -2432,15 +2430,15 @@ class GameView(arcade.View):
             arcade.draw_lrbt_rectangle_filled(490, 770, 220, 430, (14, 17, 24, 240))
             arcade.draw_lrbt_rectangle_outline(490, 770, 220, 430, (222, 222, 214), 2)
             arcade.draw_text("Menu", 630, 398, arcade.color.GOLD, 24, anchor_x="center")
-            arcade.draw_lrbt_rectangle_filled(585, 725, 370, 404, (40, 50, 65))
-            arcade.draw_lrbt_rectangle_outline(585, 725, 370, 404, arcade.color.WHITE, 2)
-            arcade.draw_text("Restart Game", 655, 384, arcade.color.WHITE, 14, anchor_x="center")
-            arcade.draw_lrbt_rectangle_filled(585, 725, 320, 354, (40, 50, 65))
-            arcade.draw_lrbt_rectangle_outline(585, 725, 320, 354, arcade.color.WHITE, 2)
-            arcade.draw_text("Back to Intro", 655, 334, arcade.color.WHITE, 14, anchor_x="center")
-            arcade.draw_lrbt_rectangle_filled(585, 725, 270, 304, (40, 50, 65))
-            arcade.draw_lrbt_rectangle_outline(585, 725, 270, 304, arcade.color.WHITE, 2)
-            arcade.draw_text("Quit Game", 655, 284, arcade.color.WHITE, 14, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(560, 700, 360, 396, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(560, 700, 360, 396, arcade.color.WHITE, 2)
+            arcade.draw_text("Restart Game", 630, 378, arcade.color.WHITE, 14, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(560, 700, 310, 346, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(560, 700, 310, 346, arcade.color.WHITE, 2)
+            arcade.draw_text("Back to Intro", 630, 328, arcade.color.WHITE, 14, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(560, 700, 260, 296, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(560, 700, 260, 296, arcade.color.WHITE, 2)
+            arcade.draw_text("Quit Game", 630, 278, arcade.color.WHITE, 14, anchor_x="center")
 
         if self.show_instructions:
             arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
