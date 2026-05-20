@@ -2385,6 +2385,14 @@ class GameView(arcade.View):
 
 
     def draw_hud(self) -> None:
+        if self.hud_collapsed:
+            arcade.draw_lrbt_rectangle_filled(728, 790, 548, 590, (14, 17, 24))
+            arcade.draw_lrbt_rectangle_outline(728, 790, 548, 590, (126, 132, 142))
+            arcade.draw_line(742, 575, 776, 575, (222, 222, 214), 2)
+            arcade.draw_line(742, 566, 776, 566, (222, 222, 214), 2)
+            arcade.draw_line(742, 557, 776, 557, (222, 222, 214), 2)
+            return
+
         arcade.draw_lrbt_rectangle_filled(10, 790, 492, 590, (14, 17, 24))
         arcade.draw_lrbt_rectangle_outline(10, 790, 492, 590, (126, 132, 142))
 
