@@ -1248,10 +1248,14 @@ class GameView(arcade.View):
             if self.active_minigame.completed:
                 # Mini-game won!
                 spot = self.minigame_target_spot
-                spot.fixed = True
-                self.money -= spot.cost
-                self.message = f"Repaired: {spot.label}!"
-                self.hint = "Great work! Continue with the other repairs."
+                if spot is not None:
+                    spot.fixed = True
+                    self.money -= spot.cost
+                    self.message = f"Repaired: {spot.label}!"
+                    self.hint = "Great work! Continue with the other repairs."
+                else:
+                    self.message = "Repair complete."
+                    self.hint = "Great work! Continue with the other repairs."
 
                 self.active_minigame = None
                 self.minigame_target_spot = None
