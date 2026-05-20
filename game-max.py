@@ -172,6 +172,7 @@ class GameView(arcade.View):
         self.guessed_friend_names: set[str] = set()
         self.lesson_completed_buildings: set[int] = set()
         self.inside_repaired_buildings: set[int] = set()
+        self.friend_inside_by_building: dict[int, str] = {}
         self.buildings_cleaned = 0
         self.building_names = ["North House", "Corner Lot", "Old Flat"]
         self.current_building = 0
@@ -575,6 +576,7 @@ class GameView(arcade.View):
             self.friendship += 1
             self.befriended_friends.add(self.quiz_friend.name)
             self.lesson_completed_buildings.add(self.current_building)
+            self.friend_inside_by_building[self.current_building] = self.quiz_friend.name
             self.message = f"Correct. {self.quiz_friend.name} became your friend."
             self.hint = f"{self.quiz_question['fact']} Now you can finish repairing the house."
             self.quiz_friend = None
@@ -1257,6 +1259,20 @@ class GameView(arcade.View):
         arcade.draw_line(438, 126, 407, 151, arcade.color.BLACK, 2)
 
 
+        room_friend_name = self.friend_inside_by_building.get(self.inside_building)
+        if room_friend_name is not None:
+            room_friend = next((friend for friend in self.friends if friend.name == room_friend_name), None)
+            if room_friend is not None:
+                self.draw_friend_character(
+                    room_friend,
+                    625,
+                    292,
+                    highlight=False,
+                    show_line=False,
+                    name_override=room_friend.name,
+                )
+
+
         if repaired_inside:
             arcade.draw_lrbt_rectangle_filled(130, 710, 410, 426, (222, 222, 214))
             arcade.draw_lrbt_rectangle_filled(115, 165, 120, 132, (54, 88, 60))
@@ -1344,17 +1360,6 @@ class GameView(arcade.View):
         arcade.draw_text("Community Question", 400, 446, arcade.color.GOLD, 24, anchor_x="center")
         arcade.draw_text(f"Tries left: {self.quiz_tries_left}", 400, 424, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("You are inside the house now.", 400, 404, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
-
-
-        if self.quiz_friend is not None:
-            self.draw_friend_character(
-                self.quiz_friend,
-                204,
-                212,
-                highlight=True,
-                name_override=self.quiz_friend.name,
-                line_override="The person asking the question",
-            )
 
 
         arcade.draw_lrbt_rectangle_filled(298, 662, 228, 390, (44, 58, 72))
