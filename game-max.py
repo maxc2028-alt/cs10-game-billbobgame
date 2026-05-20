@@ -1354,10 +1354,20 @@ class GameView(arcade.View):
 
 
     def draw_quiz(self) -> None:
-        self.draw_house_interior()
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, arcade.color.BLACK)
+        if self.quiz_friend is not None:
+            self.draw_friend_character(
+                self.quiz_friend,
+                160,
+                292,
+                highlight=True,
+                show_line=False,
+                name_override=self.quiz_friend.name,
+                line_override="The person asking the question",
+            )
         arcade.draw_text("Community Question", 400, 446, arcade.color.GOLD, 24, anchor_x="center")
         arcade.draw_text(f"Tries left: {self.quiz_tries_left}", 400, 424, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
-        arcade.draw_text("You are inside the house now.", 400, 404, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+        arcade.draw_text("Answer carefully.", 400, 404, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
 
         arcade.draw_text(
