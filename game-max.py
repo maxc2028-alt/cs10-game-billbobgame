@@ -1437,14 +1437,6 @@ class GameView(arcade.View):
     def draw_intro(self) -> None:
         self.draw_background()
         arcade.draw_text("Alone", 400, 505, (222, 222, 214), 36, anchor_x="center")
-        arcade.draw_text(
-            "Walk to the homes, learn who lives nearby, and help repair the block.",
-            400,
-            465,
-            (156, 160, 166),
-            14,
-            anchor_x="center",
-        )
 
 
         intro_buildings = [
