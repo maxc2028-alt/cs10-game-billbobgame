@@ -73,33 +73,33 @@ INTERIOR_UPGRADE_SETS = [
 ]
 QUIZ_OPTIONS = [
     {
-        "question": "Which choice best explains why repairing an abandoned home can reduce loneliness?",
+        "question": "What is one good way a repaired home can help people feel less alone?",
         "answers": [
-            "It raises property values, which automatically fixes loneliness",
-            "It creates a safe shared place where people can meet, help, and feel noticed",
-            "It removes every hard feeling as soon as the building looks better",
+            "It gives people a safe shared place to meet, help, and feel noticed",
+            "It makes loneliness disappear the second the walls are painted",
+            "It works only if nobody lives nearby",
         ],
-        "correct": 1,
+        "correct": 0,
         "fact": "Empty homes can become safe housing, community rooms, gardens, or youth spaces when people repair them together.",
     },
     {
-        "question": "A teen says they feel invisible in their neighborhood. What is the strongest first response?",
+        "question": "A teen says they feel invisible in their neighborhood. What is the best first response?",
         "answers": [
-            "Give quick advice before they explain what is happening",
-            "Plan a big event without asking what they need",
             "Listen seriously, connect them with trusted people, and invite them into safe activities",
+            "Tell them to stop worrying because everything is fine",
+            "Change the subject so they do not feel awkward",
         ],
-        "correct": 2,
+        "correct": 0,
         "fact": "Connection matters. Friends, mentors, teams, clubs, and safe community spaces can help teens feel less alone.",
     },
     {
         "question": "Why should a cleanup project include the people who live nearby?",
         "answers": [
-            "It keeps the project from needing any rules or planning",
             "They understand what the block needs and feel more ownership when they help decide",
-            "It makes the project cheaper because neighbors do all the work",
+            "It means the project never needs a plan",
+            "It only matters if one person makes every choice",
         ],
-        "correct": 1,
+        "correct": 0,
         "fact": "Community repair works best when neighbors are included, respected, and trusted to shape the place they share.",
     },
 ]
@@ -172,6 +172,7 @@ class GameView(arcade.View):
         self.guessed_friend_names: set[str] = set()
         self.lesson_completed_buildings: set[int] = set()
         self.inside_repaired_buildings: set[int] = set()
+        self.friend_inside_by_building: dict[int, str] = {}
         self.buildings_cleaned = 0
         self.building_names = ["North House", "Corner Lot", "Old Flat"]
         self.current_building = 0
@@ -189,6 +190,7 @@ class GameView(arcade.View):
         self.ball_y = 155.0
         self.intro_walk_x = 85.0
         self.intro_time = 0.0
+        self.start_countdown = 0.0
         self.keys_down: set[int] = set()
         self.quiz_friend: FriendNPC | None = None
         self.guess_friend: FriendNPC | None = None
@@ -509,8 +511,17 @@ class GameView(arcade.View):
         self.keys_down.clear()
         self.ball_x = 400.0
         self.ball_y = 155.0
-        self.message = "Every house is cleaned up. The whole block feels alive again."
+        self.message = "The neighborhood comes together in one shared home."
         self.hint = "Press SPACE to play again, or ESC to quit."
+
+
+    def start_game_countdown(self) -> None:
+        self.screen = "countdown"
+        self.round_started = False
+        self.keys_down.clear()
+        self.start_countdown = 3.0
+        self.message = "Get ready."
+        self.hint = "The game starts when the countdown reaches zero."
 
 
     def fail_round(self) -> None:
@@ -525,7 +536,8 @@ class GameView(arcade.View):
         self.quiz_question = QUIZ_OPTIONS[(self.current_building + self.friendship) % len(QUIZ_OPTIONS)]
         self.quiz_tries_left = 2
         self.screen = "quiz"
-        self.message = f"You know {friend.name}'s name. Answer their question."
+        self.inside_building = self.current_building
+        self.message = f"You and {friend.name} are inside the house. Answer their question."
         self.hint = "You get 2 tries. Read the choices carefully before you pick one."
 
 
@@ -564,6 +576,7 @@ class GameView(arcade.View):
             self.friendship += 1
             self.befriended_friends.add(self.quiz_friend.name)
             self.lesson_completed_buildings.add(self.current_building)
+            self.friend_inside_by_building[self.current_building] = self.quiz_friend.name
             self.message = f"Correct. {self.quiz_friend.name} became your friend."
             self.hint = f"{self.quiz_question['fact']} Now you can finish repairing the house."
             self.quiz_friend = None
@@ -724,6 +737,8 @@ class GameView(arcade.View):
         try:
             if self.screen in {"complete", "failed", "trash_game_over", "conclusion"}:
                 self.reset_round()
+            elif self.screen == "intro":
+                self.start_game_countdown()
             elif self.screen == "playing" and not self.round_started:
                 self.reset_round()
         except Exception as exc:
@@ -749,7 +764,11 @@ class GameView(arcade.View):
 
         if self.screen == "intro":
             if 310 <= x <= 490 and 135 <= y <= 190:
-                self.reset_round()
+                self.start_game_countdown()
+            return
+
+
+        if self.screen == "countdown":
             return
 
 
@@ -921,6 +940,15 @@ class GameView(arcade.View):
             return
 
 
+        if self.screen == "countdown":
+            self.intro_time += delta_time
+            self.start_countdown -= delta_time
+            if self.start_countdown <= 0:
+                self.start_countdown = 0
+                self.reset_round()
+            return
+
+
         self.update_ball(delta_time)
 
 
@@ -953,6 +981,48 @@ class GameView(arcade.View):
         arcade.draw_circle_filled(700, 525, 22, (76, 86, 102))
         arcade.draw_circle_filled(735, 545, 30, (92, 96, 104))
         arcade.draw_line(0, 120, 800, 120, (49, 58, 55), 2)
+
+
+    def draw_friend_character(
+        self,
+        friend: FriendNPC,
+        x: float,
+        y: float,
+        highlight: bool = False,
+        show_line: bool = True,
+        name_override: str | None = None,
+        line_override: str | None = None,
+    ) -> None:
+        friend_color = (118, 139, 129) if friend.name in self.befriended_friends else (86, 104, 123)
+        if highlight:
+            friend_color = (214, 181, 95)
+            arcade.draw_circle_filled(x, y + 36, 34, (255, 235, 150, 90))
+            arcade.draw_circle_filled(x, y + 36, 46, (255, 240, 198, 40))
+            arcade.draw_circle_outline(x, y + 36, 30, arcade.color.GOLD, 4)
+            arcade.draw_circle_outline(x, y + 36, 44, (255, 240, 198, 100), 3)
+
+        arcade.draw_ellipse_filled(x, y - 16, 28, 7, (15, 18, 25, 120))
+        arcade.draw_line(x, y + 28, x, y - 2, arcade.color.BLACK, 5)
+        arcade.draw_line(x + 8, y + 13, x + 24, y + 31, arcade.color.BLACK, 3)
+        arcade.draw_line(x, y + 13, x - 12, y - 2, arcade.color.BLACK, 3)
+        arcade.draw_line(x, y - 2, x - 10, y - 18, arcade.color.BLACK, 3)
+        arcade.draw_line(x, y - 2, x + 10, y - 18, arcade.color.BLACK, 3)
+        arcade.draw_circle_filled(x, y + 32, 16, friend_color)
+        arcade.draw_circle_outline(x, y + 32, 16, arcade.color.BLACK, 2)
+        if highlight:
+            arcade.draw_circle_outline(x, y + 32, 21, arcade.color.GOLD, 3)
+        arcade.draw_text(name_override or friend.name, x, y + 58, arcade.color.WHITE, 11, anchor_x="center")
+        if show_line:
+            arcade.draw_text(
+                line_override or friend.line,
+                x,
+                y - 42,
+                arcade.color.LIGHT_GRAY,
+                9,
+                width=120,
+                align="center",
+                anchor_x="center",
+            )
 
 
     def draw_building(
@@ -1106,16 +1176,15 @@ class GameView(arcade.View):
 
 
         for friend in self.friends:
-            friend_color = (118, 139, 129) if friend.name in self.befriended_friends else (86, 104, 123)
-            arcade.draw_line(friend.x, friend.y - 16, friend.x, friend.y - 42, arcade.color.BLACK, 4)
-            arcade.draw_line(friend.x - 12, friend.y - 28, friend.x + 12, friend.y - 28, arcade.color.BLACK, 3)
-            arcade.draw_line(friend.x, friend.y - 42, friend.x - 10, friend.y - 58, arcade.color.BLACK, 3)
-            arcade.draw_line(friend.x, friend.y - 42, friend.x + 10, friend.y - 58, arcade.color.BLACK, 3)
-            arcade.draw_ellipse_filled(friend.x, friend.y - 60, 28, 7, (15, 18, 25, 120))
-            arcade.draw_circle_filled(friend.x, friend.y, 16, friend_color)
-            arcade.draw_circle_outline(friend.x, friend.y, 16, arcade.color.BLACK, 2)
-            arcade.draw_text(self.friend_display_name(friend), friend.x, friend.y + 24, arcade.color.WHITE, 10, anchor_x="center")
-            arcade.draw_text(self.friend_label_text(friend), friend.x, friend.y - 34, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
+            is_highlighted = self.quiz_friend is not None and friend.name == self.quiz_friend.name
+            self.draw_friend_character(
+                friend,
+                friend.x,
+                friend.y,
+                highlight=is_highlighted,
+                name_override=self.friend_display_name(friend),
+                line_override=self.friend_label_text(friend),
+            )
 
 
         self.draw_ball()
@@ -1188,6 +1257,20 @@ class GameView(arcade.View):
         arcade.draw_line(362, 252, 393, 228, arcade.color.BLACK, 2)
         arcade.draw_line(393, 228, 386, 201, arcade.color.BLACK, 2)
         arcade.draw_line(438, 126, 407, 151, arcade.color.BLACK, 2)
+
+
+        room_friend_name = self.friend_inside_by_building.get(self.inside_building)
+        if room_friend_name is not None:
+            room_friend = next((friend for friend in self.friends if friend.name == room_friend_name), None)
+            if room_friend is not None:
+                self.draw_friend_character(
+                    room_friend,
+                    625,
+                    292,
+                    highlight=False,
+                    show_line=False,
+                    name_override=room_friend.name,
+                )
 
 
         if repaired_inside:
@@ -1271,28 +1354,28 @@ class GameView(arcade.View):
 
 
     def draw_quiz(self) -> None:
-        self.draw_background()
-        arcade.draw_lrbt_rectangle_filled(90, 710, 130, 500, (18, 22, 31))
-        arcade.draw_lrbt_rectangle_outline(90, 710, 130, 500, arcade.color.WHITE, 3)
-        arcade.draw_text("Community Question", 400, 460, arcade.color.GOLD, 24, anchor_x="center")
-        arcade.draw_text(f"Tries left: {self.quiz_tries_left}", 400, 438, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, arcade.color.BLACK)
+        arcade.draw_text("Community Question", 400, 446, arcade.color.GOLD, 24, anchor_x="center")
+        arcade.draw_text(f"Tries left: {self.quiz_tries_left}", 400, 424, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_text("Answer carefully.", 400, 404, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+
+
         arcade.draw_text(
             self.quiz_question["question"],
-            130,
-            395,
+            400,
+            352,
             arcade.color.WHITE,
             16,
-            width=540,
+            width=560,
             multiline=True,
+            anchor_x="center",
         )
 
 
         for index, answer in enumerate(self.quiz_question["answers"]):
-            top = 300 - index * 62
+            top = 306 - index * 62
             bottom = top - 46
-            arcade.draw_lrbt_rectangle_filled(130, 670, bottom, top, (44, 58, 72))
-            arcade.draw_lrbt_rectangle_outline(130, 670, bottom, top, arcade.color.LIGHT_GRAY, 2)
-            arcade.draw_text(f"{index + 1}. {answer}", 150, bottom + 15, arcade.color.WHITE, 13, width=500)
+            arcade.draw_text(f"{index + 1}. {answer}", 150, bottom + 15, arcade.color.WHITE, 13, width=520)
 
 
     def draw_name_guess(self) -> None:
@@ -1353,15 +1436,7 @@ class GameView(arcade.View):
 
     def draw_intro(self) -> None:
         self.draw_background()
-        arcade.draw_text("Neighborhood Cleanup", 400, 505, (222, 222, 214), 36, anchor_x="center")
-        arcade.draw_text(
-            "Walk to the homes, learn who lives nearby, and help repair the block.",
-            400,
-            465,
-            (156, 160, 166),
-            14,
-            anchor_x="center",
-        )
+        arcade.draw_text("Alone", 400, 505, (222, 222, 214), 36, anchor_x="center", font_name="Georgia")
 
 
         intro_buildings = [
@@ -1386,7 +1461,6 @@ class GameView(arcade.View):
             arcade.draw_line(person_x + 8, 119, person_x + 28, 144 + wave, arcade.color.BLACK, 3)
             arcade.draw_circle_filled(person_x + 31, 147 + wave, 4, (177, 154, 82))
             arcade.draw_text("Press START", person_x + 80, 214, (222, 222, 214), 13, anchor_x="center")
-            arcade.draw_text("I am ready.", person_x + 80, 196, (156, 160, 166), 10, anchor_x="center")
         else:
             arcade.draw_line(person_x + 8, 119, person_x + 20, 104, arcade.color.BLACK, 3)
         arcade.draw_line(person_x, 104, person_x - 11, 88, arcade.color.BLACK, 3)
@@ -1398,6 +1472,15 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(310, 490, 135, 190, (174, 151, 82))
         arcade.draw_lrbt_rectangle_outline(310, 490, 135, 190, arcade.color.BLACK, 3)
         arcade.draw_text("START", 400, 153, arcade.color.BLACK, 22, anchor_x="center")
+
+
+    def draw_countdown(self) -> None:
+        self.draw_intro()
+        arcade.draw_lrbt_rectangle_filled(225, 575, 210, 390, (15, 18, 25, 220))
+        arcade.draw_lrbt_rectangle_outline(225, 575, 210, 390, arcade.color.WHITE, 3)
+        arcade.draw_text("Starting in", 400, 350, arcade.color.LIGHT_GRAY, 18, anchor_x="center")
+        arcade.draw_text(f"{math.ceil(self.start_countdown)}", 400, 272, arcade.color.GOLD, 72, anchor_x="center")
+        arcade.draw_text("Get ready to clean the block.", 400, 228, arcade.color.WHITE, 14, anchor_x="center")
 
 
     def draw_dark_challenge(self) -> None:
@@ -1433,61 +1516,110 @@ class GameView(arcade.View):
 
     def draw_conclusion(self) -> None:
         self.draw_background()
-        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (28, 42, 32))
-        arcade.draw_circle_filled(120, 515, 46, (168, 198, 142, 120))
-        arcade.draw_circle_filled(700, 520, 38, (148, 186, 163, 110))
-        arcade.draw_circle_filled(410, 540, 58, (216, 224, 170, 80))
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (26, 38, 33))
+        arcade.draw_circle_filled(105, 520, 46, (168, 198, 142, 120))
+        arcade.draw_circle_filled(705, 525, 38, (148, 186, 163, 110))
+        arcade.draw_circle_filled(400, 548, 64, (216, 224, 170, 80))
+        arcade.draw_circle_filled(388, 540, 14, (255, 232, 148, 140))
 
 
-        arcade.draw_text("The Block Is Home", 400, 506, (242, 242, 232), 34, anchor_x="center")
+        arcade.draw_text("One Big House", 400, 510, (242, 242, 232), 34, anchor_x="center")
         arcade.draw_text(
-            "Every house is repaired, upgraded, and filled with people again.",
+            "All of the friends are together in one home, celebrating what they built.",
             400,
-            470,
+            475,
             (218, 223, 214),
             15,
             anchor_x="center",
         )
 
 
-        final_houses = [
-            (120, 280, 175, 200, (54, 77, 69), (86, 112, 98)),
-            (340, 540, 165, 215, (89, 52, 48), (121, 76, 65)),
-            (560, 740, 175, 185, (53, 68, 92), (86, 103, 126)),
+        house_left = 105
+        house_right = 695
+        house_base = 108
+        house_top = 442
+        roof_peak_x = 400
+        roof_peak_y = 540
+        wall_color = (93, 102, 100)
+        roof_color = (61, 48, 42)
+        arcade.draw_lrbt_rectangle_filled(house_left, house_right, house_base, house_top, wall_color)
+        arcade.draw_lrbt_rectangle_outline(house_left, house_right, house_base, house_top, arcade.color.BLACK, 3)
+        arcade.draw_triangle_filled(house_left - 20, house_top, house_right + 20, house_top, roof_peak_x, roof_peak_y, roof_color)
+        arcade.draw_triangle_outline(house_left - 20, house_top, house_right + 20, house_top, roof_peak_x, roof_peak_y, arcade.color.BLACK)
+        arcade.draw_line(house_left + 14, house_top - 10, house_right - 14, house_top - 10, (222, 222, 214), 3)
+
+
+        arcade.draw_lrbt_rectangle_filled(305, 495, 108, 238, (71, 52, 41))
+        arcade.draw_lrbt_rectangle_outline(305, 495, 108, 238, arcade.color.BLACK, 3)
+        arcade.draw_circle_filled(470, 178, 4, (185, 148, 84))
+        arcade.draw_lrbt_rectangle_filled(333, 467, 126, 208, (222, 222, 214))
+        arcade.draw_lrbt_rectangle_outline(333, 467, 126, 208, arcade.color.BLACK, 2)
+        arcade.draw_line(400, 126, 400, 208, arcade.color.BLACK, 2)
+        arcade.draw_circle_filled(456, 168, 3, (185, 148, 84))
+        arcade.draw_circle_filled(344, 168, 3, (185, 148, 84))
+
+
+        room_color = (184, 165, 128)
+        floor_color = (110, 79, 58)
+        arcade.draw_lrbt_rectangle_filled(128, 672, 114, 180, floor_color)
+        arcade.draw_lrbt_rectangle_filled(128, 672, 180, 424, room_color)
+        arcade.draw_lrbt_rectangle_outline(128, 672, 114, 424, arcade.color.BLACK, 2)
+        arcade.draw_line(128, 180, 672, 180, arcade.color.BLACK, 2)
+        arcade.draw_line(400, 114, 400, 180, arcade.color.BLACK, 2)
+
+
+        arcade.draw_lrbt_rectangle_filled(160, 275, 250, 372, (74, 86, 97))
+        arcade.draw_lrbt_rectangle_outline(160, 275, 250, 372, arcade.color.BLACK, 2)
+        arcade.draw_text("shared table", 217, 214, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(525, 620, 244, 312, (156, 176, 188))
+        arcade.draw_lrbt_rectangle_outline(525, 620, 244, 312, arcade.color.BLACK, 2)
+        arcade.draw_text("music", 572, 210, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(310, 490, 258, 290, (214, 200, 152))
+        arcade.draw_lrbt_rectangle_outline(310, 490, 258, 290, arcade.color.BLACK, 2)
+        arcade.draw_text("snacks", 400, 297, arcade.color.BLACK, 10, anchor_x="center")
+
+
+        celebration_positions = [(210, 210), (400, 225), (590, 205)]
+        celebration_lines = [
+            "We fixed it together.",
+            "This place feels like home.",
+            "Everybody belongs here.",
         ]
-        for index, (left, right, base_y, height, roof_color, wall_color) in enumerate(final_houses):
-            if index in self.house_styles:
-                roof_color, wall_color = self.house_styles[index]
-            self.draw_building(left, right, base_y, height, roof_color, wall_color, repaired=True)
-            arcade.draw_text(
-                self.building_names[index],
-                (left + right) / 2,
-                base_y - 18,
-                (228, 230, 224),
-                11,
-                anchor_x="center",
-            )
-
-
-        friend_spots = [(205, 168), (400, 178), (600, 164)]
-        for friend, (fx, fy) in zip(self.friends, friend_spots):
+        for index, name in enumerate(FRIEND_NAMES):
+            fx, fy = celebration_positions[index]
             friend_color = (118, 139, 129)
-            arcade.draw_ellipse_filled(fx, fy - 16, 28, 7, (15, 18, 25, 120))
-            arcade.draw_line(fx, fy + 28, fx, fy - 2, arcade.color.BLACK, 5)
-            arcade.draw_line(fx + 8, fy + 13, fx + 24, fy + 31, arcade.color.BLACK, 3)
-            arcade.draw_line(fx, fy + 13, fx - 12, fy - 2, arcade.color.BLACK, 3)
-            arcade.draw_line(fx, fy - 2, fx - 10, fy - 18, arcade.color.BLACK, 3)
-            arcade.draw_line(fx, fy - 2, fx + 10, fy - 18, arcade.color.BLACK, 3)
-            arcade.draw_circle_filled(fx, fy + 32, 16, friend_color)
-            arcade.draw_circle_outline(fx, fy + 32, 16, arcade.color.BLACK, 2)
-            arcade.draw_text(friend.name, fx, fy + 58, arcade.color.WHITE, 11, anchor_x="center")
-            arcade.draw_text(friend.line, fx, fy - 42, arcade.color.LIGHT_GRAY, 9, width=120, align="center", anchor_x="center")
+            arcade.draw_ellipse_filled(fx, fy - 16, 32, 8, (15, 18, 25, 120))
+            arcade.draw_line(fx, fy + 32, fx, fy + 2, arcade.color.BLACK, 5)
+            arcade.draw_line(fx + 8, fy + 17, fx + 24, fy + 34, arcade.color.BLACK, 3)
+            arcade.draw_line(fx, fy + 17, fx - 12, fy + 2, arcade.color.BLACK, 3)
+            arcade.draw_line(fx, fy + 2, fx - 10, fy - 16, arcade.color.BLACK, 3)
+            arcade.draw_line(fx, fy + 2, fx + 10, fy - 16, arcade.color.BLACK, 3)
+            arcade.draw_circle_filled(fx, fy + 36, 16, friend_color)
+            arcade.draw_circle_outline(fx, fy + 36, 16, arcade.color.BLACK, 2)
+            arcade.draw_text(name, fx, fy + 60, arcade.color.WHITE, 11, anchor_x="center")
+            arcade.draw_text(celebration_lines[index], fx, fy - 46, arcade.color.LIGHT_GRAY, 9, width=140, align="center", anchor_x="center")
+            arcade.draw_line(fx - 10, fy + 48, fx + 10, fy + 60, arcade.color.GOLD, 2)
+            arcade.draw_line(fx - 8, fy + 58, fx + 12, fy + 66, arcade.color.GOLD, 2)
 
 
-        arcade.draw_lrbt_rectangle_filled(150, 650, 70, 112, (18, 22, 31, 225))
-        arcade.draw_lrbt_rectangle_outline(150, 650, 70, 112, arcade.color.WHITE, 2)
-        arcade.draw_text("All three homes feel safe, warm, and full of neighbors again.", 400, 92, arcade.color.WHITE, 13, anchor_x="center")
-        arcade.draw_text("Press SPACE to play again or ESC to quit.", 400, 74, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+        confetti = [
+            (180, 468, arcade.color.GOLD),
+            (250, 492, arcade.color.LIGHT_BLUE),
+            (322, 455, arcade.color.DARK_SEA_GREEN),
+            (407, 500, arcade.color.CORAL),
+            (478, 472, arcade.color.LIGHT_STEEL_BLUE),
+            (565, 487, arcade.color.YELLOW_ORANGE),
+            (625, 458, arcade.color.PASTEL_PINK),
+        ]
+        for x, y, color in confetti:
+            arcade.draw_circle_filled(x, y, 4, color)
+            arcade.draw_line(x - 3, y - 5, x + 3, y + 5, color, 2)
+
+
+        arcade.draw_lrbt_rectangle_filled(130, 670, 68, 104, (18, 22, 31, 225))
+        arcade.draw_lrbt_rectangle_outline(130, 670, 68, 104, arcade.color.WHITE, 2)
+        arcade.draw_text("One big house. All of the friends together.", 400, 86, arcade.color.WHITE, 13, anchor_x="center")
+        arcade.draw_text("Press SPACE to play again or ESC to quit.", 400, 68, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
 
     def draw_hud(self) -> None:
@@ -1578,6 +1710,11 @@ class GameView(arcade.View):
             return
 
 
+        if self.screen == "countdown":
+            self.draw_countdown()
+            return
+
+
         if self.screen == "quiz":
             self.draw_quiz()
             return
@@ -1633,5 +1770,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
