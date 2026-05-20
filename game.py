@@ -1642,10 +1642,8 @@ class GameView(arcade.View):
         friend_color = (118, 139, 129) if friend.name in self.befriended_friends else (86, 104, 123)
         if highlight:
             friend_color = (214, 181, 95)
-            arcade.draw_circle_filled(x, y + 36, 34, (255, 235, 150, 90))
-            arcade.draw_circle_filled(x, y + 36, 46, (255, 240, 198, 40))
-            arcade.draw_circle_outline(x, y + 36, 30, arcade.color.GOLD, 4)
-            arcade.draw_circle_outline(x, y + 36, 44, (255, 240, 198, 100), 3)
+            arcade.draw_circle_filled(x, y + 36, 22, (255, 235, 150, 90))
+            arcade.draw_circle_outline(x, y + 36, 24, arcade.color.GOLD, 3)
 
         arcade.draw_ellipse_filled(x, y - 16, 28, 7, (15, 18, 25, 120))
         arcade.draw_line(x, y + 28, x, y - 2, arcade.color.BLACK, 5)
@@ -1656,7 +1654,7 @@ class GameView(arcade.View):
         arcade.draw_circle_filled(x, y + 32, 16, friend_color)
         arcade.draw_circle_outline(x, y + 32, 16, arcade.color.BLACK, 2)
         if highlight:
-            arcade.draw_circle_outline(x, y + 32, 21, arcade.color.GOLD, 3)
+            arcade.draw_circle_outline(x, y + 32, 18, arcade.color.GOLD, 2)
         arcade.draw_text(name_override or friend.name, x, y + 58, arcade.color.WHITE, 11, anchor_x="center")
         if show_line:
             arcade.draw_text(
