@@ -2442,7 +2442,6 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(700, 760, 18, 46, (14, 17, 24))
         arcade.draw_lrbt_rectangle_outline(700, 760, 18, 46, (222, 222, 214), 2)
         arcade.draw_text("≡", 730, 32, (222, 222, 214), 20, anchor_x="center", anchor_y="center")
-        arcade.draw_text("Menu", 730, 12, (156, 160, 166), 9, anchor_x="center")
 
         if self.menu_open:
             arcade.draw_lrbt_rectangle_filled(490, 770, 220, 430, (14, 17, 24, 240))
