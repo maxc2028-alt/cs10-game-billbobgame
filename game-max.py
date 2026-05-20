@@ -241,6 +241,7 @@ class GameView(arcade.View):
         self.intro_time = 0.0
         self.start_countdown = 0.0
         self.keys_down: set[int] = set()
+        self.f_key_down = False
         # Friend interaction state
         self.active_conversation_friend: FriendNPC | None = None
         self.conversation_step = 0
@@ -658,6 +659,9 @@ class GameView(arcade.View):
             return
 
         if key == arcade.key.F:
+            if self.f_key_down:
+                return
+            self.f_key_down = True
             if self.screen in {"repair", "visit"}:
                 self.leave_house()
                 return
@@ -701,6 +705,8 @@ class GameView(arcade.View):
 
     def on_key_release(self, key: int, modifiers: int) -> None:
         self.keys_down.discard(key)
+        if key == arcade.key.F:
+            self.f_key_down = False
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
         if button != arcade.MOUSE_BUTTON_LEFT:
