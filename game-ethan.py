@@ -371,6 +371,9 @@ class GameView(arcade.View):
         if self.screen != "playing":
             return
 
+        if self.try_befriend(x, y):
+            return
+
         for trash in list(self.trash_spots):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= trash.radius ** 2:
                 if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
@@ -389,10 +392,7 @@ class GameView(arcade.View):
                 if not self.trash_spots:
                     self.message = "The outside is clear. Press F to open the door."
                     self.hint = "You can talk to friends first, or open the door when you are ready."
-                return
-
-        if self.try_befriend(x, y):
-            return
+                break
 
     def draw_ball(self) -> None:
         if self.screen == "playing":
