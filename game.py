@@ -677,7 +677,7 @@ class GameView(arcade.View):
         # Trash positions relative to building center
         relative_positions = [(-45, -40), (-10, -50), (35, -35), (50, -10), (0, 10), (30, 15)]
         for rel_x, rel_y in relative_positions:
-            self.trash_spots.append(TrashSpot(building_center_x + rel_x, base_y + 100 + rel_y))
+            self.trash_spots.append(TrashSpot(building_center_x + rel_x, HOUSE_BASE_Y + 16 + rel_y * 0.15))
 
         # Place one friend by each house in the block
         self.friends = []
