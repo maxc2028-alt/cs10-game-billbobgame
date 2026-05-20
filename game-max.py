@@ -163,7 +163,7 @@ QUIZ_OPTIONS = [
 class TrashSpot:
     def __init__(self, x: float, y: float) -> None:
         self.x = x
-        self.y = y
+        self.y = HOUSE_BASE_Y + 16
         self.radius = 18
         self.trash_type = random.choice(["can", "bag", "box", "rubble"])
         self.rotation = random.uniform(0, 360)
@@ -580,6 +580,7 @@ class GameView(arcade.View):
         self.intro_time = 0.0
         self.start_countdown = 0.0
         self.keys_down: set[int] = set()
+        self.paused = False
         self.quiz_friend: FriendNPC | None = None
         self.guess_friend: FriendNPC | None = None
         self.name_guess = ""
@@ -2404,5 +2405,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 
