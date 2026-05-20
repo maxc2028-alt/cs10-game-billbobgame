@@ -875,10 +875,8 @@ class GameView(arcade.View):
             return ""
         target_name = self.current_target_friend_name()
         if self.trash_spots:
-            return "Clean trash first to reveal scrambled friend name clues."
-        if self.known_name_letters(target_name) < len(target_name):
-            return f"Friend clues: {self.display_name_from_hint(target_name)}."
-        return "Move close to the next friend and press T, or click them, to solve the name riddles."
+            return "Clean trash first to reveal riddle clues."
+        return "Move close to the next friend and press T, or click them, to solve the riddles."
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
@@ -917,17 +915,14 @@ class GameView(arcade.View):
 
     def reveal_friend_name_hint(self) -> str:
         name = self.current_target_friend_name()
-        known_letters = self.known_name_letters(name)
-        clues_per_pickup = 3 if len(name) > 6 else 2
-        if known_letters < len(name):
-            for _ in range(clues_per_pickup):
-                if known_letters >= len(name):
-                    break
-                known_letters += 1
-            self.friend_name_hints[name] = known_letters
-        if known_letters >= len(name):
-            return f"Scrambled clue complete: {self.name_hint_pattern(name)}. Move close and press T, or click the friend, to guess the name."
-        return f"Scrambled clue: {self.name_hint_pattern(name)}. Keep cleaning trash for more letters."
+        if name not in self.friend_name_hints:
+            self.friend_name_hints[name] = 0
+
+        if self.name_riddle_index < len(RIDDLE_QUESTIONS):
+            riddle = RIDDLE_QUESTIONS[self.name_riddle_index]
+            return f"Riddle clue unlocked: {riddle['question']}"
+
+        return f"All riddle clues are ready for {name}. Move close and press T, or click the friend, to answer them."
 
 
     def next_building(self) -> None:
@@ -2319,11 +2314,11 @@ class GameView(arcade.View):
         arcade.draw_text(f"Money: ${self.money}", 125, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, (214, 215, 212), 12)
         target_name = self.current_target_friend_name()
-        arcade.draw_text(f"Clues: {self.display_name_from_hint(target_name)}", 390, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Riddles: {self.name_riddle_progress.upper() or '-'}", 390, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
         arcade.draw_text(self.friend_action_hint(), 520, 538, (156, 160, 166), 10, width=248, align="left")
-        arcade.draw_text(f"Scramble: {self.name_hint_pattern(target_name)}", 22, 494, (156, 160, 166), 10)
+        arcade.draw_text(f"Target: {target_name}", 22, 494, (156, 160, 166), 10)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
