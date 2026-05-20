@@ -627,8 +627,6 @@ class GameView(arcade.View):
                 self.in_conversation = False
                 self.in_riddle = False
                 self.active_conversation_friend = None
-            elif self.window is not None:
-                self.window.close()
             return
 
         if self.screen == "conversation":
