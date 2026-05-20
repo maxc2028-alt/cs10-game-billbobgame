@@ -664,6 +664,7 @@ class GameView(arcade.View):
 
     def reset_round(self) -> None:
         self.time_left = QUEST_TIME
+        self.paused = False
         self.cleaned = 0
         self.repair_spots = []
         self.message = "Click trash piles to clean the building."
@@ -684,13 +685,23 @@ class GameView(arcade.View):
         for i in range(3):
             friend_name = FRIEND_NAMES[i % len(FRIEND_NAMES)]
             offset = (i - 1) * 120  # Spread them out
-            self.friends.append(FriendNPC(friend_name, building_center_x + offset, base_y + 80))
+            self.friends.append(FriendNPC(friend_name, building_center_x + offset, base_y + 24))
 
         # Start at building entrance
         self.ball_x = building_center_x
         self.ball_y = base_y + 50
         self.screen = "playing"
         self.round_started = True
+
+    def toggle_pause(self) -> None:
+        if self.active_minigame is not None or self.screen in {"playing", "repair", "visit", "dark", "quiz", "decorate", "name_guess"}:
+            self.paused = not self.paused
+            if self.paused:
+                self.message = "Paused."
+                self.hint = "Press P or click the pause button to continue."
+            else:
+                self.message = "Back to work."
+                self.hint = "Keep cleaning, fixing, and helping."
 
 
     def door_index_near_player(self) -> int | None:
@@ -1080,8 +1091,13 @@ class GameView(arcade.View):
 
     def on_key_press(self, key: int, modifiers: int) -> None:
         if key == arcade.key.ESCAPE:
-            if self.window is not None:
-                self.window.close()
+            return
+
+        if key == arcade.key.P:
+            self.toggle_pause()
+            return
+
+        if self.paused:
             return
 
 
@@ -1185,6 +1201,13 @@ class GameView(arcade.View):
             world_position = self.camera.unproject((x, y))
             x = world_position.x
             y = world_position.y
+
+        if 670 <= x <= 780 and 548 <= y <= 580:
+            self.toggle_pause()
+            return
+
+        if self.paused:
+            return
 
         # Handle mini-game clicks
         if self.active_minigame is not None:
@@ -1413,6 +1436,8 @@ class GameView(arcade.View):
     def draw_trash(self, trash: TrashSpot) -> None:
         """Draw detailed trash objects instead of simple circles."""
         x, y = trash.x, trash.y
+        arcade.draw_circle_filled(x, y + 1, 24, (255, 220, 90, 18))
+        arcade.draw_circle_filled(x, y + 1, 14, (255, 238, 170, 28))
 
         if trash.trash_type == "can":
             # Draw a trash can
@@ -1511,6 +1536,8 @@ class GameView(arcade.View):
 
 
     def on_update(self, delta_time: float) -> None:
+        if self.paused:
+            return
         # Handle mini-game updates
         if self.active_minigame is not None:
             self.active_minigame.update(delta_time)
@@ -2260,7 +2287,12 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_outline(10, 790, 492, 590, (126, 132, 142))
 
         arcade.draw_text("Neighborhood Cleanup", 22, 562, (220, 221, 218), 22)
-        arcade.draw_text("ESC quits", 720, 565, (156, 160, 166), 10, anchor_x="center")
+        arcade.draw_text("ESC is disabled", 620, 565, (156, 160, 166), 10, anchor_x="center")
+        button_label = "Resume" if self.paused else "Pause"
+        button_color = (90, 120, 98) if self.paused else (86, 92, 112)
+        arcade.draw_lrbt_rectangle_filled(670, 780, 548, 580, button_color)
+        arcade.draw_lrbt_rectangle_outline(670, 780, 548, 580, arcade.color.WHITE, 2)
+        arcade.draw_text(button_label, 725, 557, arcade.color.WHITE, 12, anchor_x="center")
         arcade.draw_text(f"Building: {self.get_building_name(self.current_building)}", 22, 538, (156, 160, 166), 12)
         arcade.draw_text(f"Trash: {self.cleaned}", 22, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Money: ${self.money}", 125, 516, (214, 215, 212), 12)
@@ -2324,6 +2356,13 @@ class GameView(arcade.View):
                 anchor_x="center",
             )
 
+        if self.paused:
+            arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, 120))
+            arcade.draw_lrbt_rectangle_filled(245, 555, 220, 380, (18, 22, 32, 230))
+            arcade.draw_lrbt_rectangle_outline(245, 555, 220, 380, arcade.color.GOLD, 3)
+            arcade.draw_text("PAUSED", 400, 330, arcade.color.GOLD, 34, anchor_x="center")
+            arcade.draw_text("Click Pause or press P to continue.", 400, 285, arcade.color.WHITE, 13, anchor_x="center")
+
 
 
 
@@ -2338,6 +2377,12 @@ class GameView(arcade.View):
                 self.active_minigame.draw()
             elif isinstance(self.active_minigame, BlockBlastMinigame):
                 self.active_minigame.draw()
+            if self.paused:
+                arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, 120))
+                arcade.draw_lrbt_rectangle_filled(245, 555, 220, 380, (18, 22, 32, 230))
+                arcade.draw_lrbt_rectangle_outline(245, 555, 220, 380, arcade.color.GOLD, 3)
+                arcade.draw_text("PAUSED", 400, 330, arcade.color.GOLD, 34, anchor_x="center")
+                arcade.draw_text("Click Pause or press P to continue.", 400, 285, arcade.color.WHITE, 13, anchor_x="center")
             return
 
         if self.screen == "intro":
@@ -2405,4 +2450,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
