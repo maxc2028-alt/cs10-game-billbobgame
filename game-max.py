@@ -480,6 +480,9 @@ class GameView(arcade.View):
         self.friendship += 1
         self.upgrades = min(MAX_UPGRADES, self.upgrades + 1)
         self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
+        if self.buildings_cleaned >= len(self.building_names):
+            self.finish_neighborhood()
+            return
         self.message = f"{finished_building} is repaired. {self.building_names[self.current_building]} is next."
         self.hint = "The next cleanup starts right away."
         self.reset_round()
@@ -498,6 +501,16 @@ class GameView(arcade.View):
         _, roof_color, wall_color = self.style_options[style_index]
         self.house_styles[self.current_building] = (roof_color, wall_color)
         self.next_building()
+
+
+    def finish_neighborhood(self) -> None:
+        self.screen = "conclusion"
+        self.round_started = False
+        self.keys_down.clear()
+        self.ball_x = 400.0
+        self.ball_y = 155.0
+        self.message = "Every house is cleaned up. The whole block feels alive again."
+        self.hint = "Press SPACE to play again, or ESC to quit."
 
 
     def fail_round(self) -> None:
@@ -709,7 +722,7 @@ class GameView(arcade.View):
 
 
         try:
-            if self.screen in {"complete", "failed", "trash_game_over"}:
+            if self.screen in {"complete", "failed", "trash_game_over", "conclusion"}:
                 self.reset_round()
             elif self.screen == "playing" and not self.round_started:
                 self.reset_round()
@@ -1418,6 +1431,65 @@ class GameView(arcade.View):
         arcade.draw_text("Press SPACE to try again or ESC to quit.", 400, 230, arcade.color.LIGHT_GRAY, 14, anchor_x="center")
 
 
+    def draw_conclusion(self) -> None:
+        self.draw_background()
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (28, 42, 32))
+        arcade.draw_circle_filled(120, 515, 46, (168, 198, 142, 120))
+        arcade.draw_circle_filled(700, 520, 38, (148, 186, 163, 110))
+        arcade.draw_circle_filled(410, 540, 58, (216, 224, 170, 80))
+
+
+        arcade.draw_text("The Block Is Home", 400, 506, (242, 242, 232), 34, anchor_x="center")
+        arcade.draw_text(
+            "Every house is repaired, upgraded, and filled with people again.",
+            400,
+            470,
+            (218, 223, 214),
+            15,
+            anchor_x="center",
+        )
+
+
+        final_houses = [
+            (120, 280, 175, 200, (54, 77, 69), (86, 112, 98)),
+            (340, 540, 165, 215, (89, 52, 48), (121, 76, 65)),
+            (560, 740, 175, 185, (53, 68, 92), (86, 103, 126)),
+        ]
+        for index, (left, right, base_y, height, roof_color, wall_color) in enumerate(final_houses):
+            if index in self.house_styles:
+                roof_color, wall_color = self.house_styles[index]
+            self.draw_building(left, right, base_y, height, roof_color, wall_color, repaired=True)
+            arcade.draw_text(
+                self.building_names[index],
+                (left + right) / 2,
+                base_y - 18,
+                (228, 230, 224),
+                11,
+                anchor_x="center",
+            )
+
+
+        friend_spots = [(205, 168), (400, 178), (600, 164)]
+        for friend, (fx, fy) in zip(self.friends, friend_spots):
+            friend_color = (118, 139, 129)
+            arcade.draw_ellipse_filled(fx, fy - 16, 28, 7, (15, 18, 25, 120))
+            arcade.draw_line(fx, fy + 28, fx, fy - 2, arcade.color.BLACK, 5)
+            arcade.draw_line(fx + 8, fy + 13, fx + 24, fy + 31, arcade.color.BLACK, 3)
+            arcade.draw_line(fx, fy + 13, fx - 12, fy - 2, arcade.color.BLACK, 3)
+            arcade.draw_line(fx, fy - 2, fx - 10, fy - 18, arcade.color.BLACK, 3)
+            arcade.draw_line(fx, fy - 2, fx + 10, fy - 18, arcade.color.BLACK, 3)
+            arcade.draw_circle_filled(fx, fy + 32, 16, friend_color)
+            arcade.draw_circle_outline(fx, fy + 32, 16, arcade.color.BLACK, 2)
+            arcade.draw_text(friend.name, fx, fy + 58, arcade.color.WHITE, 11, anchor_x="center")
+            arcade.draw_text(friend.line, fx, fy - 42, arcade.color.LIGHT_GRAY, 9, width=120, align="center", anchor_x="center")
+
+
+        arcade.draw_lrbt_rectangle_filled(150, 650, 70, 112, (18, 22, 31, 225))
+        arcade.draw_lrbt_rectangle_outline(150, 650, 70, 112, arcade.color.WHITE, 2)
+        arcade.draw_text("All three homes feel safe, warm, and full of neighbors again.", 400, 92, arcade.color.WHITE, 13, anchor_x="center")
+        arcade.draw_text("Press SPACE to play again or ESC to quit.", 400, 74, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+
+
     def draw_hud(self) -> None:
         arcade.draw_lrbt_rectangle_filled(10, 790, 492, 590, (14, 17, 24))
         arcade.draw_lrbt_rectangle_outline(10, 790, 492, 590, (126, 132, 142))
@@ -1533,6 +1605,11 @@ class GameView(arcade.View):
 
         if self.screen == "trash_game_over":
             self.draw_trash_game_over()
+            return
+
+
+        if self.screen == "conclusion":
+            self.draw_conclusion()
             return
 
 
