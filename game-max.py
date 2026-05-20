@@ -1208,17 +1208,92 @@ class GameView(arcade.View):
             arcade.draw_text(self.message, 400, 50, (200, 230, 180), 10, anchor_x="center", width=600)
 
     def draw_house_interior(self) -> None:
-        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (25, 24, 31))
         repaired_inside = self.inside_building in self.inside_repaired_buildings
         upgrade_level = self.interior_upgrade_levels.get(self.inside_building, 0)
-        wall_color = (93, 102, 100) if repaired_inside else (68, 65, 76)
-        floor_color = (92, 72, 52) if repaired_inside else (72, 61, 54)
+        wall_color = (101, 111, 108) if repaired_inside else (68, 65, 76)
+        wall_shadow = (79, 86, 84) if repaired_inside else (52, 49, 58)
+        floor_color = (98, 76, 54) if repaired_inside else (72, 61, 54)
+        rug_color = (142, 96, 78) if repaired_inside else (104, 78, 66)
+        wood_color = (96, 66, 48) if repaired_inside else (72, 53, 42)
+        accent_color = (222, 222, 214) if repaired_inside else (170, 165, 176)
+
+        # Room backdrop and main shell.
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (22, 21, 29))
         arcade.draw_lrbt_rectangle_filled(90, 710, 120, 470, wall_color)
         arcade.draw_lrbt_rectangle_outline(90, 710, 120, 470, arcade.color.BLACK, 3)
         arcade.draw_lrbt_rectangle_filled(90, 710, 80, 120, floor_color)
         arcade.draw_line(90, 120, 710, 120, arcade.color.BLACK, 3)
-        arcade.draw_lrbt_rectangle_filled(360, 440, 120, 260, (61, 48, 42))
-        arcade.draw_lrbt_rectangle_outline(360, 440, 120, 260, arcade.color.BLACK, 2)
+        arcade.draw_line(90, 470, 710, 470, wall_shadow, 2)
+        arcade.draw_line(90, 120, 90, 470, wall_shadow, 2)
+        arcade.draw_line(710, 120, 710, 470, wall_shadow, 2)
+
+        # Ceiling light and warm glow.
+        arcade.draw_line(400, 470, 400, 430, arcade.color.BLACK, 3)
+        arcade.draw_circle_filled(400, 418, 10, (255, 225, 145))
+        arcade.draw_circle_filled(400, 418, 28, (255, 230, 160, 35))
+        arcade.draw_circle_filled(400, 418, 58, (255, 240, 190, 14))
+
+        # Window, curtains, and a little outside color.
+        arcade.draw_lrbt_rectangle_filled(145, 235, 300, 395, (78, 101, 124))
+        arcade.draw_lrbt_rectangle_outline(145, 235, 300, 395, arcade.color.BLACK, 2)
+        arcade.draw_line(190, 300, 190, 395, arcade.color.WHITE, 2)
+        arcade.draw_line(145, 348, 235, 348, arcade.color.WHITE, 2)
+        curtain_color = (112, 58, 65) if repaired_inside else (74, 58, 72)
+        arcade.draw_lrbt_rectangle_filled(138, 152, 300, 400, curtain_color)
+        arcade.draw_lrbt_rectangle_filled(228, 242, 300, 400, curtain_color)
+        arcade.draw_lrbt_rectangle_outline(138, 152, 300, 400, arcade.color.BLACK, 1)
+        arcade.draw_lrbt_rectangle_outline(228, 242, 300, 400, arcade.color.BLACK, 1)
+
+        # Main furniture cluster to make the room feel inhabited.
+        arcade.draw_lrbt_rectangle_filled(150, 300, 140, 180, rug_color)
+        arcade.draw_lrbt_rectangle_outline(150, 300, 140, 180, arcade.color.BLACK, 2)
+        arcade.draw_circle_filled(210, 160, 42, (45, 39, 34))
+        arcade.draw_circle_filled(208, 166, 34, (171, 144, 108))
+        arcade.draw_lrbt_rectangle_filled(165, 255, 180, 222, (104, 78, 60))
+        arcade.draw_lrbt_rectangle_outline(165, 255, 180, 222, arcade.color.BLACK, 2)
+        arcade.draw_circle_filled(176, 178, 3, arcade.color.GOLD)
+        arcade.draw_lrbt_rectangle_filled(470, 625, 165, 235, wood_color)
+        arcade.draw_lrbt_rectangle_outline(470, 625, 165, 235, arcade.color.BLACK, 2)
+        arcade.draw_lrbt_rectangle_filled(490, 530, 235, 285, (92, 62, 46))
+        arcade.draw_lrbt_rectangle_outline(490, 530, 235, 285, arcade.color.BLACK, 2)
+        arcade.draw_lrbt_rectangle_filled(540, 555, 235, 302, (72, 54, 42))
+        arcade.draw_lrbt_rectangle_filled(595, 610, 235, 295, (72, 54, 42))
+        arcade.draw_lrbt_rectangle_filled(512, 255, 250, 315, (126, 161, 103))
+        arcade.draw_circle_filled(522, 311, 14, (71, 111, 62))
+        arcade.draw_circle_filled(533, 325, 10, (83, 128, 71))
+
+        # Wall decor and imperfections.
+        arcade.draw_lrbt_rectangle_filled(500, 590, 320, 388, (80, 88, 110))
+        arcade.draw_lrbt_rectangle_outline(500, 590, 320, 388, arcade.color.BLACK, 2)
+        arcade.draw_line(500, 388, 590, 320, (226, 214, 190), 2)
+        arcade.draw_line(500, 320, 590, 388, (226, 214, 190), 2)
+        arcade.draw_lrbt_rectangle_filled(630, 682, 300, 372, (102, 78, 62))
+        arcade.draw_lrbt_rectangle_outline(630, 682, 300, 372, arcade.color.BLACK, 2)
+        arcade.draw_line(642, 360, 670, 360, (170, 150, 120), 2)
+        arcade.draw_line(642, 348, 670, 348, (170, 150, 120), 2)
+        if not repaired_inside:
+            arcade.draw_line(270, 430, 310, 380, arcade.color.BLACK, 3)
+            arcade.draw_line(310, 380, 296, 344, arcade.color.BLACK, 2)
+            arcade.draw_circle_filled(260, 332, 4, (210, 185, 120))
+            arcade.draw_circle_filled(600, 447, 3, (110, 96, 94))
+        if upgrade_level >= 1:
+            arcade.draw_circle_filled(615, 216, 22, (205, 184, 128))
+            arcade.draw_circle_outline(615, 216, 22, arcade.color.BLACK, 2)
+            arcade.draw_line(615, 194, 615, 170, arcade.color.BLACK, 2)
+        if upgrade_level >= 2:
+            arcade.draw_lrbt_rectangle_filled(610, 676, 132, 210, (88, 70, 52))
+            arcade.draw_lrbt_rectangle_outline(610, 676, 132, 210, arcade.color.BLACK, 2)
+            arcade.draw_line(622, 180, 664, 180, (160, 150, 132), 2)
+            arcade.draw_line(622, 164, 664, 164, (160, 150, 132), 2)
+        if upgrade_level >= 3 or repaired_inside:
+            arcade.draw_lrbt_rectangle_filled(104, 178, 140, 230, (91, 105, 82))
+            arcade.draw_circle_filled(118, 168, 8, (74, 118, 64))
+            arcade.draw_circle_filled(154, 198, 15, (80, 126, 72))
+            arcade.draw_circle_filled(150, 215, 10, (92, 142, 81))
+            arcade.draw_lrbt_rectangle_filled(126, 156, 136, 144, (110, 88, 61))
+            arcade.draw_lrbt_rectangle_outline(126, 156, 136, 144, arcade.color.BLACK, 1)
+
+        # Ground line and interactive repair targets.
         arcade.draw_circle_filled(425, 195, 4, arcade.color.GOLD)
 
         interior_spots = self.interior_spots if self.screen == "visit" else self.repair_spots
@@ -1233,7 +1308,11 @@ class GameView(arcade.View):
             arcade.draw_text(spot.label, spot.x, spot.y - 20, arcade.color.LIGHT_GRAY, 8, anchor_x="center")
 
         bname = self.get_building_name(self.inside_building)
-        arcade.draw_text(f"Inside {bname}", 400, 485, arcade.color.WHITE, 22, anchor_x="center")
+        arcade.draw_text(f"Inside {bname}", 400, 488, accent_color, 22, anchor_x="center")
+        arcade.draw_text(
+            "Cozy details unlock as you repair more of the room.",
+            400, 468, arcade.color.LIGHT_GRAY, 10, anchor_x="center",
+        )
         self.draw_ball()
 
     def draw_quiz(self) -> None:
