@@ -73,33 +73,33 @@ INTERIOR_UPGRADE_SETS = [
 ]
 QUIZ_OPTIONS = [
     {
-        "question": "Which choice best explains why repairing an abandoned home can reduce loneliness?",
+        "question": "What is one good way a repaired home can help people feel less alone?",
         "answers": [
-            "It raises property values, which automatically fixes loneliness",
-            "It creates a safe shared place where people can meet, help, and feel noticed",
-            "It removes every hard feeling as soon as the building looks better",
+            "It gives people a safe shared place to meet, help, and feel noticed",
+            "It makes loneliness disappear the second the walls are painted",
+            "It works only if nobody lives nearby",
         ],
-        "correct": 1,
+        "correct": 0,
         "fact": "Empty homes can become safe housing, community rooms, gardens, or youth spaces when people repair them together.",
     },
     {
-        "question": "A teen says they feel invisible in their neighborhood. What is the strongest first response?",
+        "question": "A teen says they feel invisible in their neighborhood. What is the best first response?",
         "answers": [
-            "Give quick advice before they explain what is happening",
-            "Plan a big event without asking what they need",
             "Listen seriously, connect them with trusted people, and invite them into safe activities",
+            "Tell them to stop worrying because everything is fine",
+            "Change the subject so they do not feel awkward",
         ],
-        "correct": 2,
+        "correct": 0,
         "fact": "Connection matters. Friends, mentors, teams, clubs, and safe community spaces can help teens feel less alone.",
     },
     {
         "question": "Why should a cleanup project include the people who live nearby?",
         "answers": [
-            "It keeps the project from needing any rules or planning",
             "They understand what the block needs and feel more ownership when they help decide",
-            "It makes the project cheaper because neighbors do all the work",
+            "It means the project never needs a plan",
+            "It only matters if one person makes every choice",
         ],
-        "correct": 1,
+        "correct": 0,
         "fact": "Community repair works best when neighbors are included, respected, and trusted to shape the place they share.",
     },
 ]
@@ -1360,10 +1360,9 @@ class GameView(arcade.View):
                 self.quiz_friend,
                 160,
                 292,
-                highlight=True,
+                highlight=False,
                 show_line=False,
                 name_override=self.quiz_friend.name,
-                line_override="The person asking the question",
             )
         arcade.draw_text("Community Question", 400, 446, arcade.color.GOLD, 24, anchor_x="center")
         arcade.draw_text(f"Tries left: {self.quiz_tries_left}", 400, 424, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
