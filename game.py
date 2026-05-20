@@ -1227,7 +1227,7 @@ class GameView(arcade.View):
             x = world_position.x
             y = world_position.y
 
-        if 700 <= screen_x <= 760 and 18 <= screen_y <= 46:
+        if 688 <= screen_x <= 772 and 10 <= screen_y <= 54:
             if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
                 self.menu_open = not self.menu_open
                 if self.menu_open:
@@ -2428,9 +2428,11 @@ class GameView(arcade.View):
         arcade.draw_circle_outline(28, 35, 17, (222, 222, 214), 2)
         arcade.draw_text("?", 28, 25, (222, 222, 214), 18, anchor_x="center")
 
-        arcade.draw_lrbt_rectangle_filled(700, 760, 18, 46, (14, 17, 24))
-        arcade.draw_lrbt_rectangle_outline(700, 760, 18, 46, (222, 222, 214), 2)
-        arcade.draw_text("|||", 730, 32, (222, 222, 214), 20, anchor_x="center", anchor_y="center")
+        arcade.draw_lrbt_rectangle_filled(688, 772, 10, 54, (14, 17, 24))
+        arcade.draw_lrbt_rectangle_outline(688, 772, 10, 54, (222, 222, 214), 2)
+        arcade.draw_line(716, 38, 744, 38, (222, 222, 214), 2)
+        arcade.draw_line(716, 30, 744, 30, (222, 222, 214), 2)
+        arcade.draw_line(716, 22, 744, 22, (222, 222, 214), 2)
 
         if self.menu_open:
             arcade.draw_lrbt_rectangle_filled(490, 770, 220, 430, (14, 17, 24, 240))
