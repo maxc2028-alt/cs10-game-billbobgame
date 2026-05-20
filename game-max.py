@@ -163,7 +163,7 @@ QUIZ_OPTIONS = [
 class TrashSpot:
     def __init__(self, x: float, y: float) -> None:
         self.x = x
-        self.y = HOUSE_BASE_Y + 16
+        self.y = y
         self.radius = 18
         self.trash_type = random.choice(["can", "bag", "box", "rubble"])
         self.rotation = random.uniform(0, 360)
@@ -1331,11 +1331,6 @@ class GameView(arcade.View):
         if self.screen != "playing":
             return
 
-
-        if self.try_befriend(x, y):
-            return
-
-
         for trash in list(self.trash_spots):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= TRASH_CLICK_RADIUS ** 2:
                 if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
@@ -1359,7 +1354,10 @@ class GameView(arcade.View):
                     else:
                         self.message = "The outside is clear. Press F to open the door."
                         self.hint = "You can open the door, but you need the full friend name before the quiz."
-                break
+                return
+
+        if self.try_befriend(x, y):
+            return
 
 
     def get_player_color(self) -> tuple[int, int, int]:
