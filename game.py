@@ -881,7 +881,7 @@ class GameView(arcade.View):
         target_name = self.current_target_friend_name()
         if self.trash_spots:
             return "Clean trash first to reveal riddle clues."
-        return "Move close to the next friend and click Talk, or press T, to solve the riddles."
+        return "Move close to the next friend and press T to solve the riddles."
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
@@ -1106,7 +1106,7 @@ class GameView(arcade.View):
 
 
         if x is None and y is None:
-            self.message = "Move closer to the NPC and click Talk."
+            self.message = "Move closer to the NPC and press T."
             self.hint = "Pick up trash for hints, then use those hints near other friends."
             return True
 
@@ -1386,10 +1386,10 @@ class GameView(arcade.View):
                         return
 
                     # Launch mini-game for interior work too
-                    self.minigame_target_spot = spot
-                    self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
-                    self.message = "Match the blocks to decorate!"
-                    self.hint = "Complete the mini-game to finish this upgrade!"
+                        self.minigame_target_spot = spot
+                        self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
+                        self.message = "Match the blocks to decorate!"
+                        self.hint = "Complete the mini-game to finish this upgrade!"
                     return
             return
 
@@ -2465,7 +2465,7 @@ class GameView(arcade.View):
             arcade.draw_text("Instructions", 400, 220, (222, 222, 214), 18, anchor_x="center")
             arcade.draw_text(self.hint, 198, 188, (156, 160, 166), 11, width=404, multiline=True)
             arcade.draw_text(
-                "Move: WASD/arrows   Talk: T   Door/leave: F   Quit: ESC",
+                "Move: WASD/arrows   Talk: T   Door/leave: F   Menu: ESC   Help: ?",
                 400,
                 132,
                 (156, 160, 166),
