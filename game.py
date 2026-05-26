@@ -237,13 +237,14 @@ class PipeMinigame:
     def click_pipe(self, x: float, y: float) -> None:
         """Handle a color tile click to cycle it forward."""
         col = max(0, min(self.grid_size - 1, int((x - self.start_x) / self.cell_size)))
-        row = max(0, min(self.grid_size - 1, int((y - self.start_y) / self.cell_size)))
+        nearest_row = int(round((y - self.start_y - self.cell_size / 2) / self.cell_size))
+        row = max(0, min(self.grid_size - 1, nearest_row))
 
         px = self.start_x + col * self.cell_size
         py = self.start_y + row * self.cell_size
         center_x = px + self.cell_size / 2
         center_y = py + self.cell_size / 2
-        y_padding = 26 if row == 0 else 16
+        y_padding = 36 if row == 0 else 16
         if abs(x - center_x) > self.cell_size / 2 + 16 or abs(y - center_y) > self.cell_size / 2 + y_padding:
             return
 
