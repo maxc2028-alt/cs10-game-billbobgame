@@ -1159,6 +1159,9 @@ class GameView(arcade.View):
                     self.hint = "Choose restart, intro, or quit."
             return
 
+        if self.menu_open:
+            return
+
         if key == arcade.key.P:
             if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
                 self.menu_open = not self.menu_open
