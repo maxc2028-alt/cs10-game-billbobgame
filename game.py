@@ -2193,18 +2193,11 @@ class GameView(arcade.View):
 
             arcade.draw_circle_filled(spot.x, spot.y, spot.radius + 2, (76, 60, 52))
             arcade.draw_circle_filled(spot.x, spot.y, spot.radius - 4, (44, 35, 31))
-            arcade.draw_polygon_filled(
-                [
-                    (spot.x - 11, spot.y - 4),
-                    (spot.x - 5, spot.y - 13),
-                    (spot.x + 5, spot.y - 12),
-                    (spot.x + 12, spot.y - 2),
-                    (spot.x + 8, spot.y + 10),
-                    (spot.x - 5, spot.y + 12),
-                    (spot.x - 13, spot.y + 4),
-                ],
-                (58, 46, 40),
-            )
+            crack_y = spot.y - 18
+            arcade.draw_line(spot.x - 12, crack_y + 3, spot.x - 2, crack_y - 7, arcade.color.BLACK, 2)
+            arcade.draw_line(spot.x - 2, crack_y - 7, spot.x + 8, crack_y + 2, arcade.color.BLACK, 2)
+            arcade.draw_line(spot.x + 8, crack_y + 2, spot.x + 16, crack_y - 9, arcade.color.BLACK, 2)
+            arcade.draw_line(spot.x - 6, crack_y + 10, spot.x + 4, crack_y + 2, arcade.color.BLACK, 2)
             arcade.draw_circle_outline(spot.x, spot.y, spot.radius, spot.color, 3)
             arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 3, arcade.color.WHITE, 1)
             arcade.draw_text(
