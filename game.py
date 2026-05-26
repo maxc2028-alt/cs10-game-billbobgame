@@ -209,28 +209,33 @@ class PipeMinigame:
     """Pipe connection puzzle - rotate pipes to connect them."""
     def __init__(self, difficulty: int = 1) -> None:
         self.difficulty = min(difficulty, 3)
-        self.grid_size = 3 + difficulty  # 3x3, 4x4, or 5x5
+        self.grid_size = 3 + self.difficulty  # 4x4 to 6x6, capped by difficulty
         self.cell_size = 80
         self.start_x = 150
         self.start_y = 150
-        self.pipes = self._generate_pipes()
+        self.pipes, self.solution = self._generate_pipes()
         self.selected_pipe = None
-        self.time_left = 30
+        self.time_left = 35
         self.completed = False
 
-    def _generate_pipes(self) -> dict:
-        """Generate random pipe grid with at least one solution path."""
+    def _generate_pipes(self) -> tuple[dict, dict]:
+        """Generate a solvable pipe grid with a matching solution rotation for each cell."""
         pipes = {}
-        pipe_types = ["horizontal", "vertical", "turn_90", "t_junction"]
-
+        solution = {}
         for row in range(self.grid_size):
             for col in range(self.grid_size):
                 rng = random.Random(f"pipe_{row}_{col}_{self.difficulty}")
-                pipe_type = rng.choice(pipe_types)
-                rotation = rng.randint(0, 3) * 90
-                pipes[(row, col)] = {"type": pipe_type, "rotation": rotation, "connected": False}
+                if row == 0 or row == self.grid_size - 1 or col == 0 or col == self.grid_size - 1:
+                    pipe_type = rng.choice(["horizontal", "vertical", "turn_90"])
+                else:
+                    pipe_type = rng.choice(["horizontal", "vertical", "turn_90", "t_junction"])
 
-        return pipes
+                answer_rotation = rng.choice([0, 90, 180, 270])
+                scrambled_rotation = (answer_rotation + rng.choice([90, 180, 270])) % 360
+                pipes[(row, col)] = {"type": pipe_type, "rotation": scrambled_rotation}
+                solution[(row, col)] = answer_rotation
+
+        return pipes, solution
 
     def click_pipe(self, x: float, y: float) -> None:
         """Handle pipe click to rotate it."""
@@ -245,9 +250,8 @@ class PipeMinigame:
                 break
 
     def check_completion(self) -> bool:
-        """Check if all pipes form a valid connection path."""
-        # Simplified check: all pipes rotated at least once = completed
-        if all(pipe["rotation"] > 0 for pipe in self.pipes.values()):
+        """Check if all pipes match their hidden solution rotation."""
+        if all(pipe["rotation"] == self.solution[pos] for pos, pipe in self.pipes.items()):
             self.completed = True
             return True
         return False
@@ -315,7 +319,19 @@ class BlockBlastMinigame:
         for row in range(self.grid_height):
             for col in range(self.grid_width):
                 rng = random.Random(f"block_{row}_{col}_{self.difficulty}")
-                grid[(row, col)] = {"color": rng.choice(colors), "active": True}
+                grid[(row, col)] = {"color": colors[(row + col + self.difficulty) % len(colors)], "active": True}
+
+        # Seed a few guaranteed matching clusters so there is always a valid move.
+        guaranteed_clusters = [
+            [(0, 0), (0, 1)],
+            [(2, 2), (2, 3), (3, 2)],
+            [(4, 0), (4, 1)],
+        ]
+        for cluster in guaranteed_clusters:
+            cluster_color = colors[random.Random(f"cluster_{cluster[0]}_{self.difficulty}").randrange(len(colors))]
+            for pos in cluster:
+                if pos in grid:
+                    grid[pos]["color"] = cluster_color
 
         return grid
 
