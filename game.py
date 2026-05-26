@@ -1440,6 +1440,13 @@ class GameView(arcade.View):
             return
 
 
+        if self.screen in {"repair", "visit"}:
+            if 360 <= x <= 440 and 120 <= y <= 260:
+                self.leave_house()
+                return
+            return
+
+
         if self.screen != "playing":
             return
 
@@ -2097,11 +2104,11 @@ class GameView(arcade.View):
 
 
         arcade.draw_text(
-            f"Inside {self.building_names[self.inside_building]}",
+            "Press F or click the door to leave",
             400,
             485,
             arcade.color.WHITE,
-            22,
+            18,
             anchor_x="center",
         )
         if self.screen == "visit":
