@@ -1399,17 +1399,25 @@ class GameView(arcade.View):
                 if spot.fixed:
                     continue
                 if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= spot.radius ** 2:
-                    if self.money < spot.cost:
-                        self.message = f"Need ${spot.cost} to {spot.label}. You have ${self.money}."
-                        self.hint = "Clean more trash outside to earn repair money."
-                        return
+                    try:
+                        if self.money < spot.cost:
+                            self.message = f"Need ${spot.cost} to {spot.label}. You have ${self.money}."
+                            self.hint = "Clean more trash outside to earn repair money."
+                            return
 
-                    # Launch mini-game for interior work too
-                    self.minigame_target_spot = spot
-                    self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
-                    self.message = "Match the blocks to decorate!"
-                    self.hint = "Complete the mini-game to finish this upgrade!"
-                    return
+                        # Launch mini-game for interior work too
+                        self.minigame_target_spot = spot
+                        self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
+                        self.message = "Match the blocks to decorate!"
+                        self.hint = "Complete the mini-game to finish this upgrade!"
+                        return
+                    except Exception as exc:
+                        self.active_minigame = None
+                        self.minigame_target_spot = None
+                        self.message = "That spot glitched instead of opening."
+                        self.hint = "Try another spot, or press F to leave and come back."
+                        print(f"Interior click error on {spot.label}: {exc}")
+                        return
             return
 
 
