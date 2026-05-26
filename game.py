@@ -2103,14 +2103,6 @@ class GameView(arcade.View):
             arcade.draw_line(460, 116, 520, 101, arcade.color.BLACK, 2)
 
 
-        arcade.draw_text(
-            "Press F or click the door to leave",
-            400,
-            485,
-            arcade.color.WHITE,
-            18,
-            anchor_x="center",
-        )
         if self.screen == "visit":
             if repaired_inside:
                 if upgrade_level < MAX_INTERIOR_UPGRADES:
