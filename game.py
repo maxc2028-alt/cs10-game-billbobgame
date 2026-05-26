@@ -284,7 +284,7 @@ class PipeMinigame:
         arcade.draw_circle_filled(605, 394, 10, self.target_color)
         arcade.draw_circle_outline(605, 394, 10, arcade.color.BLACK, 1)
         arcade.draw_text(
-            "Press Start, then click the left grid until every square matches this color.",
+            "Press Start, then pick up the glowing yellow trash.",
             605,
             370,
             arcade.color.LIGHT_GRAY,
