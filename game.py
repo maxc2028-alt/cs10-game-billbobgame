@@ -818,9 +818,11 @@ class GameView(arcade.View):
         self.minigame_target_spot = None
         self.keys_down.clear()
         self.door_cooldown = 0.9
-        left, right, base_y = BUILDING_POSITIONS[self.inside_building]
-        self.ball_x = left - 70
-        self.ball_y = base_y + 55
+        house_index = self.inside_building if self.inside_building in BUILDING_POSITIONS else self.current_building
+        left, right, base_y = BUILDING_POSITIONS[house_index]
+        self.ball_x = left - 90
+        self.ball_y = base_y + 70
+        self.inside_building = house_index
         self.screen = "playing"
         self.round_started = True
         self.message = "You step back outside."
@@ -1210,7 +1212,17 @@ class GameView(arcade.View):
             if self.door_cooldown > 0:
                 return
             if self.screen in {"repair", "visit"}:
-                self.leave_house()
+                try:
+                    self.leave_house()
+                except Exception as exc:
+                    self.active_minigame = None
+                    self.minigame_target_spot = None
+                    self.keys_down.clear()
+                    self.screen = "playing"
+                    self.round_started = True
+                    self.message = "You step back outside."
+                    self.hint = "The exit glitched, but you are back outside now."
+                    print(f"leave_house error: {exc}")
                 return
             if self.screen == "playing":
                 door_index = self.door_index_near_player()
