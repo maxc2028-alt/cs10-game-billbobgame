@@ -1306,7 +1306,7 @@ class GameView(arcade.View):
 
 
         try:
-            if self.screen in {"complete", "failed", "trash_game_over", "conclusion"}:
+            if self.screen in {"complete", "failed", "trash_game_over", "conclusion", "minigame_game_over"}:
                 self.reset_round()
             elif self.screen == "intro":
                 self.start_game_countdown()
@@ -2643,6 +2643,21 @@ class GameView(arcade.View):
                     self.active_minigame.draw()
                 elif isinstance(self.active_minigame, BlockBlastMinigame):
                     self.active_minigame.draw()
+                return
+
+            if self.screen == "minigame_game_over":
+                self.draw_scene()
+                arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, 220))
+                arcade.draw_text("FAILED", 400, 320, arcade.color.RED, 52, anchor_x="center")
+                arcade.draw_text("Press SPACE to try again", 400, 258, arcade.color.WHITE, 18, anchor_x="center")
+                return
+
+            if self.minigame_fail_fade is not None:
+                self.draw_scene()
+                fade_alpha = int(220 * (1.0 - self.minigame_fail_fade))
+                arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, max(0, min(220, fade_alpha))))
+                arcade.draw_text("FAILED", 400, 320, arcade.color.RED, 52, anchor_x="center")
+                arcade.draw_text("Press SPACE to try again", 400, 258, arcade.color.WHITE, 18, anchor_x="center")
                 return
 
             if self.screen == "intro":
