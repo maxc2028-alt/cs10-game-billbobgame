@@ -999,7 +999,6 @@ class GameView(arcade.View):
         self.name_guess = ""
         self.name_riddle_index = 0
         self.name_riddle_progress = ""
-        self.name_riddle_tries_left = 3
         self.unlocked_riddle_hints = []
         self.screen = "name_guess"
         self.message = f"Riddle 1 of 4 for {friend.name}."
@@ -1015,7 +1014,6 @@ class GameView(arcade.View):
         self.name_guess = ""
         self.name_riddle_index = 0
         self.name_riddle_progress = ""
-        self.name_riddle_tries_left = 3
         self.screen = "playing"
         self.message = f"You stepped away from {friend_name}'s riddles."
         self.hint = "You can talk to them again when you're ready."
@@ -1046,16 +1044,9 @@ class GameView(arcade.View):
             self.hint = f"Riddle {self.name_riddle_index + 1} of 4: {next_riddle['question']}"
             return
 
-        self.name_riddle_tries_left -= 1
         self.name_guess = ""
-        if self.name_riddle_tries_left > 0:
-            self.message = f"Not quite. Tries left: {self.name_riddle_tries_left}."
-            self.hint = f"Try again: {riddle['question']}"
-            return
-
-        self.message = "Too many wrong answers. You can back out and try again later."
-        self.hint = "Press ESC to leave the riddle screen."
-        self.cancel_name_guess()
+        self.message = "Not quite. Try that riddle again."
+        self.hint = f"Clue: {riddle['question']}"
 
 
     def answer_quiz(self, answer_index: int) -> None:
@@ -2160,12 +2151,14 @@ class GameView(arcade.View):
         arcade.draw_text("Riddle Name Challenge", 400, 382, arcade.color.GOLD, 26, anchor_x="center")
         if self.guess_friend is not None:
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
-            arcade.draw_text(f"Riddle {self.name_riddle_index + 1} of 4: {riddle['question']}", 400, 318, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
+            arcade.draw_text(f"Riddle {self.name_riddle_index + 1} of 4:", 400, 326, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+            arcade.draw_text(riddle["question"], 400, 302, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
         arcade.draw_lrbt_rectangle_filled(210, 590, 265, 315, (40, 50, 65))
         arcade.draw_lrbt_rectangle_outline(210, 590, 265, 315, arcade.color.LIGHT_GRAY, 2)
-        arcade.draw_text(self.name_guess or "answer the riddle here", 400, 282, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_text(self.name_guess or "type your answer here", 400, 282, arcade.color.WHITE, 18, anchor_x="center")
         arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 244, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
-        arcade.draw_text("ENTER submits     BACKSPACE erases", 400, 220, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 220, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_text(f"Hint: {self.hint}", 400, 200, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=500, multiline=True)
         arcade.draw_text("Solve 4 riddles to reveal the name.", 400, 196, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
         arcade.draw_lrbt_rectangle_filled(620, 760, 180, 430, (20, 20, 30))
