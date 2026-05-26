@@ -1405,10 +1405,10 @@ class GameView(arcade.View):
                         return
 
                     # Launch mini-game for interior work too
-                        self.minigame_target_spot = spot
-                        self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
-                        self.message = "Match the blocks to decorate!"
-                        self.hint = "Complete the mini-game to finish this upgrade!"
+                    self.minigame_target_spot = spot
+                    self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
+                    self.message = "Match the blocks to decorate!"
+                    self.hint = "Complete the mini-game to finish this upgrade!"
                     return
             return
 
