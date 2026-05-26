@@ -868,6 +868,8 @@ class GameView(arcade.View):
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.keys_down.clear()
+        self.menu_open = False
+        self.show_instructions = False
         self.message = "Mini-game closed. You are back in the house."
         self.hint = "ESC returns you to the house. Pick another repair spot when you're ready."
 
