@@ -263,13 +263,13 @@ class PipeMinigame:
         # Right-side instruction panel
         arcade.draw_lrbt_rectangle_filled(520, 690, 80, 450, (24, 22, 30))
         arcade.draw_lrbt_rectangle_outline(520, 690, 80, 450, arcade.color.WHITE, 2)
-        arcade.draw_text("Target color", 605, 428, arcade.color.GOLD, 18, anchor_x="center")
-        arcade.draw_circle_filled(605, 406, 10, self.target_color)
-        arcade.draw_circle_outline(605, 406, 10, arcade.color.BLACK, 1)
+        arcade.draw_text("Target color", 605, 418, arcade.color.GOLD, 18, anchor_x="center")
+        arcade.draw_circle_filled(605, 394, 10, self.target_color)
+        arcade.draw_circle_outline(605, 394, 10, arcade.color.BLACK, 1)
         arcade.draw_text(
             "Click the left grid until every square matches this color.",
             605,
-            388,
+            370,
             arcade.color.LIGHT_GRAY,
             11,
             anchor_x="center",
@@ -277,13 +277,13 @@ class PipeMinigame:
             align="center",
             multiline=True,
         )
-        arcade.draw_text("ESC returns you to the house.", 605, 314, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
-        arcade.draw_text(f"Time: {self.time_left:.1f}s", 605, 286, arcade.color.WHITE, 14, anchor_x="center")
+        arcade.draw_text("ESC returns you to the house.", 605, 304, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_text(f"Time: {self.time_left:.1f}s", 605, 276, arcade.color.WHITE, 14, anchor_x="center")
 
-        arcade.draw_lrbt_rectangle_outline(122, 125 + self.grid_size * self.cell_size, 148, 148 + self.grid_size * self.cell_size, arcade.color.WHITE, 2)
+        arcade.draw_lrbt_rectangle_outline(110, 110 + self.grid_size * self.cell_size, 140, 140 + self.grid_size * self.cell_size, arcade.color.WHITE, 2)
         for (row, col), color in self.grid.items():
-            px = 125 + col * self.cell_size
-            py = self.start_y + row * self.cell_size
+            px = 113 + col * self.cell_size
+            py = 143 + row * self.cell_size
 
             border_color = arcade.color.GOLD if self.grid[(row, col)] == self.target_color else arcade.color.DARK_GRAY
             arcade.draw_lrbt_rectangle_filled(px + 2, px + self.cell_size - 2, py + 2, py + self.cell_size - 2, color)
@@ -295,6 +295,8 @@ class PipeMinigame:
 
         if self.completed:
             arcade.draw_text("WALL FIXED!", 205, 52, arcade.color.LIGHT_GREEN, 24, anchor_x="center")
+        if self.time_left <= 0 and not self.completed:
+            arcade.draw_text("FAILED", 205, 88, arcade.color.RED, 30, anchor_x="center")
 
 
 class BlockBlastMinigame:
@@ -1730,8 +1732,8 @@ class GameView(arcade.View):
 
                 # Check if mini-game timed out
                 if self.active_minigame.time_left <= 0:
-                    self.message = "Time's up! Try again."
-                    self.hint = "Click on another repair to attempt a different mini-game."
+                    self.message = "FAILED"
+                    self.hint = "Time ran out. Click another repair spot to try again."
                     self.active_minigame = None
                     self.minigame_target_spot = None
                     self.minigame_return_screen = None
