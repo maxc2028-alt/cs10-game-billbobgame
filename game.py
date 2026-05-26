@@ -619,6 +619,7 @@ class GameView(arcade.View):
         self.quiz_tries_left = 2
         self.game_over_ready = False
         self.show_instructions = False
+        self.door_cooldown = 0.0
         # Infinite world state
         self.world_offset_x = 0  # Track camera position in world
         self.house_rng = random.Random(42)  # Seeded for consistent generation
@@ -816,6 +817,7 @@ class GameView(arcade.View):
         self.active_minigame = None
         self.minigame_target_spot = None
         self.keys_down.clear()
+        self.door_cooldown = 0.35
         left, right, base_y = BUILDING_POSITIONS[self.inside_building]
         self.ball_x = (left + right) / 2
         self.ball_y = base_y + 35
@@ -1205,6 +1207,8 @@ class GameView(arcade.View):
 
 
         if key == arcade.key.F:
+            if self.door_cooldown > 0:
+                return
             if self.screen in {"repair", "visit"}:
                 self.leave_house()
                 return
@@ -1660,6 +1664,8 @@ class GameView(arcade.View):
     def on_update(self, delta_time: float) -> None:
         try:
             self.sky_time += delta_time
+            if self.door_cooldown > 0:
+                self.door_cooldown = max(0.0, self.door_cooldown - delta_time)
 
             if self.menu_open and self.screen not in {"intro", "countdown"}:
                 return
