@@ -243,7 +243,9 @@ class PipeMinigame:
 
         px = self.start_x + col * self.cell_size
         py = self.start_y + row * self.cell_size
-        if not (px - 6 <= x <= px + self.cell_size + 6 and py - 6 <= y <= py + self.cell_size + 6):
+        center_x = px + self.cell_size / 2
+        center_y = py + self.cell_size / 2
+        if abs(x - center_x) > self.cell_size / 2 + 10 or abs(y - center_y) > self.cell_size / 2 + 10:
             return
 
         color = self.grid[(row, col)]
