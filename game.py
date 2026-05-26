@@ -267,11 +267,15 @@ class PipeMinigame:
         # Right-side instruction panel
         arcade.draw_lrbt_rectangle_filled(520, 690, 80, 450, (24, 22, 30))
         arcade.draw_lrbt_rectangle_outline(520, 690, 80, 450, arcade.color.WHITE, 2)
-        arcade.draw_text("Patch the wall colors", 605, 430, arcade.color.GOLD, 18, anchor_x="center")
+        arcade.draw_text("Target colors", 605, 434, arcade.color.GOLD, 18, anchor_x="center")
+        for index, color in enumerate(self.colors):
+            swatch_x = 565 + index * 20
+            arcade.draw_circle_filled(swatch_x, 414, 7, color)
+            arcade.draw_circle_outline(swatch_x, 414, 7, arcade.color.BLACK, 1)
         arcade.draw_text(
-            "Click each square to cycle its color until it matches the hidden wall pattern.",
+            "Click each square to cycle until it matches the color pattern.",
             605,
-            398,
+            392,
             arcade.color.LIGHT_GRAY,
             11,
             anchor_x="center",
@@ -279,8 +283,8 @@ class PipeMinigame:
             align="center",
             multiline=True,
         )
-        arcade.draw_text("ESC returns you to the house.", 605, 328, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
-        arcade.draw_text(f"Time: {self.time_left:.1f}s", 605, 300, arcade.color.WHITE, 14, anchor_x="center")
+        arcade.draw_text("ESC returns you to the house.", 605, 318, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_text(f"Time: {self.time_left:.1f}s", 605, 290, arcade.color.WHITE, 14, anchor_x="center")
 
         for (row, col), color in self.grid.items():
             px = 125 + col * self.cell_size
