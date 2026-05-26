@@ -738,6 +738,19 @@ class GameView(arcade.View):
         return None
 
 
+    def interior_door_near_player(self) -> bool:
+        """Return True when the player is close enough to the interior doorway to leave."""
+        door_left = 360
+        door_right = 440
+        door_bottom = 120
+        door_top = 260
+        padding = 30
+        return (
+            door_left - padding <= self.ball_x <= door_right + padding
+            and door_bottom - padding <= self.ball_y <= door_top + padding
+        )
+
+
     def enter_house(self) -> None:
         # Generate repair spots procedurally
         rng = random.Random(f"repair_{self.current_building}")
@@ -1185,7 +1198,11 @@ class GameView(arcade.View):
 
         if key == arcade.key.F:
             if self.screen in {"repair", "visit"}:
-                self.leave_house()
+                if self.interior_door_near_player():
+                    self.leave_house()
+                else:
+                    self.message = "Move to the doorway to leave."
+                    self.hint = "Walk up to the door, then press F to go back outside."
                 return
             if self.screen == "playing":
                 door_index = self.door_index_near_player()
