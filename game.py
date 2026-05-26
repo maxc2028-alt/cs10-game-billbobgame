@@ -967,7 +967,7 @@ class GameView(arcade.View):
             return ""
         target_name = self.current_target_friend_name()
         if self.trash_spots:
-            return "Clean trash first to reveal riddle clues."
+            return "Clean trash first."
         return "Move close to the next friend and press T to solve the riddles."
 
 
@@ -1556,18 +1556,14 @@ class GameView(arcade.View):
                 self.trash_spots.remove(trash)
                 self.cleaned += 1
                 self.money += TRASH_SCORE + self.upgrades
-                self.message = self.reveal_friend_name_hint()
-                self.hint = "Each trash pickup unlocks another riddle clue."
+                self.message = "Trash collected."
+                self.hint = "Keep cleaning to open up the block."
                 if self.cleaned % 2 == 0:
                     self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
                 if not self.trash_spots:
                     target_name = self.current_target_friend_name()
-                    if self.known_name_letters(target_name) >= len(target_name):
-                        self.message = "The outside is clear, and the name clues are complete."
-                        self.hint = "Move close to the person and press T, or click them, then type the full name."
-                    else:
-                        self.message = "The outside is clear. Press F to open the door."
-                        self.hint = "You can open the door, but you need the full friend name before the quiz."
+                    self.message = "The outside is clear. Press F to open the door."
+                    self.hint = "Cleaned-up blocks let you keep moving forward."
                 break
 
 
