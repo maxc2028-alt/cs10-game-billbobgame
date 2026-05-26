@@ -1185,6 +1185,7 @@ class GameView(arcade.View):
                 self.minigame_return_screen = None
                 self.message = "Mini-game closed. You are back in the house."
                 self.hint = "ESC returns you to the house. Pick another repair spot when you're ready."
+                print(f"ESC canceled mini-game -> screen={self.screen}, mode={self.interior_mode}")
                 return
             if self.menu_open:
                 self.menu_open = False
