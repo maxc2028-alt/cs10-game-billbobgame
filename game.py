@@ -1179,13 +1179,17 @@ class GameView(arcade.View):
     def on_key_press(self, key: int, modifiers: int) -> None:
         if key == arcade.key.ESCAPE:
             if self.active_minigame is not None:
+                return_screen = self.screen
                 self.active_minigame = None
                 self.minigame_target_spot = None
-                self.screen = "visit" if self.interior_mode == "upgrade" else "repair"
+                self.screen = "visit" if return_screen == "visit" or self.interior_mode == "upgrade" else "repair"
+                self.round_started = False
+                self.ball_x = 400.0
+                self.ball_y = 155.0
+                self.keys_down.clear()
                 self.minigame_return_screen = None
                 self.message = "Mini-game closed. You are back in the house."
                 self.hint = "ESC returns you to the house. Pick another repair spot when you're ready."
-                print(f"ESC canceled mini-game -> screen={self.screen}, mode={self.interior_mode}")
                 return
             if self.menu_open:
                 self.menu_open = False
