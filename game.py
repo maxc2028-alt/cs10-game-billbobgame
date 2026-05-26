@@ -264,13 +264,26 @@ class PipeMinigame:
         arcade.draw_lrbt_rectangle_filled(100, 700, 60, 470, (34, 31, 38))
         arcade.draw_lrbt_rectangle_outline(100, 700, 60, 470, arcade.color.WHITE, 3)
 
-        arcade.draw_text("Patch the wall colors", 400, 448, arcade.color.GOLD, 18, anchor_x="center")
-        arcade.draw_text("Click each square to cycle its color until it matches the hidden wall pattern.", 400, 424, arcade.color.LIGHT_GRAY, 11, anchor_x="center", width=540, multiline=True)
-        arcade.draw_text("ESC returns you to the house.", 400, 402, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
-        arcade.draw_text(f"Time: {self.time_left:.1f}s", 400, 388, arcade.color.WHITE, 14, anchor_x="center")
+        # Right-side instruction panel
+        arcade.draw_lrbt_rectangle_filled(520, 690, 80, 450, (24, 22, 30))
+        arcade.draw_lrbt_rectangle_outline(520, 690, 80, 450, arcade.color.WHITE, 2)
+        arcade.draw_text("Patch the wall colors", 605, 430, arcade.color.GOLD, 18, anchor_x="center")
+        arcade.draw_text(
+            "Click each square to cycle its color until it matches the hidden wall pattern.",
+            605,
+            398,
+            arcade.color.LIGHT_GRAY,
+            11,
+            anchor_x="center",
+            width=145,
+            align="center",
+            multiline=True,
+        )
+        arcade.draw_text("ESC returns you to the house.", 605, 328, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_text(f"Time: {self.time_left:.1f}s", 605, 300, arcade.color.WHITE, 14, anchor_x="center")
 
         for (row, col), color in self.grid.items():
-            px = self.start_x + col * self.cell_size
+            px = 125 + col * self.cell_size
             py = self.start_y + row * self.cell_size
 
             border_color = arcade.color.GOLD if self.grid[(row, col)] == self.target_grid[(row, col)] else arcade.color.DARK_GRAY
@@ -282,7 +295,7 @@ class PipeMinigame:
                 arcade.draw_line(px + 12, py + self.cell_size - 12, px + self.cell_size - 12, py + 12, arcade.color.BLACK, 2)
 
         if self.completed:
-            arcade.draw_text("WALL FIXED!", 400, 50, arcade.color.LIGHT_GREEN, 24, anchor_x="center")
+            arcade.draw_text("WALL FIXED!", 205, 52, arcade.color.LIGHT_GREEN, 24, anchor_x="center")
 
 
 class BlockBlastMinigame:
@@ -2194,11 +2207,12 @@ class GameView(arcade.View):
             arcade.draw_circle_filled(spot.x, spot.y, spot.radius + 2, (76, 60, 52))
             arcade.draw_circle_filled(spot.x, spot.y, spot.radius - 4, (44, 35, 31))
             crack_y = spot.y - 18
-            arcade.draw_line(spot.x - 18, crack_y + 6, spot.x - 6, crack_y - 8, arcade.color.BLACK, 3)
-            arcade.draw_line(spot.x - 6, crack_y - 8, spot.x + 7, crack_y + 5, arcade.color.BLACK, 3)
-            arcade.draw_line(spot.x + 7, crack_y + 5, spot.x + 18, crack_y - 11, arcade.color.BLACK, 3)
-            arcade.draw_line(spot.x - 10, crack_y + 13, spot.x + 2, crack_y + 2, arcade.color.BLACK, 3)
-            arcade.draw_line(spot.x + 2, crack_y + 2, spot.x + 15, crack_y + 11, arcade.color.BLACK, 3)
+            arcade.draw_line(spot.x - 20, crack_y + 18, spot.x - 10, crack_y + 6, arcade.color.BLACK, 3)
+            arcade.draw_line(spot.x - 10, crack_y + 6, spot.x - 2, crack_y - 10, arcade.color.BLACK, 3)
+            arcade.draw_line(spot.x - 2, crack_y - 10, spot.x + 8, crack_y + 3, arcade.color.BLACK, 3)
+            arcade.draw_line(spot.x + 8, crack_y + 3, spot.x + 20, crack_y - 14, arcade.color.BLACK, 3)
+            arcade.draw_line(spot.x - 14, crack_y + 1, spot.x - 1, crack_y - 7, arcade.color.BLACK, 2)
+            arcade.draw_line(spot.x + 1, crack_y - 2, spot.x + 14, crack_y + 12, arcade.color.BLACK, 2)
             arcade.draw_circle_outline(spot.x, spot.y, spot.radius, spot.color, 3)
             arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 3, arcade.color.WHITE, 1)
             arcade.draw_text(
