@@ -263,23 +263,24 @@ class PipeMinigame:
         # Right-side instruction panel
         arcade.draw_lrbt_rectangle_filled(520, 690, 80, 450, (24, 22, 30))
         arcade.draw_lrbt_rectangle_outline(520, 690, 80, 450, arcade.color.WHITE, 2)
-        arcade.draw_text("Target color", 605, 434, arcade.color.GOLD, 18, anchor_x="center")
-        arcade.draw_circle_filled(605, 412, 10, self.target_color)
-        arcade.draw_circle_outline(605, 412, 10, arcade.color.BLACK, 1)
+        arcade.draw_text("Target color", 605, 428, arcade.color.GOLD, 18, anchor_x="center")
+        arcade.draw_circle_filled(605, 406, 10, self.target_color)
+        arcade.draw_circle_outline(605, 406, 10, arcade.color.BLACK, 1)
         arcade.draw_text(
-            "Click each square until it matches this color.",
+            "Click the left grid until every square matches this color.",
             605,
-            392,
+            388,
             arcade.color.LIGHT_GRAY,
             11,
             anchor_x="center",
-            width=145,
+            width=150,
             align="center",
             multiline=True,
         )
-        arcade.draw_text("ESC returns you to the house.", 605, 318, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
-        arcade.draw_text(f"Time: {self.time_left:.1f}s", 605, 290, arcade.color.WHITE, 14, anchor_x="center")
+        arcade.draw_text("ESC returns you to the house.", 605, 314, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_text(f"Time: {self.time_left:.1f}s", 605, 286, arcade.color.WHITE, 14, anchor_x="center")
 
+        arcade.draw_lrbt_rectangle_outline(122, 125 + self.grid_size * self.cell_size, 148, 148 + self.grid_size * self.cell_size, arcade.color.WHITE, 2)
         for (row, col), color in self.grid.items():
             px = 125 + col * self.cell_size
             py = self.start_y + row * self.cell_size
