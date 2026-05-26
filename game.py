@@ -858,18 +858,19 @@ class GameView(arcade.View):
 
     def cancel_house_minigame(self) -> None:
         """Close the active house mini-game and return to the house interior."""
+        parent_screen = self.minigame_parent_screen
         self.active_minigame = None
         self.minigame_target_spot = None
-        if self.minigame_parent_screen in {"repair", "visit"}:
-            self.screen = self.minigame_parent_screen
+        if parent_screen in {"repair", "visit"}:
+            self.screen = parent_screen
+        else:
+            self.screen = "repair"
         self.minigame_parent_screen = None
         self.minigame_return_screen = None
         self.round_started = False
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.keys_down.clear()
-        self.menu_open = False
-        self.show_instructions = False
         self.message = "Mini-game closed. You are back in the house."
         self.hint = "ESC returns you to the house. Pick another repair spot when you're ready."
 
