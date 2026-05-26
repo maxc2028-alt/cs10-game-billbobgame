@@ -647,6 +647,7 @@ class GameView(arcade.View):
         # Mini-game state
         self.active_minigame = None  # None, PipeMinigame, or BlockBlastMinigame
         self.minigame_target_spot = None  # Which repair spot is being worked on
+        self.minigame_return_screen = None
         self.configure_camera()
 
 
@@ -840,6 +841,7 @@ class GameView(arcade.View):
             return
         self.active_minigame = None
         self.minigame_target_spot = None
+        self.minigame_return_screen = None
         self.keys_down.clear()
         self.door_cooldown = 0.9
         self.ball_x = self.exit_spawn_x
@@ -1179,6 +1181,9 @@ class GameView(arcade.View):
             if self.active_minigame is not None:
                 self.active_minigame = None
                 self.minigame_target_spot = None
+                if self.minigame_return_screen in {"repair", "visit"}:
+                    self.screen = self.minigame_return_screen
+                self.minigame_return_screen = None
                 self.message = "Mini-game closed. You are back in the house."
                 self.hint = "Pick another repair spot when you're ready."
                 return
@@ -1442,6 +1447,7 @@ class GameView(arcade.View):
 
                     # Launch mini-game instead of instant completion
                     self.minigame_target_spot = spot
+                    self.minigame_return_screen = "repair"
                     repair_type = spot.label.lower()
 
                     # Choose mini-game based on repair type
@@ -1472,6 +1478,7 @@ class GameView(arcade.View):
 
                         # Launch mini-game for interior work too
                         self.minigame_target_spot = spot
+                        self.minigame_return_screen = "visit"
                         self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
                         self.message = "Match the blocks to decorate!"
                         self.hint = "Complete the mini-game to finish this upgrade!"
@@ -1479,6 +1486,7 @@ class GameView(arcade.View):
                     except Exception as exc:
                         self.active_minigame = None
                         self.minigame_target_spot = None
+                        self.minigame_return_screen = None
                         self.message = "That spot glitched instead of opening."
                         self.hint = "Try another spot, or press F to leave and come back."
                         print(f"Interior click error on {spot.label}: {exc}")
@@ -1719,6 +1727,7 @@ class GameView(arcade.View):
                     self.hint = "Click on another repair to attempt a different mini-game."
                     self.active_minigame = None
                     self.minigame_target_spot = None
+                    self.minigame_return_screen = None
                 return
 
             if self.screen == "intro":
