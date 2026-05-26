@@ -2519,68 +2519,73 @@ class GameView(arcade.View):
 
 
     def on_draw(self) -> None:
-        self.clear()
-        if self.camera is not None:
-            self.camera.use()
+        try:
+            self.clear()
+            if self.camera is not None:
+                self.camera.use()
 
-        # Draw mini-games on top of everything
-        if self.active_minigame is not None:
-            if isinstance(self.active_minigame, PipeMinigame):
-                self.active_minigame.draw()
-            elif isinstance(self.active_minigame, BlockBlastMinigame):
-                self.active_minigame.draw()
-            return
+            # Draw mini-games on top of everything
+            if self.active_minigame is not None:
+                if isinstance(self.active_minigame, PipeMinigame):
+                    self.active_minigame.draw()
+                elif isinstance(self.active_minigame, BlockBlastMinigame):
+                    self.active_minigame.draw()
+                return
 
-        if self.screen == "intro":
-            self.draw_intro()
-            return
-
-
-        if self.screen == "countdown":
-            self.draw_countdown()
-            return
+            if self.screen == "intro":
+                self.draw_intro()
+                return
 
 
-        if self.screen == "quiz":
-            self.draw_quiz()
-            return
+            if self.screen == "countdown":
+                self.draw_countdown()
+                return
 
 
-        if self.screen == "name_guess":
-            self.draw_name_guess()
-            return
+            if self.screen == "quiz":
+                self.draw_quiz()
+                return
 
 
-        if self.screen == "decorate":
-            self.draw_decorate()
-            return
+            if self.screen == "name_guess":
+                self.draw_name_guess()
+                return
 
 
-        if self.screen == "dark":
-            self.draw_dark_challenge()
-            return
+            if self.screen == "decorate":
+                self.draw_decorate()
+                return
 
 
-        if self.screen == "game_over":
-            self.draw_game_over()
-            return
+            if self.screen == "dark":
+                self.draw_dark_challenge()
+                return
 
 
-        if self.screen == "trash_game_over":
-            self.draw_trash_game_over()
-            return
+            if self.screen == "game_over":
+                self.draw_game_over()
+                return
 
 
-        if self.screen == "conclusion":
-            self.draw_conclusion()
-            return
+            if self.screen == "trash_game_over":
+                self.draw_trash_game_over()
+                return
 
 
-        if self.screen in {"repair", "visit"}:
-            self.draw_house_interior()
-        else:
-            self.draw_scene()
-        self.draw_hud()
+            if self.screen == "conclusion":
+                self.draw_conclusion()
+                return
+
+
+            if self.screen in {"repair", "visit"}:
+                self.draw_house_interior()
+            else:
+                self.draw_scene()
+            self.draw_hud()
+        except Exception:
+            traceback.print_exc()
+            self.active_minigame = None
+            self.minigame_target_spot = None
 
 
 
