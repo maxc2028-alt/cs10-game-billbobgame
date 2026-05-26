@@ -261,29 +261,13 @@ class PipeMinigame:
         self.time_left -= delta_time
 
     def draw(self) -> None:
-        arcade.draw_lrbt_rectangle_filled(100, 700, 100, 500, (34, 31, 38))
-        arcade.draw_lrbt_rectangle_outline(100, 700, 100, 500, arcade.color.WHITE, 3)
+        arcade.draw_lrbt_rectangle_filled(100, 700, 60, 470, (34, 31, 38))
+        arcade.draw_lrbt_rectangle_outline(100, 700, 60, 470, arcade.color.WHITE, 3)
 
-        arcade.draw_text("Patch the wall colors", 400, 475, arcade.color.GOLD, 18, anchor_x="center")
-        arcade.draw_text("Click each square to cycle its color until it matches the hidden wall pattern.", 400, 448, arcade.color.LIGHT_GRAY, 11, anchor_x="center", width=540, multiline=True)
-        arcade.draw_text("ESC returns you to the house.", 400, 425, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
-        arcade.draw_text(f"Time: {self.time_left:.1f}s", 400, 410, arcade.color.WHITE, 14, anchor_x="center")
-
-        # draw cracked wall behind the puzzle
-        arcade.draw_lrbt_rectangle_filled(155, 645, 145, 375, (71, 57, 49))
-        arcade.draw_lrbt_rectangle_outline(155, 645, 145, 375, arcade.color.BLACK, 2)
-        arcade.draw_line(175, 340, 205, 320, arcade.color.BLACK, 2)
-        arcade.draw_line(205, 320, 228, 294, arcade.color.BLACK, 2)
-        arcade.draw_line(228, 294, 255, 307, arcade.color.BLACK, 2)
-        arcade.draw_line(255, 307, 282, 281, arcade.color.BLACK, 2)
-        arcade.draw_line(282, 281, 312, 295, arcade.color.BLACK, 2)
-        arcade.draw_line(312, 295, 340, 268, arcade.color.BLACK, 2)
-        arcade.draw_line(340, 268, 371, 280, arcade.color.BLACK, 2)
-        arcade.draw_line(371, 280, 404, 252, arcade.color.BLACK, 2)
-        arcade.draw_line(404, 252, 438, 268, arcade.color.BLACK, 2)
-        arcade.draw_line(438, 268, 465, 244, arcade.color.BLACK, 2)
-        arcade.draw_line(465, 244, 496, 260, arcade.color.BLACK, 2)
-        arcade.draw_line(496, 260, 526, 232, arcade.color.BLACK, 2)
+        arcade.draw_text("Patch the wall colors", 400, 448, arcade.color.GOLD, 18, anchor_x="center")
+        arcade.draw_text("Click each square to cycle its color until it matches the hidden wall pattern.", 400, 424, arcade.color.LIGHT_GRAY, 11, anchor_x="center", width=540, multiline=True)
+        arcade.draw_text("ESC returns you to the house.", 400, 402, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_text(f"Time: {self.time_left:.1f}s", 400, 388, arcade.color.WHITE, 14, anchor_x="center")
 
         for (row, col), color in self.grid.items():
             px = self.start_x + col * self.cell_size
@@ -293,6 +277,9 @@ class PipeMinigame:
             arcade.draw_lrbt_rectangle_filled(px + 2, px + self.cell_size - 2, py + 2, py + self.cell_size - 2, color)
             arcade.draw_lrbt_rectangle_outline(px, px + self.cell_size, py, py + self.cell_size, border_color, 2)
             arcade.draw_circle_outline(px + self.cell_size / 2, py + self.cell_size / 2, 10, arcade.color.BLACK, 2)
+            if self.grid[(row, col)] != self.target_grid[(row, col)]:
+                arcade.draw_line(px + 12, py + 12, px + self.cell_size - 12, py + self.cell_size - 12, arcade.color.BLACK, 2)
+                arcade.draw_line(px + 12, py + self.cell_size - 12, px + self.cell_size - 12, py + 12, arcade.color.BLACK, 2)
 
         if self.completed:
             arcade.draw_text("WALL FIXED!", 400, 50, arcade.color.LIGHT_GREEN, 24, anchor_x="center")
@@ -2167,6 +2154,12 @@ class GameView(arcade.View):
             arcade.draw_line(245, 121, 305, 105, arcade.color.BLACK, 2)
             arcade.draw_line(305, 105, 358, 118, arcade.color.BLACK, 2)
             arcade.draw_line(460, 116, 520, 101, arcade.color.BLACK, 2)
+            arcade.draw_circle_filled(400, 296, 40, (54, 42, 36))
+            arcade.draw_circle_outline(400, 296, 40, arcade.color.BLACK, 2)
+            arcade.draw_circle_filled(400, 296, 32, (41, 33, 30))
+            arcade.draw_line(376, 278, 427, 315, arcade.color.BLACK, 2)
+            arcade.draw_line(374, 308, 423, 272, arcade.color.BLACK, 2)
+            arcade.draw_line(388, 292, 413, 292, arcade.color.BLACK, 2)
 
 
         if self.screen == "visit":
