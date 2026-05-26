@@ -2534,7 +2534,6 @@ class GameView(arcade.View):
         arcade.draw_text(f"Riddles: {self.name_riddle_progress.upper() or '-'}", 390, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
-        arcade.draw_text(self.friend_action_hint(), 610, 538, (156, 160, 166), 10, width=300, anchor_x="center", align="center")
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
