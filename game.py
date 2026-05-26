@@ -1179,7 +1179,7 @@ class GameView(arcade.View):
             if self.active_minigame is not None:
                 self.active_minigame = None
                 self.minigame_target_spot = None
-                self.message = "Mini-game closed."
+                self.message = "Mini-game closed. You are back in the house."
                 self.hint = "Pick another repair spot when you're ready."
                 return
             if self.menu_open:
