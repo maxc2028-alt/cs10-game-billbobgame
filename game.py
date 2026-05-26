@@ -648,6 +648,7 @@ class GameView(arcade.View):
         self.active_minigame = None  # None, PipeMinigame, or BlockBlastMinigame
         self.minigame_target_spot = None  # Which repair spot is being worked on
         self.minigame_return_screen = None
+        self.minigame_parent_screen = None
         self.configure_camera()
 
 
@@ -852,7 +853,25 @@ class GameView(arcade.View):
         if self.trash_spots:
             self.hint = "Keep cleaning trash, or visit another finished house."
         else:
-            self.hint = "Press F near the current door when you are ready to go inside."
+        self.hint = "Press F near the current door when you are ready to go inside."
+
+
+    def cancel_house_minigame(self) -> None:
+        """Close the active house mini-game and return to the house interior."""
+        self.active_minigame = None
+        self.minigame_target_spot = None
+        if self.minigame_parent_screen in {"repair", "visit"}:
+            self.screen = self.minigame_parent_screen
+        else:
+            self.screen = "visit" if self.interior_mode == "upgrade" else "repair"
+        self.minigame_parent_screen = None
+        self.minigame_return_screen = None
+        self.round_started = False
+        self.ball_x = 400.0
+        self.ball_y = 155.0
+        self.keys_down.clear()
+        self.message = "Mini-game closed. You are back in the house."
+        self.hint = "ESC returns you to the house. Pick another repair spot when you're ready."
 
 
     def finish_interior_repair(self) -> None:
