@@ -620,6 +620,8 @@ class GameView(arcade.View):
         self.game_over_ready = False
         self.show_instructions = False
         self.door_cooldown = 0.0
+        self.exit_spawn_x = 400.0
+        self.exit_spawn_y = 300.0
         # Infinite world state
         self.world_offset_x = 0  # Track camera position in world
         self.house_rng = random.Random(42)  # Seeded for consistent generation
@@ -767,6 +769,8 @@ class GameView(arcade.View):
             RepairSpot(250 + i * 100, 295 - (i % 2) * 100, label, color, cost)
             for i, (label, color, cost) in enumerate(base_repairs)
         ]
+        self.exit_spawn_x = self.ball_x
+        self.exit_spawn_y = self.ball_y
         self.time_left = QUEST_TIME
         self.inside_building = self.current_building
         self.screen = "repair"
@@ -780,6 +784,8 @@ class GameView(arcade.View):
 
     def visit_house(self, building_index: int) -> None:
         self.time_left = QUEST_TIME
+        self.exit_spawn_x = self.ball_x
+        self.exit_spawn_y = self.ball_y
         self.inside_building = building_index
         repaired = building_index in self.inside_repaired_buildings
         self.interior_mode = "upgrade" if repaired else "repair"
@@ -818,11 +824,8 @@ class GameView(arcade.View):
         self.minigame_target_spot = None
         self.keys_down.clear()
         self.door_cooldown = 0.9
-        house_index = self.inside_building if self.inside_building in BUILDING_POSITIONS else self.current_building
-        left, right, base_y = BUILDING_POSITIONS[house_index]
-        self.ball_x = left - 90
-        self.ball_y = base_y + 70
-        self.inside_building = house_index
+        self.ball_x = self.exit_spawn_x
+        self.ball_y = self.exit_spawn_y
         self.screen = "playing"
         self.round_started = True
         self.message = "You step back outside."
