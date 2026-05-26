@@ -2221,17 +2221,8 @@ class GameView(arcade.View):
                 continue
 
 
-            arcade.draw_circle_filled(spot.x, spot.y, spot.radius + 2, (76, 60, 52))
-            arcade.draw_circle_filled(spot.x, spot.y, spot.radius - 4, (44, 35, 31))
-            crack_y = spot.y - 18
-            arcade.draw_line(spot.x - 20, crack_y + 18, spot.x - 10, crack_y + 6, arcade.color.BLACK, 3)
-            arcade.draw_line(spot.x - 10, crack_y + 6, spot.x - 2, crack_y - 10, arcade.color.BLACK, 3)
-            arcade.draw_line(spot.x - 2, crack_y - 10, spot.x + 8, crack_y + 3, arcade.color.BLACK, 3)
-            arcade.draw_line(spot.x + 8, crack_y + 3, spot.x + 20, crack_y - 14, arcade.color.BLACK, 3)
-            arcade.draw_line(spot.x - 14, crack_y + 1, spot.x - 1, crack_y - 7, arcade.color.BLACK, 2)
-            arcade.draw_line(spot.x + 1, crack_y - 2, spot.x + 14, crack_y + 12, arcade.color.BLACK, 2)
-            arcade.draw_circle_outline(spot.x, spot.y, spot.radius, spot.color, 3)
-            arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 3, arcade.color.WHITE, 1)
+            arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 3, spot.color, 3)
+            arcade.draw_circle_outline(spot.x, spot.y, spot.radius, arcade.color.WHITE, 1)
             arcade.draw_text(
                 f"${spot.cost}",
                 spot.x,
