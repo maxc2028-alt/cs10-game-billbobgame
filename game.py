@@ -2154,12 +2154,13 @@ class GameView(arcade.View):
             arcade.draw_line(245, 121, 305, 105, arcade.color.BLACK, 2)
             arcade.draw_line(305, 105, 358, 118, arcade.color.BLACK, 2)
             arcade.draw_line(460, 116, 520, 101, arcade.color.BLACK, 2)
-            arcade.draw_circle_filled(400, 296, 40, (54, 42, 36))
-            arcade.draw_circle_outline(400, 296, 40, arcade.color.BLACK, 2)
-            arcade.draw_circle_filled(400, 296, 32, (41, 33, 30))
-            arcade.draw_line(376, 278, 427, 315, arcade.color.BLACK, 2)
-            arcade.draw_line(374, 308, 423, 272, arcade.color.BLACK, 2)
-            arcade.draw_line(388, 292, 413, 292, arcade.color.BLACK, 2)
+            arcade.draw_line(358, 284, 383, 266, arcade.color.BLACK, 2)
+            arcade.draw_line(383, 266, 405, 275, arcade.color.BLACK, 2)
+            arcade.draw_line(405, 275, 432, 252, arcade.color.BLACK, 2)
+            arcade.draw_line(432, 252, 461, 260, arcade.color.BLACK, 2)
+            arcade.draw_line(461, 260, 486, 238, arcade.color.BLACK, 2)
+            arcade.draw_line(392, 308, 414, 292, arcade.color.BLACK, 2)
+            arcade.draw_line(414, 292, 442, 298, arcade.color.BLACK, 2)
 
 
         if self.screen == "visit":
