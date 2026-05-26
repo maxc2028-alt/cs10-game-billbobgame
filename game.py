@@ -612,6 +612,7 @@ class GameView(arcade.View):
         self.name_guess = ""
         self.name_riddle_index = 0
         self.name_riddle_progress = ""
+        self.name_riddle_tries_left = 3
         self.unlocked_riddle_hints: list[str] = []
         self.quiz_question = QUIZ_OPTIONS[0]
         self.quiz_tries_left = 2
@@ -998,10 +999,26 @@ class GameView(arcade.View):
         self.name_guess = ""
         self.name_riddle_index = 0
         self.name_riddle_progress = ""
+        self.name_riddle_tries_left = 3
         self.unlocked_riddle_hints = []
         self.screen = "name_guess"
         self.message = f"Riddle 1 of 4 for {friend.name}."
-        self.hint = "Answer each riddle to reveal one letter. Four correct answers reveal the full name."
+        self.hint = "Answer each riddle to reveal one letter. Press ESC to cancel and go back."
+
+
+    def cancel_name_guess(self) -> None:
+        if self.guess_friend is None:
+            return
+
+        friend_name = self.guess_friend.name
+        self.guess_friend = None
+        self.name_guess = ""
+        self.name_riddle_index = 0
+        self.name_riddle_progress = ""
+        self.name_riddle_tries_left = 3
+        self.screen = "playing"
+        self.message = f"You stepped away from {friend_name}'s riddles."
+        self.hint = "You can talk to them again when you're ready."
 
 
     def submit_name_riddle(self) -> None:
@@ -1029,8 +1046,16 @@ class GameView(arcade.View):
             self.hint = f"Riddle {self.name_riddle_index + 1} of 4: {next_riddle['question']}"
             return
 
-        self.message = "That answer is not right."
-        self.hint = f"Try again: {riddle['question']}"
+        self.name_riddle_tries_left -= 1
+        self.name_guess = ""
+        if self.name_riddle_tries_left > 0:
+            self.message = f"Not quite. Tries left: {self.name_riddle_tries_left}."
+            self.hint = f"Try again: {riddle['question']}"
+            return
+
+        self.message = "Too many wrong answers. You can back out and try again later."
+        self.hint = "Press ESC to leave the riddle screen."
+        self.cancel_name_guess()
 
 
     def answer_quiz(self, answer_index: int) -> None:
@@ -1145,6 +1170,9 @@ class GameView(arcade.View):
                 return
             if key == arcade.key.BACKSPACE:
                 self.name_guess = self.name_guess[:-1]
+                return
+            if key == arcade.key.ESCAPE:
+                self.cancel_name_guess()
                 return
             return
 
