@@ -297,9 +297,9 @@ class PipeMinigame:
         arcade.draw_text("ESC returns you to the house.", 605, 304, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
         arcade.draw_text(f"Time: {self.time_left:.1f}s", 605, 276, arcade.color.WHITE, 14, anchor_x="center")
         if not self.started:
-            arcade.draw_lrbt_rectangle_filled(560, 650, 236, 276, (56, 74, 98))
-            arcade.draw_lrbt_rectangle_outline(560, 650, 236, 276, arcade.color.WHITE, 2)
-            arcade.draw_text("Start", 605, 256, arcade.color.WHITE, 16, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(560, 650, 210, 250, (56, 74, 98))
+            arcade.draw_lrbt_rectangle_outline(560, 650, 210, 250, arcade.color.WHITE, 2)
+            arcade.draw_text("Start", 605, 230, arcade.color.WHITE, 16, anchor_x="center")
 
         arcade.draw_lrbt_rectangle_outline(self.start_x - 4, self.start_x + self.grid_size * self.cell_size + 4, self.start_y - 4, self.start_y + self.grid_size * self.cell_size + 4, arcade.color.WHITE, 2)
         for (row, col), color in self.grid.items():
