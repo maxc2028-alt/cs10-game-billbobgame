@@ -2220,9 +2220,7 @@ class GameView(arcade.View):
                 arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 1, wall_color, 2)
                 continue
 
-
-            arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 3, spot.color, 3)
-            arcade.draw_circle_outline(spot.x, spot.y, spot.radius, arcade.color.WHITE, 1)
+            # Keep the wall visually clean; the spot is still clickable, but we don't draw a marker.
             arcade.draw_text(
                 f"${spot.cost}",
                 spot.x,
