@@ -860,10 +860,6 @@ class GameView(arcade.View):
         """Close the active house mini-game and return to the house interior."""
         self.active_minigame = None
         self.minigame_target_spot = None
-        if self.minigame_parent_screen in {"repair", "visit"}:
-            self.screen = self.minigame_parent_screen
-        else:
-            self.screen = "visit" if self.interior_mode == "upgrade" else "repair"
         self.minigame_parent_screen = None
         self.minigame_return_screen = None
         self.round_started = False
