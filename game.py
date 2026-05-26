@@ -2501,6 +2501,10 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(bar_left, filled, bar_bottom, bar_top, (174, 151, 82))
         arcade.draw_lrbt_rectangle_outline(bar_left, bar_right, bar_bottom, bar_top, (126, 132, 142))
 
+        arcade.draw_lrbt_rectangle_filled(105, 695, 16, 50, (14, 17, 24))
+        arcade.draw_lrbt_rectangle_outline(105, 695, 16, 50, (126, 132, 142))
+        arcade.draw_text(self.message, 122, 29, (117, 147, 135), 11, width=552)
+
         arcade.draw_circle_filled(28, 35, 17, (14, 17, 24))
         arcade.draw_circle_outline(28, 35, 17, (222, 222, 214), 2)
         arcade.draw_text("?", 28, 25, (222, 222, 214), 18, anchor_x="center")
