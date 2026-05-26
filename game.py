@@ -813,6 +813,9 @@ class GameView(arcade.View):
     def leave_house(self) -> None:
         if self.menu_open:
             return
+        self.active_minigame = None
+        self.minigame_target_spot = None
+        self.keys_down.clear()
         left, right, base_y = BUILDING_POSITIONS[self.inside_building]
         self.ball_x = (left + right) / 2
         self.ball_y = base_y + 35
