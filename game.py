@@ -211,8 +211,8 @@ class PipeMinigame:
         self.difficulty = min(difficulty, 3)
         self.grid_size = 3 + self.difficulty
         self.cell_size = 76
-        self.start_x = 150
-        self.start_y = 150
+        self.start_x = 133
+        self.start_y = 128
         self.colors = [
             (176, 106, 82),
             (96, 147, 196),
@@ -236,15 +236,20 @@ class PipeMinigame:
 
     def click_pipe(self, x: float, y: float) -> None:
         """Handle a color tile click to cycle it forward."""
-        for (row, col), color in self.grid.items():
-            px = 133 + col * self.cell_size
-            py = 128 + row * self.cell_size
+        col = int((x - self.start_x) / self.cell_size)
+        row = int((y - self.start_y) / self.cell_size)
+        if not (0 <= row < self.grid_size and 0 <= col < self.grid_size):
+            return
 
-            if px - 8 <= x <= px + self.cell_size + 8 and py - 8 <= y <= py + self.cell_size + 8:
-                current_index = self.colors.index(color)
-                self.grid[(row, col)] = self.colors[(current_index + 1) % len(self.colors)]
-                self.check_completion()
-                break
+        px = self.start_x + col * self.cell_size
+        py = self.start_y + row * self.cell_size
+        if not (px - 6 <= x <= px + self.cell_size + 6 and py - 6 <= y <= py + self.cell_size + 6):
+            return
+
+        color = self.grid[(row, col)]
+        current_index = self.colors.index(color)
+        self.grid[(row, col)] = self.colors[(current_index + 1) % len(self.colors)]
+        self.check_completion()
 
     def check_completion(self) -> bool:
         """Check if the current grid matches the single target color."""
@@ -280,10 +285,10 @@ class PipeMinigame:
         arcade.draw_text("ESC returns you to the house.", 605, 304, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
         arcade.draw_text(f"Time: {self.time_left:.1f}s", 605, 276, arcade.color.WHITE, 14, anchor_x="center")
 
-        arcade.draw_lrbt_rectangle_outline(130, 130 + self.grid_size * self.cell_size, 125, 125 + self.grid_size * self.cell_size, arcade.color.WHITE, 2)
+        arcade.draw_lrbt_rectangle_outline(self.start_x - 4, self.start_x + self.grid_size * self.cell_size + 4, self.start_y - 4, self.start_y + self.grid_size * self.cell_size + 4, arcade.color.WHITE, 2)
         for (row, col), color in self.grid.items():
-            px = 133 + col * self.cell_size
-            py = 128 + row * self.cell_size
+            px = self.start_x + col * self.cell_size
+            py = self.start_y + row * self.cell_size
 
             border_color = arcade.color.GOLD if self.grid[(row, col)] == self.target_color else arcade.color.DARK_GRAY
             arcade.draw_lrbt_rectangle_filled(px + 2, px + self.cell_size - 2, py + 2, py + self.cell_size - 2, color)
