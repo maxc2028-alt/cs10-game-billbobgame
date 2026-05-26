@@ -1455,6 +1455,8 @@ class GameView(arcade.View):
             for spot in self.repair_spots:
                 if spot.fixed:
                     continue
+                if (self.ball_x - spot.x) ** 2 + (self.ball_y - spot.y) ** 2 > (spot.radius + 18) ** 2:
+                    continue
                 if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= spot.radius ** 2:
                     is_final_repair = all(repair.fixed or repair is spot for repair in self.repair_spots)
                     if is_final_repair and not self.can_finish_current_house():
@@ -1485,6 +1487,8 @@ class GameView(arcade.View):
         if self.screen == "visit":
             for spot in self.interior_spots:
                 if spot.fixed:
+                    continue
+                if (self.ball_x - spot.x) ** 2 + (self.ball_y - spot.y) ** 2 > (spot.radius + 18) ** 2:
                     continue
                 if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= spot.radius ** 2:
                     try:
