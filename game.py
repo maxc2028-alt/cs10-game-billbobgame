@@ -237,8 +237,8 @@ class PipeMinigame:
     def click_pipe(self, x: float, y: float) -> None:
         """Handle a color tile click to cycle it forward."""
         for (row, col), color in self.grid.items():
-            px = 113 + col * self.cell_size
-            py = 143 + row * self.cell_size
+            px = 133 + col * self.cell_size
+            py = 128 + row * self.cell_size
 
             if px - 3 <= x <= px + self.cell_size + 3 and py - 3 <= y <= py + self.cell_size + 3:
                 current_index = self.colors.index(color)
@@ -280,10 +280,10 @@ class PipeMinigame:
         arcade.draw_text("ESC returns you to the house.", 605, 304, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
         arcade.draw_text(f"Time: {self.time_left:.1f}s", 605, 276, arcade.color.WHITE, 14, anchor_x="center")
 
-        arcade.draw_lrbt_rectangle_outline(110, 110 + self.grid_size * self.cell_size, 140, 140 + self.grid_size * self.cell_size, arcade.color.WHITE, 2)
+        arcade.draw_lrbt_rectangle_outline(130, 130 + self.grid_size * self.cell_size, 125, 125 + self.grid_size * self.cell_size, arcade.color.WHITE, 2)
         for (row, col), color in self.grid.items():
-            px = 113 + col * self.cell_size
-            py = 143 + row * self.cell_size
+            px = 133 + col * self.cell_size
+            py = 128 + row * self.cell_size
 
             border_color = arcade.color.GOLD if self.grid[(row, col)] == self.target_color else arcade.color.DARK_GRAY
             arcade.draw_lrbt_rectangle_filled(px + 2, px + self.cell_size - 2, py + 2, py + self.cell_size - 2, color)
