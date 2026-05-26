@@ -224,6 +224,7 @@ class PipeMinigame:
         self.grid = self._generate_grid()
         self.time_left = 35
         self.completed = False
+        self.started = False
 
     def _generate_grid(self) -> dict:
         """Generate a scrambled starting pattern that can be cycled to one target color."""
@@ -236,6 +237,13 @@ class PipeMinigame:
 
     def click_pipe(self, x: float, y: float) -> None:
         """Handle a color tile click to cycle it forward."""
+        if not self.started:
+            start_left, start_right = 570, 640
+            start_bottom, start_top = 228, 262
+            if start_left <= x <= start_right and start_bottom <= y <= start_top:
+                self.started = True
+            return
+
         col = max(0, min(self.grid_size - 1, int((x - self.start_x) / self.cell_size)))
         nearest_row = int(round((y - self.start_y - self.cell_size / 2) / self.cell_size))
         row = max(0, min(self.grid_size - 1, nearest_row))
@@ -262,7 +270,8 @@ class PipeMinigame:
         return False
 
     def update(self, delta_time: float) -> None:
-        self.time_left -= delta_time
+        if self.started:
+            self.time_left -= delta_time
 
     def draw(self) -> None:
         arcade.draw_lrbt_rectangle_filled(100, 700, 60, 470, (34, 31, 38))
@@ -275,7 +284,7 @@ class PipeMinigame:
         arcade.draw_circle_filled(605, 394, 10, self.target_color)
         arcade.draw_circle_outline(605, 394, 10, arcade.color.BLACK, 1)
         arcade.draw_text(
-            "Click the left grid until every square matches this color.",
+            "Press Start, then click the left grid until every square matches this color.",
             605,
             370,
             arcade.color.LIGHT_GRAY,
@@ -287,6 +296,11 @@ class PipeMinigame:
         )
         arcade.draw_text("ESC returns you to the house.", 605, 304, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
         arcade.draw_text(f"Time: {self.time_left:.1f}s", 605, 276, arcade.color.WHITE, 14, anchor_x="center")
+        if not self.started:
+            arcade.draw_lrbt_rectangle_filled(570, 640, 228, 262, (56, 74, 98))
+            arcade.draw_lrbt_rectangle_outline(570, 640, 228, 262, arcade.color.WHITE, 2)
+            arcade.draw_text("Start", 605, 243, arcade.color.WHITE, 16, anchor_x="center")
+            arcade.draw_text("Click to begin", 605, 220, arcade.color.LIGHT_GRAY, 9, anchor_x="center")
 
         arcade.draw_lrbt_rectangle_outline(self.start_x - 4, self.start_x + self.grid_size * self.cell_size + 4, self.start_y - 4, self.start_y + self.grid_size * self.cell_size + 4, arcade.color.WHITE, 2)
         for (row, col), color in self.grid.items():
