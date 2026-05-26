@@ -206,52 +206,53 @@ class RepairSpot:
 
 
 class PipeMinigame:
-    """Pipe connection puzzle - rotate pipes to connect them."""
+    """Color rotation puzzle - cycle wall patch colors to match the target."""
     def __init__(self, difficulty: int = 1) -> None:
         self.difficulty = min(difficulty, 3)
-        self.grid_size = 3 + self.difficulty  # 4x4 to 6x6, capped by difficulty
-        self.cell_size = 80
+        self.grid_size = 3 + self.difficulty
+        self.cell_size = 76
         self.start_x = 150
         self.start_y = 150
-        self.pipes, self.solution = self._generate_pipes()
-        self.selected_pipe = None
+        self.colors = [
+            (176, 106, 82),
+            (96, 147, 196),
+            (146, 182, 96),
+            (214, 173, 89),
+            (157, 118, 178),
+        ]
+        self.target_grid, self.grid = self._generate_grids()
         self.time_left = 35
         self.completed = False
 
-    def _generate_pipes(self) -> tuple[dict, dict]:
-        """Generate a solvable pipe grid with a matching solution rotation for each cell."""
-        pipes = {}
-        solution = {}
+    def _generate_grids(self) -> tuple[dict, dict]:
+        """Generate a target wall pattern and a scrambled starting pattern."""
+        target_grid = {}
+        grid = {}
         for row in range(self.grid_size):
             for col in range(self.grid_size):
                 rng = random.Random(f"pipe_{row}_{col}_{self.difficulty}")
-                if row == 0 or row == self.grid_size - 1 or col == 0 or col == self.grid_size - 1:
-                    pipe_type = rng.choice(["horizontal", "vertical", "turn_90"])
-                else:
-                    pipe_type = rng.choice(["horizontal", "vertical", "turn_90", "t_junction"])
+                target = rng.choice(self.colors)
+                target_grid[(row, col)] = target
+                rotations = rng.randint(0, len(self.colors) - 1)
+                grid[(row, col)] = self.colors[(self.colors.index(target) + rotations) % len(self.colors)]
 
-                answer_rotation = rng.choice([0, 90, 180, 270])
-                scrambled_rotation = (answer_rotation + rng.choice([90, 180, 270])) % 360
-                pipes[(row, col)] = {"type": pipe_type, "rotation": scrambled_rotation}
-                solution[(row, col)] = answer_rotation
-
-        return pipes, solution
+        return target_grid, grid
 
     def click_pipe(self, x: float, y: float) -> None:
-        """Handle pipe click to rotate it."""
-        for (row, col), pipe in self.pipes.items():
-            px = self.start_x + col * self.cell_size + self.cell_size // 2
-            py = self.start_y + row * self.cell_size + self.cell_size // 2
+        """Handle a color tile click to cycle it forward."""
+        for (row, col), color in self.grid.items():
+            px = self.start_x + col * self.cell_size
+            py = self.start_y + row * self.cell_size
 
-            if abs(x - px) < self.cell_size // 2 and abs(y - py) < self.cell_size // 2:
-                pipe["rotation"] = (pipe["rotation"] + 90) % 360
-                self.selected_pipe = (row, col)
+            if px <= x <= px + self.cell_size and py <= y <= py + self.cell_size:
+                current_index = self.colors.index(color)
+                self.grid[(row, col)] = self.colors[(current_index + 1) % len(self.colors)]
                 self.check_completion()
                 break
 
     def check_completion(self) -> bool:
-        """Check if all pipes match their hidden solution rotation."""
-        if all(pipe["rotation"] == self.solution[pos] for pos, pipe in self.pipes.items()):
+        """Check if the current color grid matches the target wall pattern."""
+        if all(self.grid[pos] == self.target_grid[pos] for pos in self.grid):
             self.completed = True
             return True
         return False
@@ -260,41 +261,41 @@ class PipeMinigame:
         self.time_left -= delta_time
 
     def draw(self) -> None:
-        arcade.draw_lrbt_rectangle_filled(100, 700, 100, 500, (30, 30, 40))
+        arcade.draw_lrbt_rectangle_filled(100, 700, 100, 500, (34, 31, 38))
         arcade.draw_lrbt_rectangle_outline(100, 700, 100, 500, arcade.color.WHITE, 3)
 
-        arcade.draw_text("Connect the pipes!", 400, 475, arcade.color.GOLD, 18, anchor_x="center")
-        arcade.draw_text("Click a pipe to rotate it. Make all pipes turn once to win.", 400, 448, arcade.color.LIGHT_GRAY, 11, anchor_x="center", width=520, multiline=True)
+        arcade.draw_text("Patch the wall colors", 400, 475, arcade.color.GOLD, 18, anchor_x="center")
+        arcade.draw_text("Click each square to cycle its color until it matches the hidden wall pattern.", 400, 448, arcade.color.LIGHT_GRAY, 11, anchor_x="center", width=540, multiline=True)
         arcade.draw_text("ESC returns you to the house.", 400, 425, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
         arcade.draw_text(f"Time: {self.time_left:.1f}s", 400, 410, arcade.color.WHITE, 14, anchor_x="center")
 
-        for (row, col), pipe in self.pipes.items():
+        # draw cracked wall behind the puzzle
+        arcade.draw_lrbt_rectangle_filled(155, 645, 145, 375, (71, 57, 49))
+        arcade.draw_lrbt_rectangle_outline(155, 645, 145, 375, arcade.color.BLACK, 2)
+        arcade.draw_line(175, 340, 205, 320, arcade.color.BLACK, 2)
+        arcade.draw_line(205, 320, 228, 294, arcade.color.BLACK, 2)
+        arcade.draw_line(228, 294, 255, 307, arcade.color.BLACK, 2)
+        arcade.draw_line(255, 307, 282, 281, arcade.color.BLACK, 2)
+        arcade.draw_line(282, 281, 312, 295, arcade.color.BLACK, 2)
+        arcade.draw_line(312, 295, 340, 268, arcade.color.BLACK, 2)
+        arcade.draw_line(340, 268, 371, 280, arcade.color.BLACK, 2)
+        arcade.draw_line(371, 280, 404, 252, arcade.color.BLACK, 2)
+        arcade.draw_line(404, 252, 438, 268, arcade.color.BLACK, 2)
+        arcade.draw_line(438, 268, 465, 244, arcade.color.BLACK, 2)
+        arcade.draw_line(465, 244, 496, 260, arcade.color.BLACK, 2)
+        arcade.draw_line(496, 260, 526, 232, arcade.color.BLACK, 2)
+
+        for (row, col), color in self.grid.items():
             px = self.start_x + col * self.cell_size
             py = self.start_y + row * self.cell_size
 
-            arcade.draw_lrbt_rectangle_outline(px, px + self.cell_size, py, py + self.cell_size, arcade.color.DARK_GRAY, 2)
-
-            # Draw pipe based on type
-            cx = px + self.cell_size // 2
-            cy = py + self.cell_size // 2
-
-            if pipe["type"] == "horizontal":
-                arcade.draw_lrbt_rectangle_filled(px + 15, px + 65, cy - 8, cy + 8, (150, 100, 80))
-            elif pipe["type"] == "vertical":
-                arcade.draw_lrbt_rectangle_filled(cx - 8, cx + 8, py + 15, py + 65, (150, 100, 80))
-            elif pipe["type"] == "turn_90":
-                arcade.draw_lrbt_rectangle_filled(px + 15, cx + 8, cy - 8, cy + 8, (150, 100, 80))
-                arcade.draw_lrbt_rectangle_filled(cx - 8, cx + 8, cy - 8, py + 15, (150, 100, 80))
-            elif pipe["type"] == "t_junction":
-                arcade.draw_lrbt_rectangle_filled(px + 15, px + 65, cy - 8, cy + 8, (150, 100, 80))
-                arcade.draw_lrbt_rectangle_filled(cx - 8, cx + 8, cy - 8, py + 15, (150, 100, 80))
-
-            # Highlight selected
-            if self.selected_pipe == (row, col):
-                arcade.draw_lrbt_rectangle_outline(px, px + self.cell_size, py, py + self.cell_size, arcade.color.GOLD, 3)
+            border_color = arcade.color.GOLD if self.grid[(row, col)] == self.target_grid[(row, col)] else arcade.color.DARK_GRAY
+            arcade.draw_lrbt_rectangle_filled(px + 2, px + self.cell_size - 2, py + 2, py + self.cell_size - 2, color)
+            arcade.draw_lrbt_rectangle_outline(px, px + self.cell_size, py, py + self.cell_size, border_color, 2)
+            arcade.draw_circle_outline(px + self.cell_size / 2, py + self.cell_size / 2, 10, arcade.color.BLACK, 2)
 
         if self.completed:
-            arcade.draw_text("SUCCESS!", 400, 50, arcade.color.LIGHT_GREEN, 24, anchor_x="center")
+            arcade.draw_text("WALL FIXED!", 400, 50, arcade.color.LIGHT_GREEN, 24, anchor_x="center")
 
 
 class BlockBlastMinigame:
@@ -1462,14 +1463,8 @@ class GameView(arcade.View):
                     repair_type = spot.label.lower()
 
                     # Choose mini-game based on repair type
-                    if "pipe" in repair_type or "floor" in repair_type or "window" in repair_type:
-                        self.active_minigame = PipeMinigame(difficulty=self.current_building // 5 + 1)
-                        self.message = "Rotate the pipes to connect them!"
-                    elif "wall" in repair_type or "block" in repair_type or "ceiling" in repair_type:
-                        self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
-                        self.message = "Match and clear the blocks!"
-                    else:
-                        self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
+                    self.active_minigame = PipeMinigame(difficulty=self.current_building // 5 + 1)
+                    self.message = "Match the wall colors to repair the hole!"
 
                     self.hint = "Complete the mini-game to finish this repair!"
                     return
@@ -1491,8 +1486,8 @@ class GameView(arcade.View):
                         self.minigame_target_spot = spot
                         self.minigame_return_screen = "visit"
                         self.minigame_parent_screen = "visit"
-                        self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
-                        self.message = "Match the blocks to decorate!"
+                        self.active_minigame = PipeMinigame(difficulty=self.current_building // 5 + 1)
+                        self.message = "Match the wall colors to repair the inside!"
                         self.hint = "Complete the mini-game to finish this upgrade!"
                         return
                     except Exception as exc:
@@ -2193,12 +2188,29 @@ class GameView(arcade.View):
         interior_spots = self.interior_spots if self.screen == "visit" else self.repair_spots
         for spot in interior_spots:
             if spot.fixed:
+                arcade.draw_circle_filled(spot.x, spot.y, 17, (194, 191, 177))
                 arcade.draw_circle_outline(spot.x, spot.y, 17, arcade.color.DARK_SEA_GREEN, 3)
+                arcade.draw_line(spot.x - 8, spot.y - 5, spot.x + 7, spot.y + 5, arcade.color.BLACK, 2)
+                arcade.draw_line(spot.x - 7, spot.y + 4, spot.x + 8, spot.y - 5, arcade.color.BLACK, 2)
                 arcade.draw_text("fixed", spot.x, spot.y - 5, arcade.color.WHITE, 8, anchor_x="center")
                 continue
 
 
-            arcade.draw_circle_outline(spot.x, spot.y, spot.radius, spot.color, 4)
+            arcade.draw_circle_filled(spot.x, spot.y, spot.radius + 2, (76, 60, 52))
+            arcade.draw_circle_filled(spot.x, spot.y, spot.radius - 4, (44, 35, 31))
+            arcade.draw_polygon_filled(
+                [
+                    (spot.x - 11, spot.y - 4),
+                    (spot.x - 5, spot.y - 13),
+                    (spot.x + 5, spot.y - 12),
+                    (spot.x + 12, spot.y - 2),
+                    (spot.x + 8, spot.y + 10),
+                    (spot.x - 5, spot.y + 12),
+                    (spot.x - 13, spot.y + 4),
+                ],
+                (58, 46, 40),
+            )
+            arcade.draw_circle_outline(spot.x, spot.y, spot.radius, spot.color, 3)
             arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 3, arcade.color.WHITE, 1)
             arcade.draw_text(
                 f"${spot.cost}",
