@@ -817,10 +817,10 @@ class GameView(arcade.View):
         self.active_minigame = None
         self.minigame_target_spot = None
         self.keys_down.clear()
-        self.door_cooldown = 0.35
+        self.door_cooldown = 0.9
         left, right, base_y = BUILDING_POSITIONS[self.inside_building]
-        self.ball_x = (left + right) / 2
-        self.ball_y = base_y + 35
+        self.ball_x = left - 70
+        self.ball_y = base_y + 55
         self.screen = "playing"
         self.round_started = True
         self.message = "You step back outside."
