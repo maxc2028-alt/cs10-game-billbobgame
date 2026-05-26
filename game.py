@@ -220,23 +220,19 @@ class PipeMinigame:
             (214, 173, 89),
             (157, 118, 178),
         ]
-        self.target_grid, self.grid = self._generate_grids()
+        self.target_color = random.choice(self.colors)
+        self.grid = self._generate_grid()
         self.time_left = 35
         self.completed = False
 
-    def _generate_grids(self) -> tuple[dict, dict]:
-        """Generate a target wall pattern and a scrambled starting pattern."""
-        target_grid = {}
+    def _generate_grid(self) -> dict:
+        """Generate a scrambled starting pattern that can be cycled to one target color."""
         grid = {}
         for row in range(self.grid_size):
             for col in range(self.grid_size):
                 rng = random.Random(f"pipe_{row}_{col}_{self.difficulty}")
-                target = rng.choice(self.colors)
-                target_grid[(row, col)] = target
-                rotations = rng.randint(0, len(self.colors) - 1)
-                grid[(row, col)] = self.colors[(self.colors.index(target) + rotations) % len(self.colors)]
-
-        return target_grid, grid
+                grid[(row, col)] = rng.choice(self.colors)
+        return grid
 
     def click_pipe(self, x: float, y: float) -> None:
         """Handle a color tile click to cycle it forward."""
@@ -251,8 +247,8 @@ class PipeMinigame:
                 break
 
     def check_completion(self) -> bool:
-        """Check if the current color grid matches the target wall pattern."""
-        if all(self.grid[pos] == self.target_grid[pos] for pos in self.grid):
+        """Check if the current grid matches the single target color."""
+        if all(color == self.target_color for color in self.grid.values()):
             self.completed = True
             return True
         return False
@@ -267,13 +263,11 @@ class PipeMinigame:
         # Right-side instruction panel
         arcade.draw_lrbt_rectangle_filled(520, 690, 80, 450, (24, 22, 30))
         arcade.draw_lrbt_rectangle_outline(520, 690, 80, 450, arcade.color.WHITE, 2)
-        arcade.draw_text("Target colors", 605, 434, arcade.color.GOLD, 18, anchor_x="center")
-        for index, color in enumerate(self.colors):
-            swatch_x = 565 + index * 20
-            arcade.draw_circle_filled(swatch_x, 414, 7, color)
-            arcade.draw_circle_outline(swatch_x, 414, 7, arcade.color.BLACK, 1)
+        arcade.draw_text("Target color", 605, 434, arcade.color.GOLD, 18, anchor_x="center")
+        arcade.draw_circle_filled(605, 412, 10, self.target_color)
+        arcade.draw_circle_outline(605, 412, 10, arcade.color.BLACK, 1)
         arcade.draw_text(
-            "Click each square to cycle until it matches the color pattern.",
+            "Click each square until it matches this color.",
             605,
             392,
             arcade.color.LIGHT_GRAY,
@@ -290,11 +284,11 @@ class PipeMinigame:
             px = 125 + col * self.cell_size
             py = self.start_y + row * self.cell_size
 
-            border_color = arcade.color.GOLD if self.grid[(row, col)] == self.target_grid[(row, col)] else arcade.color.DARK_GRAY
+            border_color = arcade.color.GOLD if self.grid[(row, col)] == self.target_color else arcade.color.DARK_GRAY
             arcade.draw_lrbt_rectangle_filled(px + 2, px + self.cell_size - 2, py + 2, py + self.cell_size - 2, color)
             arcade.draw_lrbt_rectangle_outline(px, px + self.cell_size, py, py + self.cell_size, border_color, 2)
             arcade.draw_circle_outline(px + self.cell_size / 2, py + self.cell_size / 2, 10, arcade.color.BLACK, 2)
-            if self.grid[(row, col)] != self.target_grid[(row, col)]:
+            if self.grid[(row, col)] != self.target_color:
                 arcade.draw_line(px + 12, py + 12, px + self.cell_size - 12, py + self.cell_size - 12, arcade.color.BLACK, 2)
                 arcade.draw_line(px + 12, py + self.cell_size - 12, px + self.cell_size - 12, py + 12, arcade.color.BLACK, 2)
 
@@ -2007,7 +2001,6 @@ class GameView(arcade.View):
             )
 
         self.draw_ball()
-        self.draw_clouds()
 
 
     def draw_building_decay(self, left: float, right: float, base_y: float, height: float) -> None:
