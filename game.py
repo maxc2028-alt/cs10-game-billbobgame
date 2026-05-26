@@ -1377,9 +1377,6 @@ class GameView(arcade.View):
             self.show_instructions = not self.show_instructions
             return
 
-        if screen_y >= 492:
-            return
-
         # Handle mini-game clicks
         if self.active_minigame is not None:
             self.active_minigame.click_pipe(x, y) if isinstance(self.active_minigame, PipeMinigame) else self.active_minigame.click_block(x, y)
@@ -1409,6 +1406,9 @@ class GameView(arcade.View):
                     else:
                         self.finish_interior_upgrade()
 
+            return
+
+        if screen_y >= 492:
             return
 
 
