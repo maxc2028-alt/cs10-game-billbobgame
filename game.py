@@ -1181,8 +1181,9 @@ class GameView(arcade.View):
             if self.active_minigame is not None:
                 self.active_minigame = None
                 self.minigame_target_spot = None
-                if self.minigame_return_screen in {"repair", "visit"}:
-                    self.screen = self.minigame_return_screen
+                self.screen = "visit" if self.interior_mode == "upgrade" else "repair"
+                if self.screen == "visit" and not self.interior_spots:
+                    self.screen = "repair"
                 self.minigame_return_screen = None
                 self.message = "Mini-game closed. You are back in the house."
                 self.hint = "Pick another repair spot when you're ready."
