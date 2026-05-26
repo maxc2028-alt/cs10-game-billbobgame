@@ -1465,6 +1465,7 @@ class GameView(arcade.View):
                     # Choose mini-game based on repair type
                     self.active_minigame = PipeMinigame(difficulty=self.current_building // 5 + 1)
                     self.message = "Match the wall colors to repair the hole!"
+                    self.hint = "Click any tile to cycle its color until the whole patch matches."
 
                     self.hint = "Complete the mini-game to finish this repair!"
                     return
@@ -1488,7 +1489,7 @@ class GameView(arcade.View):
                         self.minigame_parent_screen = "visit"
                         self.active_minigame = PipeMinigame(difficulty=self.current_building // 5 + 1)
                         self.message = "Match the wall colors to repair the inside!"
-                        self.hint = "Complete the mini-game to finish this upgrade!"
+                        self.hint = "Click any tile to cycle its color until the whole patch matches."
                         return
                     except Exception as exc:
                         self.active_minigame = None
