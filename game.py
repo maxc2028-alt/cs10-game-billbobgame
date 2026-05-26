@@ -265,7 +265,7 @@ class PipeMinigame:
 
         arcade.draw_text("Connect the pipes!", 400, 475, arcade.color.GOLD, 18, anchor_x="center")
         arcade.draw_text("Click a pipe to rotate it. Make all pipes turn once to win.", 400, 448, arcade.color.LIGHT_GRAY, 11, anchor_x="center", width=520, multiline=True)
-        arcade.draw_text("ESC closes this mini-game.", 400, 425, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_text("ESC returns you to the house.", 400, 425, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
         arcade.draw_text(f"Time: {self.time_left:.1f}s", 400, 410, arcade.color.WHITE, 14, anchor_x="center")
 
         for (row, col), pipe in self.pipes.items():
@@ -392,7 +392,7 @@ class BlockBlastMinigame:
 
         arcade.draw_text("Clear the blocks!", 400, 475, arcade.color.GOLD, 18, anchor_x="center")
         arcade.draw_text("Click a group of 2 or more matching colors to clear them.", 400, 448, arcade.color.LIGHT_GRAY, 11, anchor_x="center", width=520, multiline=True)
-        arcade.draw_text("ESC closes this mini-game.", 400, 425, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_text("ESC returns you to the house.", 400, 425, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
         arcade.draw_text(f"Score: {self.score} | Time: {self.time_left:.1f}s", 400, 410, arcade.color.WHITE, 12, anchor_x="center")
 
         for (row, col), block in self.grid.items():
@@ -1182,11 +1182,9 @@ class GameView(arcade.View):
                 self.active_minigame = None
                 self.minigame_target_spot = None
                 self.screen = "visit" if self.interior_mode == "upgrade" else "repair"
-                if self.screen == "visit" and not self.interior_spots:
-                    self.screen = "repair"
                 self.minigame_return_screen = None
                 self.message = "Mini-game closed. You are back in the house."
-                self.hint = "Pick another repair spot when you're ready."
+                self.hint = "ESC returns you to the house. Pick another repair spot when you're ready."
                 return
             if self.menu_open:
                 self.menu_open = False
