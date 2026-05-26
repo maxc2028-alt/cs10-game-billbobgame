@@ -212,7 +212,7 @@ class PipeMinigame:
         self.grid_size = 3 + self.difficulty
         self.cell_size = 76
         self.start_x = 133
-        self.start_y = 128
+        self.start_y = 110
         self.colors = [
             (176, 106, 82),
             (96, 147, 196),
