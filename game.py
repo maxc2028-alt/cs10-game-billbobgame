@@ -2220,7 +2220,14 @@ class GameView(arcade.View):
                 arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 1, wall_color, 2)
                 continue
 
-            # Keep the wall visually clean; the spot is still clickable, but we don't draw a marker.
+            arcade.draw_circle_filled(spot.x, spot.y, spot.radius + 2, (76, 60, 52))
+            crack_y = spot.y - 18
+            arcade.draw_line(spot.x - 20, crack_y + 18, spot.x - 10, crack_y + 6, arcade.color.BLACK, 3)
+            arcade.draw_line(spot.x - 10, crack_y + 6, spot.x - 2, crack_y - 10, arcade.color.BLACK, 3)
+            arcade.draw_line(spot.x - 2, crack_y - 10, spot.x + 8, crack_y + 3, arcade.color.BLACK, 3)
+            arcade.draw_line(spot.x + 8, crack_y + 3, spot.x + 20, crack_y - 14, arcade.color.BLACK, 3)
+            arcade.draw_line(spot.x - 14, crack_y + 1, spot.x - 1, crack_y - 7, arcade.color.BLACK, 2)
+            arcade.draw_line(spot.x + 1, crack_y - 2, spot.x + 14, crack_y + 12, arcade.color.BLACK, 2)
             arcade.draw_text(
                 f"${spot.cost}",
                 spot.x,
