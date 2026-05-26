@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import random
 import math
+import traceback
 
 
 import arcade
@@ -1629,62 +1630,69 @@ class GameView(arcade.View):
 
 
     def on_update(self, delta_time: float) -> None:
-        self.sky_time += delta_time
+        try:
+            self.sky_time += delta_time
 
-        if self.menu_open and self.screen not in {"intro", "countdown"}:
-            return
+            if self.menu_open and self.screen not in {"intro", "countdown"}:
+                return
 
-        # Handle mini-game updates
-        if self.active_minigame is not None:
-            self.active_minigame.update(delta_time)
+            # Handle mini-game updates
+            if self.active_minigame is not None:
+                self.active_minigame.update(delta_time)
 
-            # Check if mini-game timed out
-            if self.active_minigame.time_left <= 0:
-                self.message = "Time's up! Try again."
-                self.hint = "Click on another repair to attempt a different mini-game."
-                self.active_minigame = None
-                self.minigame_target_spot = None
-            return
+                # Check if mini-game timed out
+                if self.active_minigame.time_left <= 0:
+                    self.message = "Time's up! Try again."
+                    self.hint = "Click on another repair to attempt a different mini-game."
+                    self.active_minigame = None
+                    self.minigame_target_spot = None
+                return
 
-        if self.screen == "intro":
-            self.intro_time += delta_time
-            self.intro_walk_x += 55 * delta_time
-            if self.intro_walk_x > 285:
-                self.intro_walk_x = 285
-            return
-
-
-        if self.screen == "countdown":
-            self.intro_time += delta_time
-            self.start_countdown -= delta_time
-            if self.start_countdown <= 0:
-                self.start_countdown = 0
-                self.reset_round()
-            return
+            if self.screen == "intro":
+                self.intro_time += delta_time
+                self.intro_walk_x += 55 * delta_time
+                if self.intro_walk_x > 285:
+                    self.intro_walk_x = 285
+                return
 
 
-        self.update_ball(delta_time)
+            if self.screen == "countdown":
+                self.intro_time += delta_time
+                self.start_countdown -= delta_time
+                if self.start_countdown <= 0:
+                    self.start_countdown = 0
+                    self.reset_round()
+                return
 
 
-        if self.screen == "dark" and self.reached_entrance():
-            self.screen = "game_over"
-            self.game_over_ready = True
-            self.keys_down.clear()
-            return
+            self.update_ball(delta_time)
 
 
-        if self.screen != "playing":
-            return
+            if self.screen == "dark" and self.reached_entrance():
+                self.screen = "game_over"
+                self.game_over_ready = True
+                self.keys_down.clear()
+                return
 
 
-        if not self.trash_spots:
-            return
+            if self.screen != "playing":
+                return
 
 
-        self.time_left -= delta_time
-        if self.time_left <= 0:
-            self.time_left = 0
-            self.fail_round()
+            if not self.trash_spots:
+                return
+
+
+            self.time_left -= delta_time
+            if self.time_left <= 0:
+                self.time_left = 0
+                self.fail_round()
+        except Exception:
+            traceback.print_exc()
+            self.active_minigame = None
+            self.minigame_target_spot = None
+            self.message = "A game error happened, but the window stayed open."
+            self.hint = "Check the terminal traceback, then click again or press ESC."
 
 
     def draw_background(self) -> None:
