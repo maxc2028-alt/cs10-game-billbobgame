@@ -853,7 +853,7 @@ class GameView(arcade.View):
         if self.trash_spots:
             self.hint = "Keep cleaning trash, or visit another finished house."
         else:
-        self.hint = "Press F near the current door when you are ready to go inside."
+            self.hint = "Press F near the current door when you are ready to go inside."
 
 
     def cancel_house_minigame(self) -> None:
@@ -1198,17 +1198,7 @@ class GameView(arcade.View):
     def on_key_press(self, key: int, modifiers: int) -> None:
         if key == arcade.key.ESCAPE:
             if self.active_minigame is not None:
-                return_screen = self.screen
-                self.active_minigame = None
-                self.minigame_target_spot = None
-                self.screen = "visit" if return_screen == "visit" or self.interior_mode == "upgrade" else "repair"
-                self.round_started = False
-                self.ball_x = 400.0
-                self.ball_y = 155.0
-                self.keys_down.clear()
-                self.minigame_return_screen = None
-                self.message = "Mini-game closed. You are back in the house."
-                self.hint = "ESC returns you to the house. Pick another repair spot when you're ready."
+                self.cancel_house_minigame()
                 return
             if self.menu_open:
                 self.menu_open = False
@@ -1401,6 +1391,7 @@ class GameView(arcade.View):
 
                 self.active_minigame = None
                 self.minigame_target_spot = None
+                self.minigame_parent_screen = None
 
                 # Check if all repairs done
                 if self.screen == "repair" and all(repair.fixed for repair in self.repair_spots):
@@ -1471,6 +1462,7 @@ class GameView(arcade.View):
                     # Launch mini-game instead of instant completion
                     self.minigame_target_spot = spot
                     self.minigame_return_screen = "repair"
+                    self.minigame_parent_screen = "repair"
                     repair_type = spot.label.lower()
 
                     # Choose mini-game based on repair type
@@ -1502,6 +1494,7 @@ class GameView(arcade.View):
                         # Launch mini-game for interior work too
                         self.minigame_target_spot = spot
                         self.minigame_return_screen = "visit"
+                        self.minigame_parent_screen = "visit"
                         self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
                         self.message = "Match the blocks to decorate!"
                         self.hint = "Complete the mini-game to finish this upgrade!"
@@ -1751,6 +1744,7 @@ class GameView(arcade.View):
                     self.active_minigame = None
                     self.minigame_target_spot = None
                     self.minigame_return_screen = None
+                    self.minigame_parent_screen = None
                 return
 
             if self.screen == "intro":
