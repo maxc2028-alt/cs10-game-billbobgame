@@ -1203,11 +1203,7 @@ class GameView(arcade.View):
 
         if key == arcade.key.F:
             if self.screen in {"repair", "visit"}:
-                if self.interior_door_near_player():
-                    self.leave_house()
-                else:
-                    self.message = "Move to the doorway to leave."
-                    self.hint = "Walk up to the door, then press F to go back outside."
+                self.leave_house()
                 return
             if self.screen == "playing":
                 door_index = self.door_index_near_player()
