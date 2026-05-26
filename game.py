@@ -225,6 +225,7 @@ class PipeMinigame:
         self.time_left = 35
         self.completed = False
         self.started = False
+        self.win_fade: float | None = None
 
     def _generate_grid(self) -> dict:
         """Generate a scrambled starting pattern that can be cycled to one target color."""
@@ -266,12 +267,15 @@ class PipeMinigame:
         """Check if the current grid matches the single target color."""
         if all(color == self.target_color for color in self.grid.values()):
             self.completed = True
+            self.win_fade = 1.0
             return True
         return False
 
     def update(self, delta_time: float) -> None:
-        if self.started:
+        if self.started and not self.completed:
             self.time_left -= delta_time
+        if self.win_fade is not None:
+            self.win_fade = max(0.0, self.win_fade - delta_time * 0.8)
 
     def draw(self) -> None:
         arcade.draw_lrbt_rectangle_filled(100, 700, 60, 470, (34, 31, 38))
@@ -318,6 +322,10 @@ class PipeMinigame:
             arcade.draw_text("WALL FIXED!", 205, 52, arcade.color.LIGHT_GREEN, 24, anchor_x="center")
         if self.time_left <= 0 and not self.completed:
             arcade.draw_text("FAILED", 205, 88, arcade.color.RED, 30, anchor_x="center")
+        if self.win_fade is not None:
+            glow = int(255 * (1.0 - self.win_fade))
+            arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, max(0, min(220, glow))))
+            arcade.draw_text("CONGRATS", 400, 320 + glow * 0.12, arcade.color.WHITE, 54, anchor_x="center")
 
 
 class BlockBlastMinigame:
@@ -1761,6 +1769,29 @@ class GameView(arcade.View):
             # Handle mini-game updates
             if self.active_minigame is not None:
                 self.active_minigame.update(delta_time)
+                if self.active_minigame.win_fade is not None and self.active_minigame.win_fade <= 0 and self.active_minigame.completed:
+                    spot = self.minigame_target_spot
+                    if spot is not None:
+                        spot.fixed = True
+                        self.money -= spot.cost
+                        self.message = f"Repaired: {spot.label}!"
+                        self.hint = "Great work! Continue with the other repairs."
+                    else:
+                        self.message = "Repair complete."
+                        self.hint = "Great work! Continue with the other repairs."
+
+                    self.active_minigame = None
+                    self.minigame_target_spot = None
+                    self.minigame_parent_screen = None
+
+                    if self.screen == "repair" and all(repair.fixed for repair in self.repair_spots):
+                        self.finish_repair()
+                    elif self.screen == "visit" and all(interior.fixed for interior in self.interior_spots):
+                        if self.interior_mode == "repair":
+                            self.finish_interior_repair()
+                        else:
+                            self.finish_interior_upgrade()
+                    return
 
                 # Check if mini-game timed out
                 if self.active_minigame.time_left <= 0:
