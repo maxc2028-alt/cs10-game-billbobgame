@@ -2396,7 +2396,8 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(10, 790, 492, 590, (14, 17, 24))
         arcade.draw_lrbt_rectangle_outline(10, 790, 492, 590, (126, 132, 142))
 
-        arcade.draw_text("Neighborhood Cleanup", 22, 562, (220, 221, 218), 22)
+        current_house_label = f"{self.get_building_name(self.current_building)}"
+        arcade.draw_text(current_house_label, 22, 562, (220, 221, 218), 22)
         arcade.draw_text("ESC quits", 720, 565, (156, 160, 166), 10, anchor_x="center")
         arcade.draw_text(f"Building: {self.get_building_name(self.current_building)}", 22, 538, (156, 160, 166), 12)
         arcade.draw_text(f"Trash: {self.cleaned}", 22, 516, (214, 215, 212), 12)
@@ -2420,8 +2421,9 @@ class GameView(arcade.View):
                 12,
             )
         else:
+            current_house_number = min(self.buildings_cleaned + 1, BUILDING_STAGES)
             arcade.draw_text(
-                f"Neighborhood level: {self.neighborhood_state + 1}/{BUILDING_STAGES}",
+                f"House: {current_house_number}/{BUILDING_STAGES}",
                 260,
                 538,
                 (156, 160, 166),
