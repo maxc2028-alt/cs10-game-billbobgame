@@ -240,7 +240,7 @@ class PipeMinigame:
             px = 133 + col * self.cell_size
             py = 128 + row * self.cell_size
 
-            if px - 3 <= x <= px + self.cell_size + 3 and py - 3 <= y <= py + self.cell_size + 3:
+            if px - 8 <= x <= px + self.cell_size + 8 and py - 8 <= y <= py + self.cell_size + 8:
                 current_index = self.colors.index(color)
                 self.grid[(row, col)] = self.colors[(current_index + 1) % len(self.colors)]
                 self.check_completion()
@@ -642,6 +642,7 @@ class GameView(arcade.View):
         self.door_cooldown = 0.0
         self.exit_spawn_x = 400.0
         self.exit_spawn_y = 300.0
+        self.minigame_fail_fade: float | None = None
         # Infinite world state
         self.world_offset_x = 0  # Track camera position in world
         self.house_rng = random.Random(42)  # Seeded for consistent generation
@@ -1723,6 +1724,16 @@ class GameView(arcade.View):
             if self.door_cooldown > 0:
                 self.door_cooldown = max(0.0, self.door_cooldown - delta_time)
 
+            if self.minigame_fail_fade is not None:
+                self.minigame_fail_fade = max(0.0, self.minigame_fail_fade - delta_time * 0.9)
+                if self.minigame_fail_fade <= 0:
+                    self.minigame_fail_fade = None
+                    self.screen = "minigame_game_over"
+                    self.keys_down.clear()
+                    self.message = "FAILED"
+                    self.hint = "You ran out of time. Press SPACE to try again."
+                return
+
             if self.menu_open and self.screen not in {"intro", "countdown"}:
                 return
 
@@ -1733,11 +1744,12 @@ class GameView(arcade.View):
                 # Check if mini-game timed out
                 if self.active_minigame.time_left <= 0:
                     self.message = "FAILED"
-                    self.hint = "Time ran out. Click another repair spot to try again."
+                    self.hint = "Time ran out."
                     self.active_minigame = None
                     self.minigame_target_spot = None
                     self.minigame_return_screen = None
                     self.minigame_parent_screen = None
+                    self.minigame_fail_fade = 1.0
                 return
 
             if self.screen == "intro":
