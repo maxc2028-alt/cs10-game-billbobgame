@@ -1192,12 +1192,16 @@ class GameView(arcade.View):
             if self.name_riddle_index >= 4:
                 friend = self.guess_friend
                 self.guessed_friend_names.add(friend.name)
+                self.friendship += 1
+                self.befriended_friends.add(friend.name)
+                self.lesson_completed_buildings.add(self.current_building)
+                self.friend_inside_by_building[self.current_building] = friend.name
                 self.friend_riddle_progress[friend.name] = (self.name_riddle_index, self.name_riddle_progress, list(self.unlocked_riddle_hints))
                 self.message = f"You revealed {friend.name}."
                 self.hint = f"All 4 riddles are complete. {friend.name} is the full name."
                 self.guess_friend = None
                 self.name_guess = ""
-                self.start_friend_quiz(friend)
+                self.screen = "playing"
                 return
 
             next_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
