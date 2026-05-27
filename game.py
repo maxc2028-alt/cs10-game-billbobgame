@@ -1135,6 +1135,7 @@ class GameView(arcade.View):
         self.unlocked_riddle_hints = list(saved_hints)
         self.name_riddle_wrong_guesses = 0
         self.name_riddle_wrong_answers = set()
+        self.suppress_next_name_guess_char = False
         self.screen = "name_guess"
         self.message = f"Riddle {self.name_riddle_index + 1} of 4 for {friend.name}."
         current_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
@@ -1325,6 +1326,37 @@ class GameView(arcade.View):
                 return
             if key in {arcade.key.BACKSPACE, arcade.key.DELETE}:
                 self.name_guess = self.name_guess[:-1]
+                return
+            letter_key_map = {
+                arcade.key.A: "a",
+                arcade.key.B: "b",
+                arcade.key.C: "c",
+                arcade.key.D: "d",
+                arcade.key.E: "e",
+                arcade.key.F: "f",
+                arcade.key.G: "g",
+                arcade.key.H: "h",
+                arcade.key.I: "i",
+                arcade.key.J: "j",
+                arcade.key.K: "k",
+                arcade.key.L: "l",
+                arcade.key.M: "m",
+                arcade.key.N: "n",
+                arcade.key.O: "o",
+                arcade.key.P: "p",
+                arcade.key.Q: "q",
+                arcade.key.R: "r",
+                arcade.key.S: "s",
+                arcade.key.T: "t",
+                arcade.key.U: "u",
+                arcade.key.V: "v",
+                arcade.key.W: "w",
+                arcade.key.X: "x",
+                arcade.key.Y: "y",
+                arcade.key.Z: "z",
+            }
+            if key in letter_key_map and len(self.name_guess) < 16:
+                self.name_guess += letter_key_map[key]
                 return
             return
 
