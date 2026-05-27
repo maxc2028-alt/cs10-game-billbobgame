@@ -30,8 +30,13 @@ BUILDING_STAGES = 3
 BALL_SPEED = 220
 BALL_RADIUS = 16
 COLLECT_DISTANCE = 70
-TRASH_CLICK_RADIUS = 30
+TRASH_CLICK_RADIUS = 42
+TRASH_COLLECTION_RADIUS = 82
 FRIEND_DISTANCE = 65
+FRIEND_CLICK_RADIUS = 58
+REPAIR_CLICK_PADDING = 12
+REPAIR_NEAR_PADDING = 28
+DOOR_CLICK_PADDING = 18
 ENTRANCE_X = 720
 ENTRANCE_Y = 300
 ENTRANCE_WIDTH = 55
@@ -830,6 +835,23 @@ class GameView(arcade.View):
         return None
 
 
+    def door_index_at_click(self, x: float, y: float) -> int | None:
+        """Return the building index for a door click, if the click lands in a door area."""
+        player_building_idx = int(self.ball_x / HOUSE_SPACING)
+        for offset in range(-3, 4):
+            index = player_building_idx + offset
+            left, right, base_y, _ = self.get_house_position(index)
+            door_width = 34 + DOOR_CLICK_PADDING * 2
+            door_height = 68 + DOOR_CLICK_PADDING * 2
+            door_center = (left + right) / 2
+            if (
+                door_center - door_width / 2 <= x <= door_center + door_width / 2
+                and base_y - DOOR_CLICK_PADDING <= y <= base_y + door_height + DOOR_CLICK_PADDING
+            ):
+                return index
+        return None
+
+
     def interior_door_near_player(self) -> bool:
         """Return True when the player is close enough to the interior doorway to leave."""
         door_left = 360
@@ -1319,7 +1341,7 @@ class GameView(arcade.View):
             if friend.name in self.befriended_friends:
                 continue
 
-            clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 42 ** 2
+            clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= FRIEND_CLICK_RADIUS ** 2
             near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
 
             if clicked_friend:
@@ -1610,9 +1632,9 @@ class GameView(arcade.View):
             for spot in self.repair_spots:
                 if spot.fixed:
                     continue
-                if (self.ball_x - spot.x) ** 2 + (self.ball_y - spot.y) ** 2 > (spot.radius + 18) ** 2:
+                if (self.ball_x - spot.x) ** 2 + (self.ball_y - spot.y) ** 2 > (spot.radius + REPAIR_NEAR_PADDING) ** 2:
                     continue
-                if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= spot.radius ** 2:
+                if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= (spot.radius + REPAIR_CLICK_PADDING) ** 2:
                     if self.money < spot.cost:
                         self.message = f"Need ${spot.cost} to {spot.label}. You have ${self.money}."
                         self.hint = "Trash gives you repair money. Clean outside piles before fixing everything."
@@ -1629,9 +1651,9 @@ class GameView(arcade.View):
             for spot in self.interior_spots:
                 if spot.fixed:
                     continue
-                if (self.ball_x - spot.x) ** 2 + (self.ball_y - spot.y) ** 2 > (spot.radius + 18) ** 2:
+                if (self.ball_x - spot.x) ** 2 + (self.ball_y - spot.y) ** 2 > (spot.radius + REPAIR_NEAR_PADDING) ** 2:
                     continue
-                if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= spot.radius ** 2:
+                if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= (spot.radius + REPAIR_CLICK_PADDING) ** 2:
                     try:
                         if self.money < spot.cost:
                             self.message = f"Need ${spot.cost} to {spot.label}. You have ${self.money}."
@@ -1664,6 +1686,17 @@ class GameView(arcade.View):
         if self.screen != "playing":
             return
 
+        if x is not None and y is not None:
+            door_index = self.door_index_at_click(x, y)
+            if door_index is not None:
+                if door_index in self.house_styles:
+                    self.visit_house(door_index)
+                    return True
+                if not self.trash_spots:
+                    self.current_building = door_index
+                    self.enter_house()
+                    return True
+
 
         if self.try_befriend(x, y):
             return
@@ -1671,7 +1704,7 @@ class GameView(arcade.View):
 
         for trash in list(self.trash_spots):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= TRASH_CLICK_RADIUS ** 2:
-                if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
+                if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > TRASH_COLLECTION_RADIUS ** 2:
                     self.message = "Move the ball closer to pick that up."
                     self.hint = "Use WASD or arrow keys to get near the trash, then click it."
                     return
@@ -1685,7 +1718,6 @@ class GameView(arcade.View):
                 if self.cleaned % 2 == 0:
                     self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
                 if not self.trash_spots:
-                    target_name = self.current_target_friend_name()
                     self.message = "The outside is clear. Press F to open the door."
                     self.hint = "Cleaned-up blocks let you keep moving forward."
                 break
