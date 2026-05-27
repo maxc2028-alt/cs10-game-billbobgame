@@ -1150,7 +1150,7 @@ class GameView(arcade.View):
 
 
     def append_name_guess_char(self, text: str) -> None:
-        if self.screen == "name_guess" and self.name_guess_active and text.isalpha() and len(self.name_guess) < 16:
+        if self.screen == "name_guess" and text.isalpha() and len(self.name_guess) < 16:
             self.name_guess += text.lower()
 
 
