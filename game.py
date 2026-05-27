@@ -1939,6 +1939,9 @@ class GameView(arcade.View):
 
             self.update_ball(delta_time)
 
+            if self.pending_house_style_building is None:
+                self.maybe_open_house_style_choice(self.current_building)
+
 
             if self.screen == "dark" and self.reached_entrance():
                 self.screen = "game_over"
