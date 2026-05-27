@@ -1174,6 +1174,14 @@ class GameView(arcade.View):
         self.hint = "Every house is already perfect. Press SPACE to return."
 
 
+    def toggle_perfect_area_view(self) -> None:
+        if self.screen != "perfect_area":
+            return
+        self.perfect_area_view = "inside" if self.perfect_area_view == "outside" else "outside"
+        self.message = "Inside view." if self.perfect_area_view == "inside" else "Outside view."
+        self.hint = "Press the top button to switch views. SPACE returns to the intro."
+
+
     def finish_repair(self) -> None:
         self.friendship += 1
         self.house_exterior_repaired.add(self.current_building)
@@ -1669,6 +1677,12 @@ class GameView(arcade.View):
             if 540 <= x <= 720 and 210 <= y <= 246:
                 if self.window is not None:
                     self.window.close()
+                return
+            return
+
+        if self.screen == "perfect_area":
+            if 300 <= x <= 500 and 544 <= y <= 580:
+                self.toggle_perfect_area_view()
                 return
             return
 
