@@ -2366,11 +2366,11 @@ class GameView(arcade.View):
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
             arcade.draw_text(f"Riddle {self.name_riddle_index + 1} of 4:", 400, 332, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
             arcade.draw_text(riddle["question"], 400, 304, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
-        arcade.draw_lrbt_rectangle_filled(215, 585, 234, 290, (40, 50, 65))
-        arcade.draw_lrbt_rectangle_outline(215, 585, 234, 290, arcade.color.WHITE, 2)
-        arcade.draw_text(self.name_guess.upper() or "type your answer here", 400, 247, arcade.color.WHITE, 18, anchor_x="center")
-        arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 170, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
-        arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 208, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(215, 585, 166, 220, (40, 50, 65))
+        arcade.draw_lrbt_rectangle_outline(215, 585, 166, 220, arcade.color.WHITE, 2)
+        arcade.draw_text(self.name_guess.upper() or "type your answer here", 400, 193, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 134, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 152, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
         if self.guess_friend is not None:
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
             answer = riddle["answer"]
@@ -2379,7 +2379,7 @@ class GameView(arcade.View):
                 f"First letter: {answer[0].upper()}",
                 f"Last letter: {answer[-1].upper()}",
             ]
-            y = 162
+            y = 116
             for line in hint_lines:
                 arcade.draw_text(line, 400, y, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=440, multiline=True)
                 y -= 16
