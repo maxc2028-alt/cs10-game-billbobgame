@@ -59,7 +59,7 @@ RIDDLE_QUESTIONS = [
     },
     {
         "question": "I am a house with lights on, but no voices inside. What am I?",
-        "answer": "empty home",
+        "answer": "emptyhome",
         "letter": "e",
     },
 ]
@@ -1150,6 +1150,11 @@ class GameView(arcade.View):
             self.name_guess += text.lower()
 
 
+    def delete_name_guess_char(self) -> None:
+        if self.screen == "name_guess" and self.name_guess:
+            self.name_guess = self.name_guess[:-1]
+
+
     def cancel_name_guess(self) -> None:
         if self.guess_friend is None:
             return
@@ -1340,7 +1345,7 @@ class GameView(arcade.View):
                 self.submit_name_riddle()
                 return
             if key in {arcade.key.BACKSPACE, arcade.key.DELETE}:
-                self.name_guess = self.name_guess[:-1]
+                self.delete_name_guess_char()
                 return
             return
 
@@ -1428,6 +1433,13 @@ class GameView(arcade.View):
             return
 
         self.append_name_guess_char(text)
+
+
+    def on_text_motion(self, motion: int) -> None:
+        if self.screen != "name_guess":
+            return
+        if motion in {arcade.key.MOTION_BACKSPACE, arcade.key.MOTION_DELETE}:
+            self.delete_name_guess_char()
 
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
