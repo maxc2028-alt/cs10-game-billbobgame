@@ -1338,7 +1338,7 @@ class GameView(arcade.View):
 
 
         if self.screen == "name_guess":
-            if key == arcade.key.ENTER:
+            if key in {arcade.key.ENTER, arcade.key.NUM_ENTER}:
                 self.submit_name_riddle()
                 return
             if key in {arcade.key.BACKSPACE, arcade.key.DELETE}:
