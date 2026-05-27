@@ -686,6 +686,7 @@ class GameView(arcade.View):
         self.minigame_fail_fade: float | None = None
         self.minigame_congrats_fade: float | None = None
         self.minigame_win_return_screen: str | None = None
+        self.minigame_win_hold: float = 0.0
         # Infinite world state
         self.world_offset_x = 0  # Track camera position in world
         self.house_rng = random.Random(42)  # Seeded for consistent generation
@@ -1778,9 +1779,12 @@ class GameView(arcade.View):
                 return
 
             if self.minigame_congrats_fade is not None:
-                self.minigame_congrats_fade = max(0.0, self.minigame_congrats_fade - delta_time * 0.45)
+                self.minigame_win_hold += delta_time
+                self.minigame_congrats_fade = max(0.0, self.minigame_congrats_fade - delta_time * 0.2)
                 if self.minigame_congrats_fade <= 0:
                     self.minigame_congrats_fade = None
+                if self.minigame_win_hold >= 2.0:
+                    self.minigame_win_hold = 0.0
                     if self.minigame_win_return_screen is not None:
                         self.screen = self.minigame_win_return_screen
                         self.minigame_win_return_screen = None
@@ -1806,6 +1810,7 @@ class GameView(arcade.View):
                     self.minigame_win_return_screen = self.screen
                     self.screen = "minigame_win"
                     self.minigame_congrats_fade = 1.0
+                    self.minigame_win_hold = 0.0
                     self.active_minigame = None
                     self.minigame_target_spot = None
                     self.minigame_parent_screen = None
@@ -2719,6 +2724,7 @@ class GameView(arcade.View):
 
             if self.screen == "minigame_win":
                 self.draw_scene()
+                arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, 220))
                 if self.minigame_congrats_fade is not None:
                     burst = 1.0 + (1.0 - self.minigame_congrats_fade) * 1.2
                     overlay_alpha = int(255 * (1.0 - self.minigame_congrats_fade))
@@ -2731,8 +2737,8 @@ class GameView(arcade.View):
                         300 + half_h,
                         (255, 255, 255, min(255, overlay_alpha + 80)),
                     )
-                    arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, min(150, overlay_alpha)))
-                arcade.draw_text("CONGRATULATIONS", 400, 318, arcade.color.WHITE, 64, anchor_x="center")
+                    arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, min(180, overlay_alpha)))
+                arcade.draw_text("CONGRATULATIONS", 400, 318, arcade.color.WHITE, 74, anchor_x="center")
                 return
 
             if self.minigame_congrats_fade is not None:
