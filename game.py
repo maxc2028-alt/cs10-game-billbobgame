@@ -2732,7 +2732,7 @@ class GameView(arcade.View):
                 arcade.draw_text("VICTORY", 402, 392, arcade.color.BLACK, 80, anchor_x="center")
                 arcade.draw_text("VICTORY", 400, 394, arcade.color.WHITE, 78, anchor_x="center")
                 arcade.draw_text("CONGRATULATIONS", 402, 316, arcade.color.BLACK, 76, anchor_x="center")
-                arcade.draw_text("CONGRATULATIONS", 400, 318, arcade.color.WHITE, 74, anchor_x="center")
+                arcade.draw_text("CONGRATULATIONS", 400, 318, arcade.color.GOLD, 74, anchor_x="center")
                 arcade.draw_text("Celebration in progress", 400, 246, arcade.color.BLACK, 16, anchor_x="center")
                 arcade.draw_text("Celebration in progress", 400, 248, arcade.color.WHITE, 14, anchor_x="center")
                 return
