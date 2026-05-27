@@ -654,9 +654,9 @@ class GameView(arcade.View):
         self.interior_mode = "repair"
         self.house_styles: dict[int, tuple[tuple[int, int, int], tuple[int, int, int]]] = {}
         self.style_options = [
-            ("Crisp white", (190, 198, 206), (245, 243, 235)),
-            ("Soft sage", (96, 126, 104), (221, 232, 219)),
-            ("Blue cottage", (76, 108, 142), (204, 223, 240)),
+            ("Garden green", (54, 77, 69), (86, 112, 98)),
+            ("Warm brick", (89, 52, 48), (121, 76, 65)),
+            ("Soft blue", (53, 68, 92), (86, 103, 126)),
         ]
         self.neighborhood_state = 0
         self.round_started = False
@@ -952,10 +952,8 @@ class GameView(arcade.View):
         self.interior_upgrade_levels.setdefault(self.inside_building, 0)
         self.interior_spots = []
         self.message = f"The inside of {self.get_building_name(self.inside_building)} is fixed."
-        self.screen = "decorate"
-        self.round_started = False
-        self.keys_down.clear()
-        self.hint = "Pick the clean version of this house. Then the next building starts."
+        # Just continue to decorate screen - no limit on buildings
+        self.hint = "Press F by the door to go back outside, then revisit later for interior upgrades."
 
 
     def finish_interior_upgrade(self) -> None:
@@ -1081,18 +1079,16 @@ class GameView(arcade.View):
 
     def finish_repair(self) -> None:
         self.friendship += 1
-        self.screen = "playing"
-        self.round_started = True
+        self.screen = "decorate"
+        self.round_started = False
         self.keys_down.clear()
-        self.ball_x = self.exit_spawn_x
-        self.ball_y = self.exit_spawn_y
-        self.message = "The outside repair is done."
-        self.hint = "Finish the interior cleanup, then choose the clean house look."
+        self.message = "Choose how this repaired house should look."
+        self.hint = "Press 1, 2, or 3 to pick a style. The next cleanup starts after your choice."
 
 
     def choose_house_style(self, style_index: int) -> None:
         _, roof_color, wall_color = self.style_options[style_index]
-        self.house_styles[self.inside_building] = (roof_color, wall_color)
+        self.house_styles[self.current_building] = (roof_color, wall_color)
         self.next_building()
 
 
