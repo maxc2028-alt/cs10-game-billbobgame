@@ -690,6 +690,7 @@ class GameView(arcade.View):
         self.minigame_win_return_screen: str | None = None
         self.minigame_win_hold: float = 0.0
         self.suppress_next_name_guess_char = False
+        self.name_guess_active = False
         # Infinite world state
         self.world_offset_x = 0  # Track camera position in world
         self.house_rng = random.Random(42)  # Seeded for consistent generation
@@ -1136,6 +1137,7 @@ class GameView(arcade.View):
         self.name_riddle_wrong_guesses = 0
         self.name_riddle_wrong_answers = set()
         self.suppress_next_name_guess_char = False
+        self.name_guess_active = True
         self.screen = "name_guess"
         self.message = f"Riddle {self.name_riddle_index + 1} of 4 for {friend.name}."
         current_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
@@ -1143,7 +1145,7 @@ class GameView(arcade.View):
 
 
     def append_name_guess_char(self, text: str) -> None:
-        if self.screen == "name_guess" and text.isalpha() and len(self.name_guess) < 16:
+        if self.screen == "name_guess" and self.name_guess_active and text.isalpha() and len(self.name_guess) < 16:
             self.name_guess += text.lower()
 
 
@@ -1573,6 +1575,9 @@ class GameView(arcade.View):
 
 
         if self.screen == "name_guess":
+            if 215 <= x <= 585 and 176 <= y <= 230:
+                self.name_guess_active = True
+                return
             return
 
 
@@ -2419,10 +2424,12 @@ class GameView(arcade.View):
             arcade.draw_text(f"Riddle {self.name_riddle_index + 1} of 4:", 400, 332, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
             arcade.draw_text(riddle["question"], 400, 304, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
         arcade.draw_lrbt_rectangle_filled(215, 585, 176, 230, (40, 50, 65))
-        arcade.draw_lrbt_rectangle_outline(215, 585, 176, 230, arcade.color.WHITE, 2)
+        box_outline = arcade.color.GOLD if self.name_guess_active else arcade.color.WHITE
+        arcade.draw_lrbt_rectangle_outline(215, 585, 176, 230, box_outline, 2)
         arcade.draw_text("Type your answer here", 400, 215, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         caret = "_" if len(self.name_guess) % 2 == 0 else " "
         arcade.draw_text((self.name_guess.upper() or "") + caret, 400, 193, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_text("Click the box, then type.", 400, 177, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
         arcade.draw_text(f"Input: {self.name_guess.upper() or '-'}", 400, 176, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
         arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 142, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 160, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
