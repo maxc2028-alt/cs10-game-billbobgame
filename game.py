@@ -952,8 +952,10 @@ class GameView(arcade.View):
         self.interior_upgrade_levels.setdefault(self.inside_building, 0)
         self.interior_spots = []
         self.message = f"The inside of {self.get_building_name(self.inside_building)} is fixed."
-        # Just continue to decorate screen - no limit on buildings
-        self.hint = "Press F by the door to go back outside, then revisit later for interior upgrades."
+        self.screen = "decorate"
+        self.round_started = False
+        self.keys_down.clear()
+        self.hint = "Pick a clean house style for this one, then the next house starts."
 
 
     def finish_interior_upgrade(self) -> None:
@@ -1079,16 +1081,18 @@ class GameView(arcade.View):
 
     def finish_repair(self) -> None:
         self.friendship += 1
-        self.screen = "decorate"
-        self.round_started = False
+        self.screen = "playing"
+        self.round_started = True
         self.keys_down.clear()
-        self.message = "Choose how this repaired house should look."
-        self.hint = "Press 1, 2, or 3 to pick a style. The next cleanup starts after your choice."
+        self.ball_x = self.exit_spawn_x
+        self.ball_y = self.exit_spawn_y
+        self.message = "The outside repair is done."
+        self.hint = "Finish the interior cleanup, then choose the clean house look."
 
 
     def choose_house_style(self, style_index: int) -> None:
         _, roof_color, wall_color = self.style_options[style_index]
-        self.house_styles[self.current_building] = (roof_color, wall_color)
+        self.house_styles[self.inside_building] = (roof_color, wall_color)
         self.next_building()
 
 
@@ -2428,6 +2432,7 @@ class GameView(arcade.View):
             14,
             anchor_x="center",
         )
+        arcade.draw_text("Pick one of the three clean versions below.", 400, 396, (156, 160, 166), 12, anchor_x="center")
         arcade.draw_text("Pick one of the three clean versions below.", 400, 396, (156, 160, 166), 12, anchor_x="center")
 
 
