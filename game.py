@@ -2820,6 +2820,38 @@ class GameView(arcade.View):
             arcade.draw_text("COMPLETED", 400, 510, arcade.color.BLACK, 52, anchor_x="center")
 
 
+    def draw_perfect_area(self) -> None:
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (146, 197, 239))
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 122, (96, 161, 91))
+        arcade.draw_lrbt_rectangle_filled(0, 800, 122, 160, (193, 176, 143))
+
+        arcade.draw_circle_filled(708, 520, 34, (255, 241, 145))
+        arcade.draw_circle_filled(708, 520, 52, (255, 242, 172, 85))
+        self.draw_clouds()
+
+        arcade.draw_text("LEVEL 4", 400, 556, arcade.color.WHITE, 28, anchor_x="center")
+        arcade.draw_text("Perfect Block", 400, 526, arcade.color.BLACK, 30, anchor_x="center")
+        arcade.draw_text("Every house is already fixed.", 400, 496, arcade.color.WHITE, 14, anchor_x="center")
+
+        for building_idx in range(3):
+            left, right, base_y, height = self.get_house_position(building_idx)
+            roof_color, wall_color = self.get_house_colors(building_idx)
+            self.draw_building(left, right, base_y, height, roof_color, wall_color, repaired=True)
+
+            door_center = (left + right) / 2
+            door_width = 34
+            door_height = 68
+            door_left = door_center - door_width / 2
+            door_right = door_center + door_width / 2
+            arcade.draw_lrbt_rectangle_filled(door_left - 18, door_left - 6, base_y + 6, base_y + 18, (82, 128, 74))
+            arcade.draw_lrbt_rectangle_filled(door_right + 6, door_right + 18, base_y + 6, base_y + 18, (82, 128, 74))
+            arcade.draw_circle_filled(door_left - 12, base_y + 22, 5, (200, 164, 86))
+            arcade.draw_circle_filled(door_right + 12, base_y + 22, 5, (200, 164, 86))
+
+        arcade.draw_text("Press SPACE to return to the intro.", 400, 82, arcade.color.WHITE, 12, anchor_x="center")
+        arcade.draw_text("The neighborhood here is quiet, calm, and finished.", 400, 62, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+
+
     def draw_hud(self) -> None:
         if self.hud_collapsed:
             arcade.draw_lrbt_rectangle_filled(728, 790, 548, 590, (14, 17, 24))
@@ -3045,6 +3077,11 @@ class GameView(arcade.View):
 
             if self.screen == "conclusion":
                 self.draw_conclusion()
+                return
+
+
+            if self.screen == "perfect_area":
+                self.draw_perfect_area()
                 return
 
 
