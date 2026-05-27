@@ -655,6 +655,7 @@ class GameView(arcade.View):
         self.house_styles: dict[int, tuple[tuple[int, int, int], tuple[int, int, int]]] = {}
         self.house_exterior_repaired: set[int] = set()
         self.pending_house_style_building: int | None = None
+        self.house_completion_flags: dict[int, set[str]] = {}
         self.style_options = [
             ("Garden green", (54, 77, 69), (86, 112, 98)),
             ("Warm brick", (89, 52, 48), (121, 76, 65)),
@@ -954,6 +955,7 @@ class GameView(arcade.View):
         self.interior_upgrade_levels.setdefault(self.inside_building, 0)
         self.interior_spots = []
         self.message = f"The inside of {self.get_building_name(self.inside_building)} is fixed."
+        self.house_completion_flags.setdefault(self.inside_building, set()).add("interior")
         if self.maybe_open_house_style_choice(self.inside_building):
             return
         self.hint = "Press F by the door to go back outside, then revisit later for interior upgrades."
@@ -976,12 +978,8 @@ class GameView(arcade.View):
 
 
     def maybe_open_house_style_choice(self, building_index: int) -> bool:
-        friend_name = FRIEND_NAMES[building_index % len(FRIEND_NAMES)]
-        if (
-            building_index in self.house_exterior_repaired
-            and building_index in self.inside_repaired_buildings
-            and friend_name in self.guessed_friend_names
-        ):
+        flags = self.house_completion_flags.get(building_index, set())
+        if {"exterior", "interior", "riddle"} <= flags:
             self.pending_house_style_building = building_index
             self.inside_building = building_index
             self.screen = "decorate"
@@ -1101,6 +1099,7 @@ class GameView(arcade.View):
     def finish_repair(self) -> None:
         self.friendship += 1
         self.house_exterior_repaired.add(self.current_building)
+        self.house_completion_flags.setdefault(self.current_building, set()).add("exterior")
         if self.maybe_open_house_style_choice(self.current_building):
             return
         self.screen = "playing"
@@ -1222,6 +1221,7 @@ class GameView(arcade.View):
                 self.befriended_friends.add(friend.name)
                 self.lesson_completed_buildings.add(self.current_building)
                 self.friend_inside_by_building[self.current_building] = friend.name
+                self.house_completion_flags.setdefault(self.current_building, set()).add("riddle")
                 self.friend_riddle_progress[friend.name] = (self.name_riddle_index, self.name_riddle_progress, list(self.unlocked_riddle_hints))
                 self.message = f"You revealed {friend.name}."
                 self.hint = f"All 4 riddles are complete. {friend.name} is the full name."
