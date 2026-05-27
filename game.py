@@ -1046,13 +1046,17 @@ class GameView(arcade.View):
     def friend_action_hint(self) -> str:
         if self.screen != "playing":
             return ""
+        if not self.is_house_restored(self.current_building):
+            return "Restore this house before talking to the NPC."
         target_name = self.current_target_friend_name()
         if self.trash_spots:
             return "Clean trash first."
         return "Move close to the NPC and click the friend to talk."
 
 
-    def friend_label_text(self, friend: FriendNPC) -> str:
+    def friend_label_text(self, friend: FriendNPC, building_index: int | None = None) -> str:
+        if building_index is not None and not self.is_house_restored(building_index):
+            return "restore house first"
         if friend.name in self.befriended_friends:
             return "friend"
         if friend.name != self.current_target_friend_name():
@@ -1096,6 +1100,15 @@ class GameView(arcade.View):
             return f"Riddle clue unlocked: {riddle['question']}"
 
         return f"All riddle clues are ready for {name}. Move close and click the friend to answer them."
+
+
+    def is_house_restored(self, building_index: int) -> bool:
+        flags = self.house_completion_flags.get(building_index, set())
+        return (
+            building_index in self.house_styles
+            and "exterior" in flags
+            and "interior" in flags
+        )
 
 
     def next_building(self) -> None:
@@ -1314,13 +1327,20 @@ class GameView(arcade.View):
             return False
 
 
-        for friend in self.friends:
+        for building_index, friend in enumerate(self.friends):
             if friend.name in self.befriended_friends and self.current_building in self.lesson_completed_buildings:
                 continue
 
 
             clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 42 ** 2
             near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
+
+            if not self.is_house_restored(building_index):
+                if clicked_friend or near_ball or (x is None and y is None):
+                    self.message = "Restore the house before talking to the NPC."
+                    self.hint = "Finish the repair steps first, then the friend will be available."
+                    return True
+                continue
 
 
             if clicked_friend:
@@ -2191,13 +2211,13 @@ class GameView(arcade.View):
             self.draw_trash(trash)
 
         # Draw friends
-        for friend in self.friends:
+        for building_index, friend in enumerate(self.friends):
             is_highlighted = self.quiz_friend is not None and friend.name == self.quiz_friend.name
             self.draw_friend_character(
                 friend, friend.x, friend.y,
                 highlight=is_highlighted,
                 name_override=self.friend_display_name(friend),
-                line_override=self.friend_label_text(friend),
+                line_override=self.friend_label_text(friend, building_index),
             )
 
         self.draw_ball()
