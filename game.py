@@ -1550,9 +1550,9 @@ class GameView(arcade.View):
 
         level_control_visible = self.screen == "playing" and not self.menu_open
         level_toggle_hit = level_control_visible and (x - 760) ** 2 + (y - 478) ** 2 <= 17 ** 2
-        level_one_hit = level_control_visible and 688 <= x <= 744 and 460 <= y <= 486
-        level_two_hit = level_control_visible and 688 <= x <= 744 and 432 <= y <= 458
-        level_three_hit = level_control_visible and 688 <= x <= 744 and 398 <= y <= 424
+        level_one_hit = level_control_visible and 686 <= x <= 742 and 460 <= y <= 486
+        level_two_hit = level_control_visible and 686 <= x <= 742 and 426 <= y <= 452
+        level_three_hit = level_control_visible and 686 <= x <= 742 and 392 <= y <= 418
 
         if self.level_picker_open:
             if level_one_hit:
@@ -2815,15 +2815,15 @@ class GameView(arcade.View):
             if self.level_picker_open:
                 arcade.draw_lrbt_rectangle_filled(680, 748, 354, 462, (14, 17, 24, 245))
                 arcade.draw_lrbt_rectangle_outline(680, 748, 354, 462, (222, 222, 214), 2)
-                arcade.draw_lrbt_rectangle_filled(688, 740, 460, 486, (40, 50, 65))
-                arcade.draw_lrbt_rectangle_outline(688, 740, 460, 486, arcade.color.WHITE, 2)
-                arcade.draw_text("Level 1", 714, 468, arcade.color.WHITE, 11, anchor_x="center")
-                arcade.draw_lrbt_rectangle_filled(688, 740, 426, 452, (40, 50, 65))
-                arcade.draw_lrbt_rectangle_outline(688, 740, 426, 452, arcade.color.WHITE, 2)
-                arcade.draw_text("Level 2", 714, 434, arcade.color.WHITE, 11, anchor_x="center")
-                arcade.draw_lrbt_rectangle_filled(688, 740, 392, 418, (40, 50, 65))
-                arcade.draw_lrbt_rectangle_outline(688, 740, 392, 418, arcade.color.WHITE, 2)
-                arcade.draw_text("Level 3", 714, 400, arcade.color.WHITE, 11, anchor_x="center")
+                arcade.draw_lrbt_rectangle_filled(686, 742, 460, 486, (40, 50, 65))
+                arcade.draw_lrbt_rectangle_outline(686, 742, 460, 486, arcade.color.WHITE, 2)
+                arcade.draw_text("Level 1", 714, 473, arcade.color.WHITE, 11, anchor_x="center")
+                arcade.draw_lrbt_rectangle_filled(686, 742, 426, 452, (40, 50, 65))
+                arcade.draw_lrbt_rectangle_outline(686, 742, 426, 452, arcade.color.WHITE, 2)
+                arcade.draw_text("Level 2", 714, 439, arcade.color.WHITE, 11, anchor_x="center")
+                arcade.draw_lrbt_rectangle_filled(686, 742, 392, 418, (40, 50, 65))
+                arcade.draw_lrbt_rectangle_outline(686, 742, 392, 418, arcade.color.WHITE, 2)
+                arcade.draw_text("Level 3", 714, 405, arcade.color.WHITE, 11, anchor_x="center")
 
         if self.menu_open:
             arcade.draw_lrbt_rectangle_filled(490, 770, 190, 430, (14, 17, 24, 240))
