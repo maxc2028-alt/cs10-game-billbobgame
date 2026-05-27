@@ -1191,6 +1191,7 @@ class GameView(arcade.View):
             self.name_riddle_wrong_answers.add(normalized_guess)
             self.name_riddle_wrong_guesses = len(self.name_riddle_wrong_answers)
         self.message = "Not quite. Try that riddle again."
+        self.name_guess = ""
         if self.name_riddle_wrong_guesses >= 5:
             self.hint = f"Full answer: {riddle['answer'].upper()}"
             return
