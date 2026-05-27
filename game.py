@@ -804,7 +804,7 @@ class GameView(arcade.View):
         self.cleaned = 0
         self.trash_spots = []
         self.message = "Click trash piles to clean the building."
-        self.hint = "Move the ball close to trash with WASD or arrows, then click to pick it up."
+        self.hint = "Move around close to trash with WASD or arrows, then click to pick it up."
         self.friends = []
 
         # Generate trash for current building
@@ -1595,7 +1595,7 @@ class GameView(arcade.View):
                     return True
                 if not near_ball:
                     self.message = "Move closer to the person first."
-                    self.hint = "Friend balls can only hear you when your ball is nearby."
+                    self.hint = "Friends can only hear you when you are nearby."
                     return True
                 if friend.name not in self.guessed_friend_names:
                     self.start_name_guess(friend)
@@ -2011,8 +2011,8 @@ class GameView(arcade.View):
         for trash in list(self.trash_spots):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= TRASH_CLICK_RADIUS ** 2:
                 if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
-                    self.message = "Move the ball closer to pick that up."
-                    self.hint = "Use WASD or arrow keys to get near the trash, then click it."
+                    self.message = "Move around closer to pick that up."
+                    self.hint = "Use WASD or arrow keys to move around near the trash, then click it."
                     return
 
 
