@@ -1046,10 +1046,7 @@ class GameView(arcade.View):
     def friend_action_hint(self) -> str:
         if self.screen != "playing":
             return ""
-        target_name = self.current_target_friend_name()
-        if self.trash_spots:
-            return "Clean trash first."
-        return "Move close to the NPC and click the friend to talk."
+        return "Move close to a person and press T or click them to talk."
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
@@ -1313,15 +1310,12 @@ class GameView(arcade.View):
         if self.screen != "playing":
             return False
 
-
         for friend in self.friends:
-            if friend.name in self.befriended_friends and self.current_building in self.lesson_completed_buildings:
+            if friend.name in self.befriended_friends:
                 continue
-
 
             clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 42 ** 2
             near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
-
 
             if clicked_friend:
                 if friend.name not in self.guessed_friend_names:
@@ -1331,25 +1325,18 @@ class GameView(arcade.View):
                 self.start_friend_quiz(friend)
                 return True
 
-            if x is None and near_ball:
-                if not near_ball:
-                    self.message = "Move closer to the person first."
-                    self.hint = "Friend balls can only hear you when your ball is nearby."
-                    return True
+            if x is None and y is None and near_ball:
                 if friend.name not in self.guessed_friend_names:
                     self.start_name_guess(friend)
                     return True
 
-
                 self.start_friend_quiz(friend)
                 return True
 
-
         if x is None and y is None:
-            self.message = "Move closer to the NPC and click the friend to talk."
-            self.hint = "Pick up trash for hints, then use those hints near other friends."
+            self.message = "Move closer to a person first."
+            self.hint = "Use WASD or arrows to stand near someone, then press T to talk."
             return True
-
 
         return False
 
@@ -1410,6 +1397,10 @@ class GameView(arcade.View):
             arcade.key.RIGHT,
         ):
             self.keys_down.add(key)
+            return
+
+        if key == arcade.key.T:
+            self.try_befriend()
             return
 
 
@@ -2779,7 +2770,7 @@ class GameView(arcade.View):
             arcade.draw_text("Instructions", 400, 220, (222, 222, 214), 18, anchor_x="center")
             arcade.draw_text(self.hint, 198, 188, (156, 160, 166), 11, width=404, multiline=True)
             arcade.draw_text(
-                "Move: WASD/arrows   Talk: T   Door/leave: F   Menu: ESC   Help: ?",
+                "Move: WASD/arrows   Talk: T or click   Door/leave: F   Menu: ESC   Help: ?",
                 400,
                 132,
                 (156, 160, 166),
@@ -2930,4 +2921,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
