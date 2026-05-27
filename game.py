@@ -1103,11 +1103,9 @@ class GameView(arcade.View):
 
     def friend_label_text(self, friend: FriendNPC) -> str:
         if friend.name in self.befriended_friends:
-            if self.money >= NPC_FOOD_COST:
-                return "buy food"
-            return f"food ${NPC_FOOD_COST}"
+            return "friend"
         if self.known_name_letters(friend.name) < len(friend.name):
-            return "find clues"
+            return "Talk"
         if friend.name in self.guessed_friend_names:
             return "quiz time"
         return "Talk"
@@ -3175,7 +3173,6 @@ class GameView(arcade.View):
         arcade.draw_text(f"Trash: {self.cleaned}", 22, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Money: ${self.money}", 125, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, (214, 215, 212), 12)
-        arcade.draw_text(f"Riddles: {self.name_riddle_progress.upper() or '-'}", 390, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
