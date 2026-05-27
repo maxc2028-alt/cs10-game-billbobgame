@@ -864,6 +864,17 @@ class GameView(arcade.View):
         self.hint = "Click any tile to cycle its color until the whole patch matches."
 
 
+    def begin_minigame_victory(self) -> None:
+        """Switch to the victory screen immediately after a mini-game is solved."""
+        self.minigame_win_return_screen = self.screen
+        self.screen = "minigame_win"
+        self.minigame_congrats_fade = 1.0
+        self.minigame_win_hold = 0.0
+        self.active_minigame = None
+        self.minigame_target_spot = None
+        self.minigame_parent_screen = None
+
+
     def visit_house(self, building_index: int) -> None:
         self.time_left = QUEST_TIME
         self.exit_spawn_x = self.ball_x
@@ -1445,9 +1456,7 @@ class GameView(arcade.View):
                     self.message = "Repair complete."
                     self.hint = "Great work! Continue with the other repairs."
 
-                self.active_minigame = None
-                self.minigame_target_spot = None
-                self.minigame_parent_screen = None
+                self.begin_minigame_victory()
 
                 # Check if all repairs done
                 if self.screen == "repair" and all(repair.fixed for repair in self.repair_spots):
@@ -1800,7 +1809,7 @@ class GameView(arcade.View):
             # Handle mini-game updates
             if self.active_minigame is not None:
                 self.active_minigame.update(delta_time)
-                if self.active_minigame.win_fade is not None and self.active_minigame.win_fade <= 0 and self.active_minigame.completed:
+                if self.active_minigame.completed:
                     spot = self.minigame_target_spot
                     if spot is not None:
                         spot.fixed = True
@@ -1812,13 +1821,7 @@ class GameView(arcade.View):
                         self.message = "Repair complete."
                         self.hint = "Great work! Continue with the other repairs."
 
-                    self.minigame_win_return_screen = self.screen
-                    self.screen = "minigame_win"
-                    self.minigame_congrats_fade = 1.0
-                    self.minigame_win_hold = 0.0
-                    self.active_minigame = None
-                    self.minigame_target_spot = None
-                    self.minigame_parent_screen = None
+                    self.begin_minigame_victory()
 
                     if self.screen == "repair" and all(repair.fixed for repair in self.repair_spots):
                         self.finish_repair()
