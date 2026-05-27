@@ -25,7 +25,8 @@ SCREEN_TITLE = "Neighborhood Cleanup: South Block"
 QUEST_TIME = 4.0
 MAX_UPGRADES = 3
 MAX_INTERIOR_UPGRADES = 3
-TRASH_SCORE = 4
+TRASH_SCORE = 7
+NPC_FOOD_COST = 5
 BUILDING_STAGES = 3
 BALL_SPEED = 220
 BALL_RADIUS = 16
@@ -1080,12 +1081,28 @@ class GameView(arcade.View):
 
     def friend_label_text(self, friend: FriendNPC) -> str:
         if friend.name in self.befriended_friends:
-            return "friend"
+            if self.money >= NPC_FOOD_COST:
+                return "buy food"
+            return f"food ${NPC_FOOD_COST}"
         if self.known_name_letters(friend.name) < len(friend.name):
             return "find clues"
         if friend.name in self.guessed_friend_names:
             return "quiz time"
         return "Talk"
+
+
+    def buy_food_for_friend(self, friend: FriendNPC) -> bool:
+        if self.money < NPC_FOOD_COST:
+            self.message = f"Need ${NPC_FOOD_COST} to buy food for {friend.name}."
+            self.hint = "Keep picking up trash to earn more money."
+            return False
+
+        self.money -= NPC_FOOD_COST
+        self.friendship += 2
+        self.befriended_friends.add(friend.name)
+        self.message = f"You bought food for {friend.name}."
+        self.hint = "Trash pays for repairs and gives you a way to get closer to friends."
+        return True
 
 
     def letter_clue(self, letter: str, position: int) -> str:
@@ -1566,6 +1583,8 @@ class GameView(arcade.View):
 
 
             if clicked_friend:
+                if friend.name in self.befriended_friends:
+                    return self.buy_food_for_friend(friend)
                 if friend.name not in self.guessed_friend_names:
                     self.start_name_guess(friend)
                     return True
