@@ -1494,7 +1494,7 @@ class GameView(arcade.View):
         self.name_guess = ""
         self.menu_open = False
         self.screen = "playing"
-        self.message = f"You stepped away from {friend_name}'s riddles."
+        self.message = "Riddle progress saved."
         self.hint = "Your riddle progress is saved. Come back when you're ready."
 
 
