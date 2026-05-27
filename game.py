@@ -687,6 +687,7 @@ class GameView(arcade.View):
         self.game_over_ready = False
         self.show_instructions = False
         self.door_cooldown = 0.0
+        self.level_picker_open = False
         self.exit_spawn_x = 400.0
         self.exit_spawn_y = 300.0
         self.minigame_fail_fade: float | None = None
@@ -1114,6 +1115,7 @@ class GameView(arcade.View):
         """Jump to a specific level index and restart the cleanup round."""
         self.current_building = max(0, min(building_index, BUILDING_STAGES - 1))
         self.buildings_cleaned = self.current_building
+        self.level_picker_open = False
         self.message = f"Jumped to {self.get_building_name(self.current_building)}."
         if self.current_building == 1:
             self.hint = "Level 2 uses the same cleanup setup as level 1."
@@ -1534,12 +1536,22 @@ class GameView(arcade.View):
                 return
             return
 
-        if 10 <= x <= 45 and 58 <= y <= 93:
-            self.jump_to_level(1)
-            return
+        level_toggle_hit = 668 <= x <= 744 and 536 <= y <= 584
+        level_two_hit = 664 <= x <= 744 and 500 <= y <= 530
+        level_three_hit = 664 <= x <= 744 and 466 <= y <= 496
 
-        if 10 <= x <= 45 and 98 <= y <= 133:
-            self.jump_to_level(2)
+        if self.level_picker_open:
+            if level_two_hit:
+                self.jump_to_level(1)
+                return
+            if level_three_hit:
+                self.jump_to_level(2)
+                return
+            if not level_toggle_hit:
+                self.level_picker_open = False
+
+        if level_toggle_hit:
+            self.level_picker_open = not self.level_picker_open
             return
 
         if 10 <= x <= 45 and 18 <= y <= 53:
@@ -2778,6 +2790,20 @@ class GameView(arcade.View):
         arcade.draw_circle_outline(28, 35, 17, (222, 222, 214), 2)
         arcade.draw_text("?", 28, 25, (222, 222, 214), 18, anchor_x="center")
 
+        arcade.draw_lrbt_rectangle_filled(670, 742, 540, 582, (18, 24, 34))
+        arcade.draw_lrbt_rectangle_outline(670, 742, 540, 582, (222, 222, 214), 2)
+        arcade.draw_text("Lv", 706, 560, (222, 222, 214), 14, anchor_x="center")
+
+        if self.level_picker_open:
+            arcade.draw_lrbt_rectangle_filled(664, 744, 448, 536, (14, 17, 24, 245))
+            arcade.draw_lrbt_rectangle_outline(664, 744, 448, 536, (222, 222, 214), 2)
+            arcade.draw_lrbt_rectangle_filled(674, 734, 500, 528, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(674, 734, 500, 528, arcade.color.WHITE, 2)
+            arcade.draw_text("Level 2", 704, 510, arcade.color.WHITE, 12, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(674, 734, 466, 494, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(674, 734, 466, 494, arcade.color.WHITE, 2)
+            arcade.draw_text("Level 3", 704, 476, arcade.color.WHITE, 12, anchor_x="center")
+
         if self.menu_open:
             arcade.draw_lrbt_rectangle_filled(490, 770, 190, 430, (14, 17, 24, 240))
             arcade.draw_lrbt_rectangle_outline(490, 770, 190, 430, (222, 222, 214), 2)
@@ -2791,13 +2817,6 @@ class GameView(arcade.View):
             arcade.draw_lrbt_rectangle_filled(560, 700, 260, 296, (40, 50, 65))
             arcade.draw_lrbt_rectangle_outline(560, 700, 260, 296, arcade.color.WHITE, 2)
             arcade.draw_text("Quit Game", 630, 278, arcade.color.WHITE, 14, anchor_x="center")
-
-        arcade.draw_circle_filled(28, 73, 17, (14, 17, 24))
-        arcade.draw_circle_outline(28, 73, 17, (222, 222, 214), 2)
-        arcade.draw_text("2", 28, 63, (222, 222, 214), 18, anchor_x="center")
-        arcade.draw_circle_filled(28, 113, 17, (14, 17, 24))
-        arcade.draw_circle_outline(28, 113, 17, (222, 222, 214), 2)
-        arcade.draw_text("3", 28, 103, (222, 222, 214), 18, anchor_x="center")
 
         if self.show_instructions:
             arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
