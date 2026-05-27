@@ -1073,9 +1073,7 @@ class GameView(arcade.View):
 
 
     def house_interior_complete(self, building_index: int) -> bool:
-        repaired = building_index in self.inside_repaired_buildings
-        upgrade_level = self.interior_upgrade_levels.get(building_index, 0)
-        return repaired and upgrade_level >= MAX_INTERIOR_UPGRADES
+        return building_index in self.inside_repaired_buildings
 
 
     def friend_action_hint(self) -> str:
@@ -1579,7 +1577,7 @@ class GameView(arcade.View):
             if clicked_friend:
                 if not interior_complete:
                     self.message = "Finish the house interior before talking to NPCs."
-                    self.hint = "Complete every interior repair and upgrade first."
+                    self.hint = "Complete the interior repair spots first."
                     return True
                 if friend.name not in self.guessed_friend_names:
                     self.start_name_guess(friend)
@@ -1591,7 +1589,7 @@ class GameView(arcade.View):
             if x is None and near_ball:
                 if not interior_complete:
                     self.message = "Finish the house interior before talking to NPCs."
-                    self.hint = "Complete every interior repair and upgrade first."
+                    self.hint = "Complete the interior repair spots first."
                     return True
                 if not near_ball:
                     self.message = "Move closer to the person first."
