@@ -1541,6 +1541,10 @@ class GameView(arcade.View):
                         return
             return
 
+        if 748 <= x <= 790 and 558 <= y <= 590:
+            self.hud_collapsed = not self.hud_collapsed
+            return
+
         # Handle mini-game clicks
         if self.active_minigame is not None:
             self.active_minigame.click_pipe(x, y) if isinstance(self.active_minigame, PipeMinigame) else self.active_minigame.click_block(x, y)
@@ -2964,6 +2968,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
 
