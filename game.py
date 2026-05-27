@@ -1782,6 +1782,17 @@ class GameView(arcade.View):
                 return
             return
 
+        if self.screen == "level4_lock":
+            if 300 <= x <= 500 and 206 <= y <= 244:
+                self.submit_level4_lock_name()
+                return
+            if 300 <= x <= 500 and 152 <= y <= 186:
+                self.screen = "playing"
+                self.message = "Level 4 remains locked."
+                self.hint = "Enter all three NPC names to unlock it."
+                return
+            return
+
         level_control_visible = self.screen == "playing" and not self.menu_open
         level_toggle_hit = level_control_visible and (x - 760) ** 2 + (y - 478) ** 2 <= 17 ** 2
         level_one_hit = level_control_visible and 724 <= x <= 796 and 428 <= y <= 454
@@ -2997,6 +3008,42 @@ class GameView(arcade.View):
         arcade.draw_text("Tap the top button to switch back outside.", 400, 62, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
 
 
+    def draw_level4_lock(self) -> None:
+        self.draw_background()
+        arcade.draw_lrbt_rectangle_filled(100, 700, 110, 500, (22, 24, 32, 235))
+        arcade.draw_lrbt_rectangle_outline(100, 700, 110, 500, arcade.color.WHITE, 3)
+        arcade.draw_text("LEVEL 4 LOCKED", 400, 454, arcade.color.GOLD, 28, anchor_x="center")
+        arcade.draw_text("Enter all three NPC names to unlock it.", 400, 420, arcade.color.WHITE, 14, anchor_x="center")
+        arcade.draw_text(f"Unlocked: {len(self.level4_lock_found_names)}/3", 400, 395, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+
+        slot_xs = [220, 400, 580]
+        for index, x in enumerate(slot_xs):
+            if index < len(self.level4_lock_found_names):
+                label = self.level4_lock_found_names[index]
+                fill = (52, 88, 68)
+            elif index < len(self.level4_lock_remaining_names):
+                label = "????"
+                fill = (56, 56, 66)
+            else:
+                label = "DONE"
+                fill = (44, 82, 96)
+            arcade.draw_lrbt_rectangle_filled(x - 70, x + 70, 300, 350, fill)
+            arcade.draw_lrbt_rectangle_outline(x - 70, x + 70, 300, 350, arcade.color.WHITE, 2)
+            arcade.draw_text(label, x, 323, arcade.color.WHITE, 18, anchor_x="center")
+
+        arcade.draw_text("Type a name and press ENTER.", 400, 248, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(300, 500, 206, 244, (40, 50, 65))
+        arcade.draw_lrbt_rectangle_outline(300, 500, 206, 244, arcade.color.WHITE, 2)
+        caret = "_" if len(self.level4_lock_input) % 2 == 0 else " "
+        arcade.draw_text((self.level4_lock_input.upper() or "") + caret, 400, 218, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(300, 500, 152, 186, (26, 34, 46))
+        arcade.draw_lrbt_rectangle_outline(300, 500, 152, 186, arcade.color.WHITE, 2)
+        arcade.draw_text("Back", 400, 164, arcade.color.WHITE, 14, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(300, 500, 270, 300, (26, 34, 46))
+        arcade.draw_lrbt_rectangle_outline(300, 500, 270, 300, arcade.color.WHITE, 2)
+        arcade.draw_text("Submit", 400, 279, arcade.color.WHITE, 14, anchor_x="center")
+
+
     def draw_hud(self) -> None:
         if self.hud_collapsed:
             arcade.draw_lrbt_rectangle_filled(728, 790, 548, 590, (14, 17, 24))
@@ -3222,6 +3269,11 @@ class GameView(arcade.View):
 
             if self.screen == "conclusion":
                 self.draw_conclusion()
+                return
+
+
+            if self.screen == "level4_lock":
+                self.draw_level4_lock()
                 return
 
 
