@@ -3121,7 +3121,8 @@ class GameView(arcade.View):
                 arcade.draw_lrbt_rectangle_filled(724, 796, 360, 386, (40, 50, 65))
                 arcade.draw_lrbt_rectangle_outline(724, 796, 360, 386, arcade.color.WHITE, 2)
                 arcade.draw_text("Level 3", 760, 373, arcade.color.WHITE, 11, anchor_x="center")
-                arcade.draw_lrbt_rectangle_filled(724, 796, 326, 352, (40, 50, 65))
+                level4_fill = (40, 50, 65) if self.level4_unlocked else (84, 48, 48)
+                arcade.draw_lrbt_rectangle_filled(724, 796, 326, 352, level4_fill)
                 arcade.draw_lrbt_rectangle_outline(724, 796, 326, 352, arcade.color.WHITE, 2)
                 arcade.draw_text("Level 4", 760, 339, arcade.color.WHITE, 11, anchor_x="center")
 
