@@ -691,10 +691,10 @@ class GameView(arcade.View):
         self.conclusion_time = 0.0
         self.perfect_area_time = 0.0
         self.perfect_area_view = "outside"
-        self.level4_unlocked = False
-        self.level4_lock_input = ""
-        self.level4_lock_found_names: list[str] = []
-        self.level4_lock_remaining_names = list(FRIEND_NAMES)
+        self.unlocked_levels: set[int] = {0}
+        self.level_lock_target: int | None = None
+        self.level_lock_input = ""
+        self.level_lock_required_name = ""
         self.exit_spawn_x = 400.0
         self.exit_spawn_y = 300.0
         self.minigame_fail_fade: float | None = None
@@ -762,6 +762,18 @@ class GameView(arcade.View):
         if building_index == 1:
             return 0
         return building_index
+
+
+    def level_is_unlocked(self, level_index: int) -> bool:
+        """Return True when a level has been unlocked through the name lock."""
+        return level_index in self.unlocked_levels
+
+
+    def required_name_for_level(self, level_index: int) -> str:
+        """Level 2 uses the Level 1 NPC, Level 3 uses the Level 2 NPC, and so on."""
+        if level_index <= 0:
+            return ""
+        return FRIEND_NAMES[min(level_index - 1, len(FRIEND_NAMES) - 1)]
 
 
     def on_show_view(self) -> None:
@@ -1138,13 +1150,26 @@ class GameView(arcade.View):
 
     def jump_to_level(self, building_index: int) -> None:
         """Jump to a specific level index and restart the cleanup round."""
-        if building_index >= 3:
-            if self.level4_unlocked:
-                self.enter_perfect_area()
-            else:
-                self.enter_level4_lock()
+        target_level = max(0, min(building_index, BUILDING_STAGES))
+        if target_level == 0:
+            self.current_building = 0
+            self.buildings_cleaned = 0
+            self.level_picker_open = False
+            self.message = f"Jumped to {self.get_building_name(self.current_building)}."
+            self.hint = "You are now on level 1."
+            self.reset_round()
             return
-        self.current_building = max(0, min(building_index, BUILDING_STAGES - 1))
+
+        for prerequisite_level in range(1, target_level + 1):
+            if not self.level_is_unlocked(prerequisite_level):
+                self.enter_level_lock(prerequisite_level)
+                return
+
+        if target_level >= BUILDING_STAGES:
+            self.enter_perfect_area()
+            return
+
+        self.current_building = target_level
         self.buildings_cleaned = self.current_building
         self.level_picker_open = False
         self.message = f"Jumped to {self.get_building_name(self.current_building)}."
@@ -1181,18 +1206,18 @@ class GameView(arcade.View):
         self.hint = "Every house is already perfect. Press SPACE to return."
 
 
-    def enter_level4_lock(self) -> None:
-        """Open the Level 4 name lock screen."""
-        self.screen = "level4_lock"
+    def enter_level_lock(self, level_index: int) -> None:
+        """Open the lock screen for a specific level."""
+        self.screen = "level_lock"
         self.round_started = False
         self.keys_down.clear()
         self.level_picker_open = False
         self.menu_open = False
-        self.level4_lock_input = ""
-        self.level4_lock_found_names = []
-        self.level4_lock_remaining_names = list(FRIEND_NAMES)
-        self.message = "Level 4 is locked."
-        self.hint = "Enter all three NPC names, one at a time, to unlock it."
+        self.level_lock_target = level_index
+        self.level_lock_input = ""
+        self.level_lock_required_name = self.required_name_for_level(level_index)
+        self.message = f"Level {level_index + 1} is locked."
+        self.hint = f"Enter the name of the NPC from Level {level_index} to unlock it."
 
 
     def toggle_perfect_area_view(self) -> None:
@@ -1203,50 +1228,46 @@ class GameView(arcade.View):
         self.hint = "Press the top button to switch views. SPACE returns to the intro."
 
 
-    def submit_level4_lock_name(self) -> None:
-        """Check the current name entry against the remaining NPC names."""
-        if self.screen != "level4_lock":
+    def submit_level_lock_name(self) -> None:
+        """Check the current name entry against the required NPC name for the level."""
+        if self.screen != "level_lock" or self.level_lock_target is None:
             return
 
-        guess = self.level4_lock_input.strip().lower()
-        self.level4_lock_input = ""
+        guess = self.level_lock_input.strip().lower()
+        target_level = self.level_lock_target
+        required_name = self.level_lock_required_name
+        self.level_lock_input = ""
         if not guess:
             self.message = "Type a name first."
             return
 
-        matched_name = next((name for name in self.level4_lock_remaining_names if name.lower() == guess), None)
-        if matched_name is None:
-            self.message = "Not quite. Try one of the NPC names."
-            self.hint = f"{len(self.level4_lock_remaining_names)} name(s) still needed."
+        if guess != required_name.lower():
+            self.message = "Not quite. Try the NPC from the previous level."
+            self.hint = f"Level {target_level} needs {required_name}."
             return
 
-        self.level4_lock_remaining_names.remove(matched_name)
-        if matched_name not in self.level4_lock_found_names:
-            self.level4_lock_found_names.append(matched_name)
-
-        if not self.level4_lock_remaining_names:
-            self.level4_unlocked = True
+        self.unlocked_levels.add(target_level)
+        self.level_lock_target = None
+        self.message = f"Correct: {required_name}. Level {target_level + 1} unlocked."
+        self.hint = "Loading the next level now."
+        self.jump_to_level(target_level)
+        if target_level >= BUILDING_STAGES:
             self.message = "Level 4 unlocked."
-            self.hint = "Click Level 4 again to enter the perfect area."
-            self.screen = "playing"
-            return
-
-        self.message = f"Correct: {matched_name}."
-        self.hint = f"{len(self.level4_lock_remaining_names)} name(s) still needed."
+            self.hint = "You can enter the perfect area now."
 
 
-    def append_level4_lock_char(self, text: str) -> None:
-        if self.screen != "level4_lock" or len(self.level4_lock_input) >= 16:
+    def append_level_lock_char(self, text: str) -> None:
+        if self.screen != "level_lock" or len(self.level_lock_input) >= 16:
             return
         if text.isalpha():
-            self.level4_lock_input += text.lower()
-        elif text == " " and self.level4_lock_input and not self.level4_lock_input.endswith(" "):
-            self.level4_lock_input += " "
+            self.level_lock_input += text.lower()
+        elif text == " " and self.level_lock_input and not self.level_lock_input.endswith(" "):
+            self.level_lock_input += " "
 
 
-    def delete_level4_lock_char(self) -> None:
-        if self.screen == "level4_lock" and self.level4_lock_input:
-            self.level4_lock_input = self.level4_lock_input[:-1]
+    def delete_level_lock_char(self) -> None:
+        if self.screen == "level_lock" and self.level_lock_input:
+            self.level_lock_input = self.level_lock_input[:-1]
 
 
     def finish_repair(self) -> None:
@@ -1342,10 +1363,10 @@ class GameView(arcade.View):
         self.conclusion_time = 0.0
         self.perfect_area_time = 0.0
         self.perfect_area_view = "outside"
-        self.level4_unlocked = False
-        self.level4_lock_input = ""
-        self.level4_lock_found_names = []
-        self.level4_lock_remaining_names = list(FRIEND_NAMES)
+        self.unlocked_levels = {0}
+        self.level_lock_target = None
+        self.level_lock_input = ""
+        self.level_lock_required_name = ""
         self.exit_spawn_x = 400.0
         self.exit_spawn_y = 300.0
         self.minigame_fail_fade = None
@@ -1576,18 +1597,18 @@ class GameView(arcade.View):
 
 
     def on_key_press(self, key: int, modifiers: int) -> None:
-        if self.screen == "level4_lock":
+        if self.screen == "level_lock":
             if key == arcade.key.ESCAPE:
                 self.screen = "playing"
                 self.level_picker_open = False
-                self.message = "Level 4 remains locked."
-                self.hint = "Enter all three NPC names to unlock it."
+                self.message = "Level remains locked."
+                self.hint = "Enter the previous level NPC name to unlock it."
                 return
             if key in {arcade.key.ENTER, arcade.key.NUM_ENTER}:
-                self.submit_level4_lock_name()
+                self.submit_level_lock_name()
                 return
             if key in {arcade.key.BACKSPACE, arcade.key.DELETE}:
-                self.delete_level4_lock_char()
+                self.delete_level_lock_char()
                 return
             return
 
@@ -1724,8 +1745,8 @@ class GameView(arcade.View):
             self.suppress_next_name_guess_char = False
             return
 
-        if self.screen == "level4_lock":
-            self.append_level4_lock_char(text)
+        if self.screen == "level_lock":
+            self.append_level_lock_char(text)
             return
 
         if self.screen == "name_guess" and text in {"\r", "\n"}:
@@ -1736,9 +1757,9 @@ class GameView(arcade.View):
 
 
     def on_text_motion(self, motion: int) -> None:
-        if self.screen == "level4_lock":
+        if self.screen == "level_lock":
             if motion in {arcade.key.MOTION_BACKSPACE, arcade.key.MOTION_DELETE}:
-                self.delete_level4_lock_char()
+                self.delete_level_lock_char()
             return
         if self.screen != "name_guess":
             return
@@ -1782,14 +1803,14 @@ class GameView(arcade.View):
                 return
             return
 
-        if self.screen == "level4_lock":
+        if self.screen == "level_lock":
             if 300 <= x <= 500 and 206 <= y <= 244:
-                self.submit_level4_lock_name()
+                self.submit_level_lock_name()
                 return
             if 300 <= x <= 500 and 152 <= y <= 186:
                 self.screen = "playing"
-                self.message = "Level 4 remains locked."
-                self.hint = "Enter all three NPC names to unlock it."
+                self.message = "Level remains locked."
+                self.hint = "Enter the previous level NPC name to unlock it."
                 return
             return
 
@@ -3273,8 +3294,8 @@ class GameView(arcade.View):
                 return
 
 
-            if self.screen == "level4_lock":
-                self.draw_level4_lock()
+            if self.screen == "level_lock":
+                self.draw_level_lock()
                 return
 
 
