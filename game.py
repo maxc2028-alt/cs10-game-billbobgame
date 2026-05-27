@@ -2372,9 +2372,6 @@ class GameView(arcade.View):
         arcade.draw_text(self.name_guess.upper() or "type your answer here", 400, 247, arcade.color.WHITE, 18, anchor_x="center")
         arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 230, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 208, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
-        arcade.draw_lrbt_rectangle_filled(170, 630, 126, 196, (28, 32, 42))
-        arcade.draw_lrbt_rectangle_outline(170, 630, 126, 196, arcade.color.WHITE, 1)
-        arcade.draw_text("Hint area", 400, 182, arcade.color.GOLD, 12, anchor_x="center")
         if self.guess_friend is not None:
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
             answer = riddle["answer"]
