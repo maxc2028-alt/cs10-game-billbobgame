@@ -1389,7 +1389,7 @@ class GameView(arcade.View):
 
 
     def on_text(self, text: str) -> None:
-        if self.screen == "name_guess" and text.isalpha() and len(self.name_guess) < 16:
+        if self.screen == "name_guess" and text.isalpha() and text.lower() != "t" and len(self.name_guess) < 16:
             self.name_guess += text.lower()
 
 
