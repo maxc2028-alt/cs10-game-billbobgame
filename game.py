@@ -691,6 +691,10 @@ class GameView(arcade.View):
         self.conclusion_time = 0.0
         self.perfect_area_time = 0.0
         self.perfect_area_view = "outside"
+        self.level4_unlocked = False
+        self.level4_lock_input = ""
+        self.level4_lock_found_names: list[str] = []
+        self.level4_lock_remaining_names = list(FRIEND_NAMES)
         self.exit_spawn_x = 400.0
         self.exit_spawn_y = 300.0
         self.minigame_fail_fade: float | None = None
@@ -1135,7 +1139,10 @@ class GameView(arcade.View):
     def jump_to_level(self, building_index: int) -> None:
         """Jump to a specific level index and restart the cleanup round."""
         if building_index >= 3:
-            self.enter_perfect_area()
+            if self.level4_unlocked:
+                self.enter_perfect_area()
+            else:
+                self.enter_level4_lock()
             return
         self.current_building = max(0, min(building_index, BUILDING_STAGES - 1))
         self.buildings_cleaned = self.current_building
@@ -1174,12 +1181,72 @@ class GameView(arcade.View):
         self.hint = "Every house is already perfect. Press SPACE to return."
 
 
+    def enter_level4_lock(self) -> None:
+        """Open the Level 4 name lock screen."""
+        self.screen = "level4_lock"
+        self.round_started = False
+        self.keys_down.clear()
+        self.level_picker_open = False
+        self.menu_open = False
+        self.level4_lock_input = ""
+        self.level4_lock_found_names = []
+        self.level4_lock_remaining_names = list(FRIEND_NAMES)
+        self.message = "Level 4 is locked."
+        self.hint = "Enter all three NPC names, one at a time, to unlock it."
+
+
     def toggle_perfect_area_view(self) -> None:
         if self.screen != "perfect_area":
             return
         self.perfect_area_view = "inside" if self.perfect_area_view == "outside" else "outside"
         self.message = "Inside view." if self.perfect_area_view == "inside" else "Outside view."
         self.hint = "Press the top button to switch views. SPACE returns to the intro."
+
+
+    def submit_level4_lock_name(self) -> None:
+        """Check the current name entry against the remaining NPC names."""
+        if self.screen != "level4_lock":
+            return
+
+        guess = self.level4_lock_input.strip().lower()
+        self.level4_lock_input = ""
+        if not guess:
+            self.message = "Type a name first."
+            return
+
+        matched_name = next((name for name in self.level4_lock_remaining_names if name.lower() == guess), None)
+        if matched_name is None:
+            self.message = "Not quite. Try one of the NPC names."
+            self.hint = f"{len(self.level4_lock_remaining_names)} name(s) still needed."
+            return
+
+        self.level4_lock_remaining_names.remove(matched_name)
+        if matched_name not in self.level4_lock_found_names:
+            self.level4_lock_found_names.append(matched_name)
+
+        if not self.level4_lock_remaining_names:
+            self.level4_unlocked = True
+            self.message = "Level 4 unlocked."
+            self.hint = "Click Level 4 again to enter the perfect area."
+            self.screen = "playing"
+            return
+
+        self.message = f"Correct: {matched_name}."
+        self.hint = f"{len(self.level4_lock_remaining_names)} name(s) still needed."
+
+
+    def append_level4_lock_char(self, text: str) -> None:
+        if self.screen != "level4_lock" or len(self.level4_lock_input) >= 16:
+            return
+        if text.isalpha():
+            self.level4_lock_input += text.lower()
+        elif text == " " and self.level4_lock_input and not self.level4_lock_input.endswith(" "):
+            self.level4_lock_input += " "
+
+
+    def delete_level4_lock_char(self) -> None:
+        if self.screen == "level4_lock" and self.level4_lock_input:
+            self.level4_lock_input = self.level4_lock_input[:-1]
 
 
     def finish_repair(self) -> None:
@@ -1273,6 +1340,12 @@ class GameView(arcade.View):
         self.door_cooldown = 0.0
         self.level_picker_open = False
         self.conclusion_time = 0.0
+        self.perfect_area_time = 0.0
+        self.perfect_area_view = "outside"
+        self.level4_unlocked = False
+        self.level4_lock_input = ""
+        self.level4_lock_found_names = []
+        self.level4_lock_remaining_names = list(FRIEND_NAMES)
         self.exit_spawn_x = 400.0
         self.exit_spawn_y = 300.0
         self.minigame_fail_fade = None
@@ -1503,6 +1576,21 @@ class GameView(arcade.View):
 
 
     def on_key_press(self, key: int, modifiers: int) -> None:
+        if self.screen == "level4_lock":
+            if key == arcade.key.ESCAPE:
+                self.screen = "playing"
+                self.level_picker_open = False
+                self.message = "Level 4 remains locked."
+                self.hint = "Enter all three NPC names to unlock it."
+                return
+            if key in {arcade.key.ENTER, arcade.key.NUM_ENTER}:
+                self.submit_level4_lock_name()
+                return
+            if key in {arcade.key.BACKSPACE, arcade.key.DELETE}:
+                self.delete_level4_lock_char()
+                return
+            return
+
         if self.screen == "name_guess" and key == arcade.key.ESCAPE:
             self.cancel_name_guess()
             return
@@ -1636,6 +1724,10 @@ class GameView(arcade.View):
             self.suppress_next_name_guess_char = False
             return
 
+        if self.screen == "level4_lock":
+            self.append_level4_lock_char(text)
+            return
+
         if self.screen == "name_guess" and text in {"\r", "\n"}:
             self.submit_name_riddle()
             return
@@ -1644,6 +1736,10 @@ class GameView(arcade.View):
 
 
     def on_text_motion(self, motion: int) -> None:
+        if self.screen == "level4_lock":
+            if motion in {arcade.key.MOTION_BACKSPACE, arcade.key.MOTION_DELETE}:
+                self.delete_level4_lock_char()
+            return
         if self.screen != "name_guess":
             return
         if motion in {arcade.key.MOTION_BACKSPACE, arcade.key.MOTION_DELETE}:
