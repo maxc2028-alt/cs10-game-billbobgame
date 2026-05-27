@@ -1332,10 +1332,13 @@ class GameView(arcade.View):
         if self.screen != "playing":
             return False
 
+        target_name = self.current_target_friend_name()
         for friend in self.friends:
-            if friend.name in self.befriended_friends and self.current_building in self.lesson_completed_buildings:
+            if friend.name != target_name:
                 continue
 
+            if friend.name in self.befriended_friends and self.current_building in self.lesson_completed_buildings:
+                continue
 
             clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 42 ** 2
             near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
