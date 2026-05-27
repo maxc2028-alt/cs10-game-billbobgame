@@ -43,22 +43,22 @@ HOUSE_WIDTHS = [140, 170, 120]  # Different widths for variety
 HOUSE_HEIGHTS = [220, 235, 195]  # Different heights for variety
 RIDDLE_QUESTIONS = [
     {
-        "question": "I can brighten a dark room with a warm glow, even when the power is low. What am I?",
-        "answer": "lamp",
-        "letter": "l",
-    },
-    {
-        "question": "I give tired people a place to sit, rest, and talk with a friend. What am I?",
+        "question": "I sit by the sidewalk and give tired neighbors a place to rest and talk. What am I?",
         "answer": "bench",
         "letter": "b",
     },
     {
-        "question": "I help people cross from one side to the other when something is in the way. What am I?",
-        "answer": "bridge",
-        "letter": "b",
+        "question": "I shine over a block at night and help people feel less alone on the way home. What am I?",
+        "answer": "lamp",
+        "letter": "l",
     },
     {
-        "question": "I add color to a wall and can make an old place feel alive again. What am I?",
+        "question": "I connect two places so people can reach each other instead of staying apart. What am I?",
+        "answer": "bridge",
+        "letter": "r",
+    },
+    {
+        "question": "I cover old walls and make a repaired room feel new and welcoming. What am I?",
         "answer": "paint",
         "letter": "p",
     },
