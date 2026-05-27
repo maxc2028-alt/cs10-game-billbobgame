@@ -843,6 +843,11 @@ class GameView(arcade.View):
         )
 
 
+    def get_interior_repair_template(self, building_index: int) -> list[tuple[int, int, str, object, int]]:
+        """Pick a stable repair layout for any house index."""
+        return INTERIOR_REPAIR_SETS[building_index % len(INTERIOR_REPAIR_SETS)]
+
+
     def enter_house(self) -> None:
         # Generate repair spots procedurally
         rng = random.Random(f"repair_{self.current_building}")
@@ -915,7 +920,7 @@ class GameView(arcade.View):
         else:
             self.interior_spots = [
                 RepairSpot(x, y, label, color, cost)
-                for x, y, label, color, cost in INTERIOR_REPAIR_SETS[building_index]
+                for x, y, label, color, cost in self.get_interior_repair_template(building_index)
             ]
         self.screen = "visit"
         self.round_started = False
