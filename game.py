@@ -1203,14 +1203,13 @@ class GameView(arcade.View):
             self.name_riddle_wrong_guesses = len(self.name_riddle_wrong_answers)
         self.message = "Not quite. Try that riddle again."
         self.name_guess = ""
-        if self.name_riddle_wrong_guesses >= 5:
+        if self.name_riddle_wrong_guesses >= 3:
             self.hint = f"Full answer: {riddle['answer'].upper()}"
             return
         clue_steps = [
             f"Length: {len(riddle['answer'])} letters.",
             "Keep trying different ideas.",
-            "Almost there. One more unique wrong guess unlocks the answer.",
-            "Final clue coming next.",
+            "One more wrong guess unlocks the answer.",
         ]
         shown_count = min(self.name_riddle_wrong_guesses, len(clue_steps))
         self.hint = " ".join(clue_steps[:shown_count])
