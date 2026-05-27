@@ -1107,10 +1107,18 @@ class GameView(arcade.View):
 
     def jump_to_middle_house(self) -> None:
         """Skip directly to the middle house, using the same content as level 1."""
-        self.current_building = 1
-        self.buildings_cleaned = 1
-        self.message = "Jumped to the middle house."
-        self.hint = "Level 2 uses the same cleanup setup as level 1."
+        self.jump_to_level(1)
+
+
+    def jump_to_level(self, building_index: int) -> None:
+        """Jump to a specific level index and restart the cleanup round."""
+        self.current_building = max(0, min(building_index, BUILDING_STAGES - 1))
+        self.buildings_cleaned = self.current_building
+        self.message = f"Jumped to {self.get_building_name(self.current_building)}."
+        if self.current_building == 1:
+            self.hint = "Level 2 uses the same cleanup setup as level 1."
+        else:
+            self.hint = f"You are now on level {self.current_building + 1}."
         self.reset_round()
 
 
@@ -1528,6 +1536,14 @@ class GameView(arcade.View):
                 if self.window is not None:
                     self.window.close()
                 return
+            return
+
+        if 690 <= x <= 770 and 538 <= y <= 558:
+            self.jump_to_level(1)
+            return
+
+        if 690 <= x <= 770 and 508 <= y <= 528:
+            self.jump_to_level(2)
             return
 
         if 10 <= x <= 45 and 18 <= y <= 53:
@@ -2782,6 +2798,13 @@ class GameView(arcade.View):
             arcade.draw_lrbt_rectangle_filled(560, 700, 210, 246, (40, 50, 65))
             arcade.draw_lrbt_rectangle_outline(560, 700, 210, 246, arcade.color.WHITE, 2)
             arcade.draw_text("Quit Game", 630, 228, arcade.color.WHITE, 14, anchor_x="center")
+
+        arcade.draw_lrbt_rectangle_filled(688, 774, 536, 560, (36, 46, 62))
+        arcade.draw_lrbt_rectangle_outline(688, 774, 536, 560, arcade.color.WHITE, 2)
+        arcade.draw_text("Level 2", 731, 545, arcade.color.WHITE, 11, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(688, 774, 506, 530, (36, 46, 62))
+        arcade.draw_lrbt_rectangle_outline(688, 774, 506, 530, arcade.color.WHITE, 2)
+        arcade.draw_text("Level 3", 731, 515, arcade.color.WHITE, 11, anchor_x="center")
 
         if self.show_instructions:
             arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
