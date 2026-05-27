@@ -1269,6 +1269,10 @@ class GameView(arcade.View):
 
 
     def on_key_press(self, key: int, modifiers: int) -> None:
+        if self.screen == "name_guess" and key == arcade.key.ESCAPE:
+            self.cancel_name_guess()
+            return
+
         if key == arcade.key.ESCAPE:
             if self.active_minigame is not None:
                 self.cancel_house_minigame()
@@ -1305,9 +1309,6 @@ class GameView(arcade.View):
                 return
             if key == arcade.key.BACKSPACE:
                 self.name_guess = self.name_guess[:-1]
-                return
-            if key == arcade.key.ESCAPE:
-                self.cancel_name_guess()
                 return
             return
 
