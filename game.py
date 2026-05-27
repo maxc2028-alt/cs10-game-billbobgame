@@ -1043,16 +1043,12 @@ class GameView(arcade.View):
     def friend_action_hint(self) -> str:
         if self.screen != "playing":
             return ""
-        if self.trash_spots:
-            return "Clean trash first."
-        return "Move close to the NPC and click the friend to talk."
+        return "Move close to any NPC and click them to talk."
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
         if friend.name in self.befriended_friends:
             return "friend"
-        if friend.name != self.current_target_friend_name():
-            return "not yet"
         if self.known_name_letters(friend.name) < len(friend.name):
             return "find clues"
         if friend.name in self.guessed_friend_names:
@@ -1332,14 +1328,7 @@ class GameView(arcade.View):
         if self.screen != "playing":
             return False
 
-        target_name = self.current_target_friend_name()
         for friend in self.friends:
-            if friend.name != target_name:
-                continue
-
-            if friend.name in self.befriended_friends and self.current_building in self.lesson_completed_buildings:
-                continue
-
             clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 42 ** 2
             near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
 
