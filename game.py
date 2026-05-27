@@ -979,7 +979,7 @@ class GameView(arcade.View):
 
     def maybe_open_house_style_choice(self, building_index: int) -> bool:
         flags = self.house_completion_flags.get(building_index, set())
-        if {"exterior", "interior", "riddle"} <= flags:
+        if {"interior", "riddle"} <= flags:
             self.pending_house_style_building = building_index
             self.inside_building = building_index
             self.screen = "decorate"
