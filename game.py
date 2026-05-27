@@ -704,6 +704,7 @@ class GameView(arcade.View):
         self.minigame_win_return_screen: str | None = None
         self.minigame_win_hold: float = 0.0
         self.suppress_next_name_guess_char = False
+        self.outside_cleanup_started = False
         # Infinite world state
         self.world_offset_x = 0  # Track camera position in world
         self.house_rng = random.Random(42)  # Seeded for consistent generation
@@ -831,6 +832,7 @@ class GameView(arcade.View):
         self.ball_y = base_y + 50
         self.screen = "playing"
         self.round_started = True
+        self.outside_cleanup_started = False
         self.show_instructions = True
 
 
@@ -1352,7 +1354,7 @@ class GameView(arcade.View):
         self.upgrades = 0
         self.interior_upgrade_levels.clear()
         self.message = "Press SPACE to begin."
-        self.hint = "Click START in the top-right corner or the big START button to begin."
+        self.hint = "Click START near the top of the screen or the big START button to begin."
         self.trash_spots = []
         self.interior_trash_spots = []
         self.repair_spots = []
@@ -1372,6 +1374,7 @@ class GameView(arcade.View):
         self.pending_house_style_building = None
         self.house_completion_flags.clear()
         self.interior_trash_spots = []
+        self.outside_cleanup_started = False
         self.neighborhood_state = 0
         self.round_started = False
         self.sky_time = 0.0
@@ -1426,6 +1429,7 @@ class GameView(arcade.View):
     def start_game_countdown(self) -> None:
         self.screen = "countdown"
         self.round_started = False
+        self.outside_cleanup_started = False
         self.keys_down.clear()
         self.start_countdown = 3.0
         self.show_instructions = True
@@ -1765,7 +1769,7 @@ class GameView(arcade.View):
                 self.intro_time = 0.0
                 self.intro_walk_x = 85.0
                 self.message = "Press SPACE to begin."
-                self.hint = "Click START in the top-right corner or the big START button to begin."
+        self.hint = "Click START near the top of the screen or the big START button to begin."
             elif self.screen in {"complete", "failed", "trash_game_over", "minigame_game_over"}:
                 self.reset_round()
             elif self.screen == "intro":
@@ -1947,10 +1951,11 @@ class GameView(arcade.View):
             self.show_instructions = not self.show_instructions
             return
 
-        if self.screen == "playing" and 710 <= x <= 790 and 552 <= y <= 590:
+        if self.screen == "playing" and 610 <= x <= 700 and 552 <= y <= 590:
+            self.outside_cleanup_started = True
             self.show_instructions = True
-            self.message = "Instructions open."
-            self.hint = "Use the help panel to remember what to do outside."
+            self.message = "Cleanup started."
+            self.hint = "Now the outside trash timer is running. Keep cleaning to earn money."
             return
 
 
@@ -2363,6 +2368,10 @@ class GameView(arcade.View):
 
 
             if self.screen != "playing":
+                return
+
+
+            if not self.outside_cleanup_started:
                 return
 
 
@@ -3214,9 +3223,10 @@ class GameView(arcade.View):
         arcade.draw_text("?", 28, 25, (222, 222, 214), 18, anchor_x="center")
 
         if self.screen == "playing" and not self.menu_open:
-            arcade.draw_lrbt_rectangle_filled(708, 790, 556, 590, (174, 151, 82))
-            arcade.draw_lrbt_rectangle_outline(708, 790, 556, 590, arcade.color.BLACK, 2)
-            arcade.draw_text("START", 749, 567, arcade.color.BLACK, 13, anchor_x="center")
+            button_fill = (174, 151, 82) if not self.outside_cleanup_started else (78, 90, 100)
+            arcade.draw_lrbt_rectangle_filled(610, 700, 556, 590, button_fill)
+            arcade.draw_lrbt_rectangle_outline(610, 700, 556, 590, arcade.color.BLACK, 2)
+            arcade.draw_text("START", 655, 567, arcade.color.BLACK, 13, anchor_x="center")
             arcade.draw_circle_filled(760, 478, 17, (18, 24, 34))
             arcade.draw_circle_outline(760, 478, 17, (222, 222, 214), 2)
             arcade.draw_text("Lv", 760, 469, (222, 222, 214), 11, anchor_x="center")
