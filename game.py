@@ -696,6 +696,7 @@ class GameView(arcade.View):
         self.minigame_target_spot = None  # Which repair spot is being worked on
         self.minigame_return_screen = None
         self.minigame_parent_screen = None
+        self.house_repair_progress: dict[int, set[str]] = {}
         self.configure_camera()
 
 
@@ -836,6 +837,10 @@ class GameView(arcade.View):
             RepairSpot(250 + i * 100, 295 - (i % 2) * 100, label, color, cost)
             for i, (label, color, cost) in enumerate(base_repairs)
         ]
+        saved_repairs = self.house_repair_progress.get(self.current_building, set())
+        for spot in self.repair_spots:
+            if spot.label in saved_repairs:
+                spot.fixed = True
         self.exit_spawn_x = self.ball_x
         self.exit_spawn_y = self.ball_y
         self.time_left = QUEST_TIME
@@ -1422,6 +1427,7 @@ class GameView(arcade.View):
                 spot = self.minigame_target_spot
                 if spot is not None:
                     spot.fixed = True
+                    self.house_repair_progress.setdefault(self.current_building, set()).add(spot.label)
                     self.money -= spot.cost
                     self.message = f"Repaired: {spot.label}!"
                     self.hint = "Great work! Continue with the other repairs."
@@ -1800,6 +1806,7 @@ class GameView(arcade.View):
                     spot = self.minigame_target_spot
                     if spot is not None:
                         spot.fixed = True
+                        self.house_repair_progress.setdefault(self.current_building, set()).add(spot.label)
                         self.money -= spot.cost
                         self.message = f"Repaired: {spot.label}!"
                         self.hint = "Great work! Continue with the other repairs."
