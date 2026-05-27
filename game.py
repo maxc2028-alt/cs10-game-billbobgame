@@ -690,13 +690,6 @@ class GameView(arcade.View):
         self.minigame_win_return_screen: str | None = None
         self.minigame_win_hold: float = 0.0
         self.suppress_next_name_guess_char = False
-        self.name_guess_active = False
-        self.name_guess_keyboard = [
-            list("QWERTYUIOP"),
-            list("ASDFGHJKL"),
-            list("ZXCVBNM"),
-        ]
-        self.name_guess_options = [riddle["answer"] for riddle in RIDDLE_QUESTIONS]
         # Infinite world state
         self.world_offset_x = 0  # Track camera position in world
         self.house_rng = random.Random(42)  # Seeded for consistent generation
@@ -1143,7 +1136,6 @@ class GameView(arcade.View):
         self.name_riddle_wrong_guesses = 0
         self.name_riddle_wrong_answers = set()
         self.suppress_next_name_guess_char = False
-        self.name_guess_active = True
         self.screen = "name_guess"
         self.message = f"Riddle {self.name_riddle_index + 1} of 4 for {friend.name}."
         current_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
@@ -1509,51 +1501,6 @@ class GameView(arcade.View):
 
         if 10 <= x <= 45 and 518 <= y <= 553:
             self.show_instructions = not self.show_instructions
-            return
-
-        if self.screen == "name_guess":
-            if 215 <= x <= 585 and 176 <= y <= 230:
-                self.name_guess_active = True
-                return
-
-            if 610 <= x <= 675 and 174 <= y <= 210:
-                self.name_guess = self.name_guess[:-1]
-                self.name_guess_active = True
-                return
-
-            if 610 <= x <= 675 and 216 <= y <= 252:
-                self.submit_name_riddle()
-                self.name_guess_active = True
-                return
-
-            option_layout = [
-                (150, 385, 30, 68),
-                (415, 650, 30, 68),
-                (150, 385, 74, 112),
-                (415, 650, 74, 112),
-            ]
-            for index, (left, right, bottom, top) in enumerate(option_layout):
-                if left <= x <= right and bottom <= y <= top:
-                    chosen = self.name_guess_options[index]
-                    self.name_guess = chosen
-                    self.submit_name_riddle()
-                    self.name_guess_active = True
-                    return
-
-            key_rows = self.name_guess_keyboard
-            key_layout = [
-                (140, 660, 94, 130, key_rows[0]),
-                (180, 620, 54, 90, key_rows[1]),
-                (240, 560, 14, 50, key_rows[2]),
-            ]
-            for left, right, bottom, top, letters in key_layout:
-                if bottom <= y <= top:
-                    button_width = (right - left) / len(letters)
-                    index = int((x - left) / button_width)
-                    if 0 <= index < len(letters):
-                        self.append_name_guess_char(letters[index])
-                        self.name_guess_active = True
-                        return
             return
 
         if 748 <= x <= 790 and 558 <= y <= 590:
