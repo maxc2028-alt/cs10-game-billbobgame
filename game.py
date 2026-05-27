@@ -653,6 +653,8 @@ class GameView(arcade.View):
         self.inside_building = 0
         self.interior_mode = "repair"
         self.house_styles: dict[int, tuple[tuple[int, int, int], tuple[int, int, int]]] = {}
+        self.house_exterior_repaired: set[int] = set()
+        self.pending_house_style_building: int | None = None
         self.style_options = [
             ("Garden green", (54, 77, 69), (86, 112, 98)),
             ("Warm brick", (89, 52, 48), (121, 76, 65)),
@@ -952,10 +954,9 @@ class GameView(arcade.View):
         self.interior_upgrade_levels.setdefault(self.inside_building, 0)
         self.interior_spots = []
         self.message = f"The inside of {self.get_building_name(self.inside_building)} is fixed."
-        self.screen = "decorate"
-        self.round_started = False
-        self.keys_down.clear()
-        self.hint = "Pick a clean house style for this one, then the next house starts."
+        if self.maybe_open_house_style_choice(self.inside_building):
+            return
+        self.hint = "Press F by the door to go back outside, then revisit later for interior upgrades."
 
 
     def finish_interior_upgrade(self) -> None:
@@ -972,6 +973,24 @@ class GameView(arcade.View):
         else:
             self.interior_spots = []
             self.hint = "This house is fully upgraded. Press F by the door to go back outside."
+
+
+    def maybe_open_house_style_choice(self, building_index: int) -> bool:
+        friend_name = FRIEND_NAMES[building_index % len(FRIEND_NAMES)]
+        if (
+            building_index in self.house_exterior_repaired
+            and building_index in self.inside_repaired_buildings
+            and friend_name in self.guessed_friend_names
+        ):
+            self.pending_house_style_building = building_index
+            self.inside_building = building_index
+            self.screen = "decorate"
+            self.round_started = False
+            self.keys_down.clear()
+            self.message = "Choose a clean finished house."
+            self.hint = "Pick 1, 2, or 3 to replace the broken house with a nicer one."
+            return True
+        return False
 
 
     def current_target_friend_name(self) -> str:
@@ -1081,6 +1100,9 @@ class GameView(arcade.View):
 
     def finish_repair(self) -> None:
         self.friendship += 1
+        self.house_exterior_repaired.add(self.current_building)
+        if self.maybe_open_house_style_choice(self.current_building):
+            return
         self.screen = "playing"
         self.round_started = True
         self.keys_down.clear()
@@ -1092,7 +1114,9 @@ class GameView(arcade.View):
 
     def choose_house_style(self, style_index: int) -> None:
         _, roof_color, wall_color = self.style_options[style_index]
-        self.house_styles[self.inside_building] = (roof_color, wall_color)
+        target_building = self.pending_house_style_building if self.pending_house_style_building is not None else self.inside_building
+        self.house_styles[target_building] = (roof_color, wall_color)
+        self.pending_house_style_building = None
         self.next_building()
 
 
@@ -2430,16 +2454,15 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(80, 720, 120, 540, (20, 20, 30))
         arcade.draw_lrbt_rectangle_outline(80, 720, 120, 540, arcade.color.WHITE, 3)
 
-        arcade.draw_text("Choose the clean house", 400, 455, (222, 222, 214), 28, anchor_x="center")
+        arcade.draw_text("Replace the broken house", 400, 455, (222, 222, 214), 28, anchor_x="center")
         arcade.draw_text(
-            self.get_building_name(self.inside_building),
+            self.get_building_name(self.pending_house_style_building if self.pending_house_style_building is not None else self.inside_building),
             400,
             420,
             (156, 160, 166),
             14,
             anchor_x="center",
         )
-        arcade.draw_text("Pick one of the three clean versions below.", 400, 396, (156, 160, 166), 12, anchor_x="center")
         arcade.draw_text("Pick one of the three clean versions below.", 400, 396, (156, 160, 166), 12, anchor_x="center")
 
 
