@@ -2841,31 +2841,81 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 122, (96, 161, 91))
         arcade.draw_lrbt_rectangle_filled(0, 800, 122, 160, (193, 176, 143))
 
-        arcade.draw_circle_filled(708, 520, 34, (255, 241, 145))
-        arcade.draw_circle_filled(708, 520, 52, (255, 242, 172, 85))
-        self.draw_clouds()
+        button_label = "Show Inside" if self.perfect_area_view == "outside" else "Show Outside"
+        arcade.draw_lrbt_rectangle_filled(300, 500, 544, 580, (26, 34, 46))
+        arcade.draw_lrbt_rectangle_outline(300, 500, 544, 580, arcade.color.WHITE, 2)
+        arcade.draw_text(button_label, 400, 559, arcade.color.WHITE, 13, anchor_x="center")
 
-        arcade.draw_text("LEVEL 4", 400, 556, arcade.color.WHITE, 28, anchor_x="center")
-        arcade.draw_text("Perfect Block", 400, 526, arcade.color.BLACK, 30, anchor_x="center")
-        arcade.draw_text("Every house is already fixed.", 400, 496, arcade.color.WHITE, 14, anchor_x="center")
+        if self.perfect_area_view == "outside":
+            arcade.draw_circle_filled(708, 520, 34, (255, 241, 145))
+            arcade.draw_circle_filled(708, 520, 52, (255, 242, 172, 85))
+            self.draw_clouds()
 
-        for building_idx in range(3):
-            left, right, base_y, height = self.get_house_position(building_idx)
-            roof_color, wall_color = self.get_house_colors(building_idx)
-            self.draw_building(left, right, base_y, height, roof_color, wall_color, repaired=True)
+            arcade.draw_text("LEVEL 4", 400, 556, arcade.color.WHITE, 28, anchor_x="center")
+            arcade.draw_text("Perfect Block", 400, 526, arcade.color.BLACK, 30, anchor_x="center")
+            arcade.draw_text("Every house is already fixed.", 400, 496, arcade.color.WHITE, 14, anchor_x="center")
 
-            door_center = (left + right) / 2
-            door_width = 34
-            door_height = 68
-            door_left = door_center - door_width / 2
-            door_right = door_center + door_width / 2
-            arcade.draw_lrbt_rectangle_filled(door_left - 18, door_left - 6, base_y + 6, base_y + 18, (82, 128, 74))
-            arcade.draw_lrbt_rectangle_filled(door_right + 6, door_right + 18, base_y + 6, base_y + 18, (82, 128, 74))
-            arcade.draw_circle_filled(door_left - 12, base_y + 22, 5, (200, 164, 86))
-            arcade.draw_circle_filled(door_right + 12, base_y + 22, 5, (200, 164, 86))
+            for building_idx in range(3):
+                left, right, base_y, height = self.get_house_position(building_idx)
+                roof_color, wall_color = self.get_house_colors(building_idx)
+                self.draw_building(left, right, base_y, height, roof_color, wall_color, repaired=True)
+
+                door_center = (left + right) / 2
+                door_width = 34
+                door_left = door_center - door_width / 2
+                door_right = door_center + door_width / 2
+                arcade.draw_lrbt_rectangle_filled(door_left - 18, door_left - 6, base_y + 6, base_y + 18, (82, 128, 74))
+                arcade.draw_lrbt_rectangle_filled(door_right + 6, door_right + 18, base_y + 6, base_y + 18, (82, 128, 74))
+                arcade.draw_circle_filled(door_left - 12, base_y + 22, 5, (200, 164, 86))
+                arcade.draw_circle_filled(door_right + 12, base_y + 22, 5, (200, 164, 86))
+
+            arcade.draw_text("Press SPACE to return to the intro.", 400, 82, arcade.color.WHITE, 12, anchor_x="center")
+            arcade.draw_text("The neighborhood here is quiet, calm, and finished.", 400, 62, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+            return
+
+        arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (48, 44, 50))
+        arcade.draw_lrbt_rectangle_filled(70, 730, 90, 480, (80, 66, 56))
+        arcade.draw_lrbt_rectangle_outline(70, 730, 90, 480, arcade.color.BLACK, 3)
+        arcade.draw_lrbt_rectangle_filled(70, 730, 90, 180, (109, 82, 61))
+        arcade.draw_lrbt_rectangle_filled(70, 730, 180, 480, (188, 178, 154))
+        arcade.draw_lrbt_rectangle_filled(525, 700, 250, 370, (26, 29, 38))
+        arcade.draw_lrbt_rectangle_outline(525, 700, 250, 370, arcade.color.BLACK, 3)
+        arcade.draw_lrbt_rectangle_filled(545, 680, 270, 350, (10, 10, 14))
+        arcade.draw_lrbt_rectangle_outline(545, 680, 270, 350, arcade.color.WHITE, 2)
+        arcade.draw_circle_filled(613, 310, 28, (255, 244, 185, 90))
+        arcade.draw_circle_filled(613, 310, 18, (255, 250, 230, 160))
+        arcade.draw_text("TV", 613, 304, arcade.color.BLACK, 16, anchor_x="center")
+
+        arcade.draw_lrbt_rectangle_filled(140, 610, 142, 220, (96, 76, 60))
+        arcade.draw_lrbt_rectangle_outline(140, 610, 142, 220, arcade.color.BLACK, 2)
+        arcade.draw_lrbt_rectangle_filled(160, 590, 160, 210, (121, 91, 69))
+        arcade.draw_lrbt_rectangle_outline(160, 590, 160, 210, arcade.color.BLACK, 2)
+        arcade.draw_text("living room", 375, 522, arcade.color.WHITE, 14, anchor_x="center")
+        arcade.draw_text("Everyone watching TV together.", 400, 494, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+
+        couch_positions = [(205, 180), (390, 185), (560, 178)]
+        for index, name in enumerate(FRIEND_NAMES):
+            fx, fy = couch_positions[index]
+            friend_color = (118, 139, 129)
+            arcade.draw_ellipse_filled(fx, fy - 16, 48, 12, (15, 18, 25, 120))
+            arcade.draw_line(fx, fy + 26, fx, fy - 2, arcade.color.BLACK, 5)
+            arcade.draw_line(fx + 8, fy + 10, fx + 24, fy + 28, arcade.color.BLACK, 3)
+            arcade.draw_line(fx, fy + 10, fx - 10, fy - 2, arcade.color.BLACK, 3)
+            arcade.draw_line(fx, fy - 2, fx - 8, fy - 14, arcade.color.BLACK, 3)
+            arcade.draw_line(fx, fy - 2, fx + 8, fy - 14, arcade.color.BLACK, 3)
+            arcade.draw_circle_filled(fx, fy + 30, 15, friend_color)
+            arcade.draw_circle_outline(fx, fy + 30, 15, arcade.color.BLACK, 2)
+            arcade.draw_text(name, fx, fy + 56, arcade.color.WHITE, 10, anchor_x="center")
+
+        arcade.draw_lrbt_rectangle_filled(150, 280, 210, 240, (74, 86, 97))
+        arcade.draw_lrbt_rectangle_outline(150, 280, 210, 240, arcade.color.BLACK, 2)
+        arcade.draw_text("snacks", 215, 186, arcade.color.WHITE, 10, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(330, 470, 212, 240, (156, 176, 188))
+        arcade.draw_lrbt_rectangle_outline(330, 470, 212, 240, arcade.color.BLACK, 2)
+        arcade.draw_text("music", 400, 186, arcade.color.WHITE, 10, anchor_x="center")
 
         arcade.draw_text("Press SPACE to return to the intro.", 400, 82, arcade.color.WHITE, 12, anchor_x="center")
-        arcade.draw_text("The neighborhood here is quiet, calm, and finished.", 400, 62, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_text("Tap the top button to switch back outside.", 400, 62, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
 
 
     def draw_hud(self) -> None:
