@@ -43,23 +43,23 @@ HOUSE_WIDTHS = [140, 170, 120]  # Different widths for variety
 HOUSE_HEIGHTS = [220, 235, 195]  # Different heights for variety
 RIDDLE_QUESTIONS = [
     {
-        "question": "I follow you everywhere, but I never speak. I grow bigger when the room is empty. What am I?",
+        "question": "I stay with you in daylight and vanish when the room gets dark. What am I?",
         "answer": "shadow",
         "letter": "j",
     },
     {
-        "question": "I am a crowd of one, a party with no guests, and a song no one hears. What am I?",
-        "answer": "loneliness",
+        "question": "I repeat your voice, but I never start the conversation. What am I?",
+        "answer": "echo",
         "letter": "a",
     },
     {
-        "question": "I sit beside you at lunch, but no one sees me. I make silence feel louder. What am I?",
-        "answer": "feelingalone",
+        "question": "I can be soft or urgent, but I disappear if you shout. What am I?",
+        "answer": "whisper",
         "letter": "n",
     },
     {
-        "question": "I am a house with lights on, but no voices inside. What am I?",
-        "answer": "emptyhome",
+        "question": "I let sunlight in, but I am not a door. What am I?",
+        "answer": "window",
         "letter": "e",
     },
 ]
@@ -2930,5 +2930,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 
