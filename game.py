@@ -1,10 +1,3 @@
-"""Neighborhood Cleanup: a more detailed MVP for the serious game idea.
-
-
-The player cleans abandoned buildings, meets friends, earns money, and unlocks
-small upgrades that make the neighborhood feel more alive.
-"""
-
 
 from __future__ import annotations
 
