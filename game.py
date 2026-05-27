@@ -687,6 +687,7 @@ class GameView(arcade.View):
         self.minigame_congrats_fade: float | None = None
         self.minigame_win_return_screen: str | None = None
         self.minigame_win_hold: float = 0.0
+        self.suppress_next_name_guess_char = False
         # Infinite world state
         self.world_offset_x = 0  # Track camera position in world
         self.house_rng = random.Random(42)  # Seeded for consistent generation
@@ -1349,6 +1350,7 @@ class GameView(arcade.View):
 
         if key == arcade.key.T:
             if self.screen == "playing":
+                self.suppress_next_name_guess_char = True
                 if self.try_befriend():
                     return
                 self.message = "Move closer to the NPC to talk."
@@ -1389,7 +1391,12 @@ class GameView(arcade.View):
 
 
     def on_text(self, text: str) -> None:
-        if self.screen == "name_guess" and text.isalpha() and text.lower() != "t" and len(self.name_guess) < 16:
+        if self.suppress_next_name_guess_char:
+            self.suppress_next_name_guess_char = False
+            if text.lower() == "t":
+                return
+
+        if self.screen == "name_guess" and text.isalpha() and len(self.name_guess) < 16:
             self.name_guess += text.lower()
 
 
