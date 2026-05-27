@@ -2597,7 +2597,7 @@ class GameView(arcade.View):
                 friend, friend.x, friend.y,
                 highlight=is_highlighted,
                 name_override=self.friend_display_name(friend),
-                line_override=self.friend_label_text(friend),
+                show_line=False,
             )
 
         self.draw_ball()
