@@ -749,6 +749,13 @@ class GameView(arcade.View):
         return roof_color, wall_color
 
 
+    def level_template_index(self, building_index: int) -> int:
+        """Reuse level 1 content for the middle house so it plays the same as level 1."""
+        if building_index == 1:
+            return 0
+        return building_index
+
+
     def on_show_view(self) -> None:
         arcade.set_background_color(self.background_color)
         self.configure_camera()
@@ -831,7 +838,8 @@ class GameView(arcade.View):
 
     def enter_house(self) -> None:
         # Generate repair spots procedurally
-        rng = random.Random(f"repair_{self.current_building}")
+        template_index = self.level_template_index(self.current_building)
+        rng = random.Random(f"repair_{template_index}")
         base_repairs = [
             ("patch cracked wall", arcade.color.LIGHT_STEEL_BLUE, 5),
             ("replace loose floorboard", arcade.color.GOLD, 4),
@@ -883,6 +891,7 @@ class GameView(arcade.View):
 
 
     def visit_house(self, building_index: int) -> None:
+        template_index = self.level_template_index(building_index)
         self.time_left = QUEST_TIME
         self.exit_spawn_x = self.ball_x
         self.exit_spawn_y = self.ball_y
@@ -901,7 +910,7 @@ class GameView(arcade.View):
         else:
             self.interior_spots = [
                 RepairSpot(x, y, label, color, cost)
-                for x, y, label, color, cost in INTERIOR_REPAIR_SETS[building_index]
+                for x, y, label, color, cost in INTERIOR_REPAIR_SETS[template_index]
             ]
         self.screen = "visit"
         self.round_started = False
@@ -992,7 +1001,8 @@ class GameView(arcade.View):
 
 
     def current_target_friend_name(self) -> str:
-        return FRIEND_NAMES[self.current_building % len(FRIEND_NAMES)]
+        template_index = self.level_template_index(self.current_building)
+        return FRIEND_NAMES[template_index % len(FRIEND_NAMES)]
 
 
     def known_name_letters(self, name: str) -> int:
@@ -1093,6 +1103,15 @@ class GameView(arcade.View):
         self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
         self.message = f"{finished_building} is repaired. {self.get_building_name(self.current_building)} is next."
         self.hint = "The next cleanup starts right away."
+        self.reset_round()
+
+
+    def jump_to_middle_house(self) -> None:
+        """Skip directly to the middle house, using the same content as level 1."""
+        self.current_building = 1
+        self.buildings_cleaned = 1
+        self.message = "Jumped to the middle house."
+        self.hint = "Level 2 uses the same cleanup setup as level 1."
         self.reset_round()
 
 
@@ -1503,6 +1522,10 @@ class GameView(arcade.View):
                 self.hint = "Clear every trash pile to move to the next building."
                 return
             if 540 <= x <= 720 and 252 <= y <= 298:
+                self.jump_to_middle_house()
+                self.menu_open = False
+                return
+            if 540 <= x <= 720 and 202 <= y <= 248:
                 if self.window is not None:
                     self.window.close()
                 return
@@ -2745,8 +2768,8 @@ class GameView(arcade.View):
         arcade.draw_text("?", 28, 25, (222, 222, 214), 18, anchor_x="center")
 
         if self.menu_open:
-            arcade.draw_lrbt_rectangle_filled(490, 770, 220, 430, (14, 17, 24, 240))
-            arcade.draw_lrbt_rectangle_outline(490, 770, 220, 430, (222, 222, 214), 2)
+            arcade.draw_lrbt_rectangle_filled(490, 770, 190, 430, (14, 17, 24, 240))
+            arcade.draw_lrbt_rectangle_outline(490, 770, 190, 430, (222, 222, 214), 2)
             arcade.draw_text("Menu", 630, 398, arcade.color.GOLD, 24, anchor_x="center")
             arcade.draw_lrbt_rectangle_filled(560, 700, 360, 396, (40, 50, 65))
             arcade.draw_lrbt_rectangle_outline(560, 700, 360, 396, arcade.color.WHITE, 2)
@@ -2756,7 +2779,10 @@ class GameView(arcade.View):
             arcade.draw_text("Back to Intro", 630, 328, arcade.color.WHITE, 14, anchor_x="center")
             arcade.draw_lrbt_rectangle_filled(560, 700, 260, 296, (40, 50, 65))
             arcade.draw_lrbt_rectangle_outline(560, 700, 260, 296, arcade.color.WHITE, 2)
-            arcade.draw_text("Quit Game", 630, 278, arcade.color.WHITE, 14, anchor_x="center")
+            arcade.draw_text("Go to Level 2", 630, 278, arcade.color.WHITE, 14, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(560, 700, 210, 246, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(560, 700, 210, 246, arcade.color.WHITE, 2)
+            arcade.draw_text("Quit Game", 630, 228, arcade.color.WHITE, 14, anchor_x="center")
 
         if self.show_instructions:
             arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
