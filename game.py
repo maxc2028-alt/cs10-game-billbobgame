@@ -688,6 +688,7 @@ class GameView(arcade.View):
         self.show_instructions = False
         self.door_cooldown = 0.0
         self.level_picker_open = False
+        self.conclusion_time = 0.0
         self.exit_spawn_x = 400.0
         self.exit_spawn_y = 300.0
         self.minigame_fail_fade: float | None = None
@@ -1105,6 +1106,15 @@ class GameView(arcade.View):
 
     def next_building(self) -> None:
         finished_building = self.get_building_name(self.current_building)
+        if self.current_building >= BUILDING_STAGES - 1:
+            self.buildings_cleaned += 1
+            self.friendship += 1
+            self.upgrades = min(MAX_UPGRADES, self.upgrades + 1)
+            self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
+            self.message = f"{finished_building} is repaired. The neighborhood is complete."
+            self.hint = "Watch the final cutscene."
+            self.finish_neighborhood()
+            return
         self.current_building += 1  # Just keep incrementing for infinite houses
         self.buildings_cleaned += 1
         self.friendship += 1
@@ -1162,8 +1172,83 @@ class GameView(arcade.View):
         self.keys_down.clear()
         self.ball_x = 400.0
         self.ball_y = 155.0
+        self.conclusion_time = 0.0
         self.message = "The neighborhood comes together in one shared home."
-        self.hint = "Press SPACE to play again, or ESC to quit."
+        self.hint = "Watch the ending, then press SPACE to play again or ESC to quit."
+
+
+    def restart_game(self) -> None:
+        self.screen = "intro"
+        self.time_left = QUEST_TIME
+        self.money = 0
+        self.friendship = 0
+        self.friend_hints = 0
+        self.friend_name_hints.clear()
+        self.cleaned = 0
+        self.upgrades = 0
+        self.interior_upgrade_levels.clear()
+        self.message = "Press SPACE to begin."
+        self.hint = "Clear every trash pile to move to the next building."
+        self.trash_spots = []
+        self.repair_spots = []
+        self.interior_spots = []
+        self.friends = []
+        self.befriended_friends.clear()
+        self.guessed_friend_names.clear()
+        self.lesson_completed_buildings.clear()
+        self.inside_repaired_buildings.clear()
+        self.friend_inside_by_building.clear()
+        self.buildings_cleaned = 0
+        self.current_building = 0
+        self.inside_building = 0
+        self.interior_mode = "repair"
+        self.house_styles.clear()
+        self.house_exterior_repaired.clear()
+        self.pending_house_style_building = None
+        self.house_completion_flags.clear()
+        self.neighborhood_state = 0
+        self.round_started = False
+        self.sky_time = 0.0
+        self.ball_x = 400.0
+        self.ball_y = 155.0
+        self.intro_walk_x = 85.0
+        self.intro_time = 0.0
+        self.start_countdown = 0.0
+        self.keys_down.clear()
+        self.menu_open = False
+        self.hud_collapsed = False
+        self.quiz_friend = None
+        self.guess_friend = None
+        self.name_guess = ""
+        self.name_riddle_index = 0
+        self.name_riddle_progress = ""
+        self.name_riddle_tries_left = 3
+        self.name_riddle_wrong_guesses = 0
+        self.name_riddle_wrong_answers.clear()
+        self.unlocked_riddle_hints = []
+        self.friend_riddle_progress.clear()
+        self.quiz_question = QUIZ_OPTIONS[0]
+        self.quiz_tries_left = 2
+        self.game_over_ready = False
+        self.show_instructions = False
+        self.door_cooldown = 0.0
+        self.level_picker_open = False
+        self.conclusion_time = 0.0
+        self.exit_spawn_x = 400.0
+        self.exit_spawn_y = 300.0
+        self.minigame_fail_fade = None
+        self.minigame_congrats_fade = None
+        self.minigame_win_return_screen = None
+        self.minigame_win_hold = 0.0
+        self.suppress_next_name_guess_char = False
+        self.world_offset_x = 0
+        self.house_rng = random.Random(42)
+        self.generated_houses.clear()
+        self.active_minigame = None
+        self.minigame_target_spot = None
+        self.minigame_return_screen = None
+        self.minigame_parent_screen = None
+        self.house_repair_progress.clear()
 
 
     def start_game_countdown(self) -> None:
@@ -1483,7 +1568,9 @@ class GameView(arcade.View):
 
 
         try:
-            if self.screen in {"complete", "failed", "trash_game_over", "conclusion", "minigame_game_over"}:
+            if self.screen == "conclusion":
+                self.restart_game()
+            elif self.screen in {"complete", "failed", "trash_game_over", "minigame_game_over"}:
                 self.reset_round()
             elif self.screen == "intro":
                 self.start_game_countdown()
@@ -1980,6 +2067,10 @@ class GameView(arcade.View):
                     self.minigame_return_screen = None
                     self.minigame_parent_screen = None
                     self.minigame_fail_fade = 1.0
+                return
+
+            if self.screen == "conclusion":
+                self.conclusion_time += delta_time
                 return
 
             if self.screen == "intro":
