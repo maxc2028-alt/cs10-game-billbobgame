@@ -696,6 +696,7 @@ class GameView(arcade.View):
             list("ASDFGHJKL"),
             list("ZXCVBNM"),
         ]
+        self.name_guess_options = [riddle["answer"] for riddle in RIDDLE_QUESTIONS]
         # Infinite world state
         self.world_offset_x = 0  # Track camera position in world
         self.house_rng = random.Random(42)  # Seeded for consistent generation
@@ -1524,6 +1525,20 @@ class GameView(arcade.View):
                 self.submit_name_riddle()
                 self.name_guess_active = True
                 return
+
+            option_layout = [
+                (150, 385, 30, 68),
+                (415, 650, 30, 68),
+                (150, 385, 74, 112),
+                (415, 650, 74, 112),
+            ]
+            for index, (left, right, bottom, top) in enumerate(option_layout):
+                if left <= x <= right and bottom <= y <= top:
+                    chosen = self.name_guess_options[index]
+                    self.name_guess = chosen
+                    self.submit_name_riddle()
+                    self.name_guess_active = True
+                    return
 
             key_rows = self.name_guess_keyboard
             key_layout = [
@@ -2487,6 +2502,17 @@ class GameView(arcade.View):
                 arcade.draw_lrbt_rectangle_filled(key_left, key_right, bottom, top, (34, 41, 55))
                 arcade.draw_lrbt_rectangle_outline(key_left, key_right, bottom, top, arcade.color.WHITE, 1)
                 arcade.draw_text(letter, (key_left + key_right) / 2, bottom + 11, arcade.color.WHITE, 13, anchor_x="center")
+        answer_buttons = [
+            (150, 385, 30, 68, self.name_guess_options[0]),
+            (415, 650, 30, 68, self.name_guess_options[1]),
+            (150, 385, 74, 112, self.name_guess_options[2]),
+            (415, 650, 74, 112, self.name_guess_options[3]),
+        ]
+        arcade.draw_text("Or tap one answer choice:", 400, 95, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        for left, right, bottom, top, answer in answer_buttons:
+            arcade.draw_lrbt_rectangle_filled(left, right, bottom, top, (52, 62, 78))
+            arcade.draw_lrbt_rectangle_outline(left, right, bottom, top, arcade.color.WHITE, 1)
+            arcade.draw_text(answer.upper(), (left + right) / 2, bottom + 16, arcade.color.WHITE, 12, anchor_x="center")
         if self.guess_friend is not None:
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
             answer = riddle["answer"]
