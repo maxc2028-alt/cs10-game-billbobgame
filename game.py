@@ -54,7 +54,7 @@ RIDDLE_QUESTIONS = [
     },
     {
         "question": "I sit beside you at lunch, but no one sees me. I make silence feel louder. What am I?",
-        "answer": "feeling alone",
+        "answer": "feelingalone",
         "letter": "n",
     },
     {
