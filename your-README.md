@@ -17,10 +17,10 @@
 
 ## How to Install & Play
 
-Simply download the game executable for your operating system and double-click it to play. No installation required!
+Simply download the game files for your operating system and run the project locally.
 
 Mac:
-Your link here
+[Download the source code](https://github.com/maxc2028-alt/cs10-game-billbobgame/archive/refs/heads/main.zip)
 
 Windows:
-Your link here
+[Download the source code](https://github.com/maxc2028-alt/cs10-game-billbobgame/archive/refs/heads/main.zip)
