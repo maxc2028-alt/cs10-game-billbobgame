@@ -1786,10 +1786,10 @@ class GameView(arcade.View):
 
             if self.minigame_congrats_fade is not None:
                 self.minigame_win_hold += delta_time
-                self.minigame_congrats_fade = max(0.0, self.minigame_congrats_fade - delta_time * 0.2)
+                self.minigame_congrats_fade = max(0.0, self.minigame_congrats_fade - delta_time * 0.14)
                 if self.minigame_congrats_fade <= 0:
                     self.minigame_congrats_fade = None
-                if self.minigame_win_hold >= 2.0:
+                if self.minigame_win_hold >= 3.0:
                     self.minigame_win_hold = 0.0
                     if self.minigame_win_return_screen is not None:
                         self.screen = self.minigame_win_return_screen
@@ -2728,6 +2728,7 @@ class GameView(arcade.View):
                         (255, 255, 255, min(255, overlay_alpha + 80)),
                     )
                     arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, min(180, overlay_alpha)))
+                arcade.draw_text("CONGRATULATIONS", 402, 316, arcade.color.BLACK, 76, anchor_x="center")
                 arcade.draw_text("CONGRATULATIONS", 400, 318, arcade.color.WHITE, 74, anchor_x="center")
                 return
 
