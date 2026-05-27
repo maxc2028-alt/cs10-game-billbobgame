@@ -1427,12 +1427,14 @@ class GameView(arcade.View):
                 return
             if self.screen == "playing":
                 door_index = self.door_index_near_player()
-                if door_index is not None and door_index in self.house_styles:
-                    self.visit_house(door_index)
-                    return
-                if door_index == self.current_building and not self.trash_spots:
-                    self.enter_house()
-                    return
+                if door_index is not None:
+                    if door_index in self.house_styles:
+                        self.visit_house(door_index)
+                        return
+                    if not self.trash_spots:
+                        self.current_building = door_index
+                        self.enter_house()
+                        return
                 self.message = "Stand near the door to enter the house."
                 self.hint = "Clear the trash first, then press F by the door."
                 return
