@@ -2361,24 +2361,24 @@ class GameView(arcade.View):
         arcade.draw_text("Riddle Name Challenge", 400, 382, arcade.color.GOLD, 26, anchor_x="center")
         if self.guess_friend is not None:
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
-            arcade.draw_text(f"Riddle {self.name_riddle_index + 1} of 4:", 400, 326, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
-            arcade.draw_text(riddle["question"], 400, 302, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
-        arcade.draw_text(self.name_guess or "type your answer here", 400, 282, arcade.color.WHITE, 18, anchor_x="center")
-        arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 244, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
-        arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 220, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
-        arcade.draw_text(f"Hint: {self.hint}", 400, 200, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=500, multiline=True)
-        arcade.draw_text("Solve 4 riddles to reveal the name.", 400, 196, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+            arcade.draw_text(f"Riddle {self.name_riddle_index + 1} of 4:", 400, 332, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+            arcade.draw_text(riddle["question"], 400, 304, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
+        arcade.draw_text(self.name_guess or "type your answer here", 400, 262, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 230, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 208, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+        arcade.draw_text(f"Hint: {self.hint}", 400, 182, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=500, multiline=True)
+        arcade.draw_text("Solve 4 riddles to reveal the name.", 400, 156, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
         if self.trash_spots:
-            arcade.draw_text("Clear all trash to unlock the hint list.", 400, 162, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+            arcade.draw_text("Clear all trash to unlock the hint list.", 400, 122, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
         else:
             if self.unlocked_riddle_hints:
-                y = 162
+                y = 122
                 for i, clue in enumerate(self.unlocked_riddle_hints[-4:]):
                     arcade.draw_text(f"{i + 1}. {clue}", 400, y, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=560, multiline=True)
                     y -= 58
             else:
-                arcade.draw_text("No hints unlocked yet.", 400, 162, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+                arcade.draw_text("No hints unlocked yet.", 400, 122, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
 
     def draw_decorate(self) -> None:
