@@ -687,7 +687,7 @@ class GameView(arcade.View):
         self.quiz_question = QUIZ_OPTIONS[0]
         self.quiz_tries_left = 2
         self.game_over_ready = False
-        self.show_instructions = False
+        self.show_instructions = True
         self.door_cooldown = 0.0
         self.level_picker_open = False
         self.conclusion_time = 0.0
@@ -831,6 +831,7 @@ class GameView(arcade.View):
         self.ball_y = base_y + 50
         self.screen = "playing"
         self.round_started = True
+        self.show_instructions = True
 
 
     def door_index_near_player(self) -> int | None:
@@ -1351,7 +1352,7 @@ class GameView(arcade.View):
         self.upgrades = 0
         self.interior_upgrade_levels.clear()
         self.message = "Press SPACE to begin."
-        self.hint = "Clear every trash pile to move to the next building."
+        self.hint = "Click START in the top-right corner or the big START button to begin."
         self.trash_spots = []
         self.interior_trash_spots = []
         self.repair_spots = []
@@ -1395,7 +1396,7 @@ class GameView(arcade.View):
         self.quiz_question = QUIZ_OPTIONS[0]
         self.quiz_tries_left = 2
         self.game_over_ready = False
-        self.show_instructions = False
+        self.show_instructions = True
         self.door_cooldown = 0.0
         self.level_picker_open = False
         self.conclusion_time = 0.0
@@ -1427,8 +1428,9 @@ class GameView(arcade.View):
         self.round_started = False
         self.keys_down.clear()
         self.start_countdown = 3.0
+        self.show_instructions = True
         self.message = "Get ready."
-        self.hint = "The game starts when the countdown reaches zero."
+        self.hint = "The game starts when the countdown reaches zero. The help panel is open for a quick guide."
 
 
     def fail_round(self) -> None:
@@ -1763,7 +1765,7 @@ class GameView(arcade.View):
                 self.intro_time = 0.0
                 self.intro_walk_x = 85.0
                 self.message = "Press SPACE to begin."
-                self.hint = "Clear every trash pile to move to the next building."
+                self.hint = "Click START in the top-right corner or the big START button to begin."
             elif self.screen in {"complete", "failed", "trash_game_over", "minigame_game_over"}:
                 self.reset_round()
             elif self.screen == "intro":
@@ -1932,6 +1934,9 @@ class GameView(arcade.View):
 
 
         if self.screen == "intro":
+            if 618 <= x <= 774 and 520 <= y <= 576:
+                self.start_game_countdown()
+                return
             if 310 <= x <= 490 and 135 <= y <= 190:
                 self.start_game_countdown()
             return
@@ -2939,6 +2944,11 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(310, 490, 135, 190, (174, 151, 82))
         arcade.draw_lrbt_rectangle_outline(310, 490, 135, 190, arcade.color.BLACK, 3)
         arcade.draw_text("START", 400, 153, arcade.color.BLACK, 22, anchor_x="center")
+
+        arcade.draw_lrbt_rectangle_filled(618, 774, 520, 576, (25, 30, 38))
+        arcade.draw_lrbt_rectangle_outline(618, 774, 520, 576, arcade.color.WHITE, 2)
+        arcade.draw_text("START", 696, 548, arcade.color.WHITE, 14, anchor_x="center")
+        arcade.draw_text("top button", 696, 528, arcade.color.LIGHT_GRAY, 9, anchor_x="center")
 
 
     def draw_countdown(self) -> None:
