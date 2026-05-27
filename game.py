@@ -1142,6 +1142,11 @@ class GameView(arcade.View):
         self.hint = f"Length: {len(current_riddle['answer'])} letters."
 
 
+    def append_name_guess_char(self, text: str) -> None:
+        if self.screen == "name_guess" and text.isalpha() and len(self.name_guess) < 16:
+            self.name_guess += text.lower()
+
+
     def cancel_name_guess(self) -> None:
         if self.guess_friend is None:
             return
@@ -1356,8 +1361,8 @@ class GameView(arcade.View):
                 arcade.key.Y: "y",
                 arcade.key.Z: "z",
             }
-            if key in letter_key_map and len(self.name_guess) < 16:
-                self.name_guess += letter_key_map[key]
+            if key in letter_key_map:
+                self.append_name_guess_char(letter_key_map[key])
                 return
             return
 
@@ -1453,8 +1458,7 @@ class GameView(arcade.View):
             if text.lower() == "t":
                 return
 
-        if self.screen == "name_guess" and text.isalpha() and len(self.name_guess) < 16:
-            self.name_guess += text.lower()
+        self.append_name_guess_char(text)
 
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
@@ -2419,6 +2423,7 @@ class GameView(arcade.View):
         arcade.draw_text("Type your answer here", 400, 215, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         caret = "_" if len(self.name_guess) % 2 == 0 else " "
         arcade.draw_text((self.name_guess.upper() or "") + caret, 400, 193, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_text(f"Input: {self.name_guess.upper() or '-'}", 400, 176, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
         arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 142, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 160, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
         if self.guess_friend is not None:
