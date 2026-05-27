@@ -1303,6 +1303,7 @@ class GameView(arcade.View):
             return
 
         if key == arcade.key.T:
+            self.keys_down.add(arcade.key.T)
             self.block_next_text_input = True
             if self.screen == "playing":
                 if self.try_befriend():
@@ -1424,10 +1425,12 @@ class GameView(arcade.View):
 
     def on_key_release(self, key: int, modifiers: int) -> None:
         self.keys_down.discard(key)
+        if key == arcade.key.T:
+            self.block_next_text_input = False
 
 
     def on_text(self, text: str) -> None:
-        if self.block_next_text_input:
+        if self.block_next_text_input or arcade.key.T in self.keys_down:
             self.block_next_text_input = False
             return
 
