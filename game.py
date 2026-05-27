@@ -1769,7 +1769,7 @@ class GameView(arcade.View):
                 self.intro_time = 0.0
                 self.intro_walk_x = 85.0
                 self.message = "Press SPACE to begin."
-        self.hint = "Click START near the top of the screen or the big START button to begin."
+                self.hint = "Click START near the top of the screen or the big START button to begin."
             elif self.screen in {"complete", "failed", "trash_game_over", "minigame_game_over"}:
                 self.reset_round()
             elif self.screen == "intro":
@@ -1932,10 +1932,6 @@ class GameView(arcade.View):
                         self.finish_interior_upgrade()
 
             return
-
-        if screen_y >= 492:
-            return
-
 
         if self.screen == "intro":
             if 310 <= x <= 490 and 135 <= y <= 190:
