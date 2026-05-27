@@ -1432,7 +1432,7 @@ class GameView(arcade.View):
         self.outside_cleanup_started = False
         self.keys_down.clear()
         self.start_countdown = 3.0
-        self.show_instructions = False
+        self.show_instructions = True
         self.message = "Get ready."
         self.hint = "The game starts when the countdown reaches zero. The help panel is open for a quick guide."
 
