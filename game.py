@@ -685,6 +685,7 @@ class GameView(arcade.View):
         self.exit_spawn_y = 300.0
         self.minigame_fail_fade: float | None = None
         self.minigame_congrats_fade: float | None = None
+        self.minigame_win_return_screen: str | None = None
         # Infinite world state
         self.world_offset_x = 0  # Track camera position in world
         self.house_rng = random.Random(42)  # Seeded for consistent generation
@@ -1780,6 +1781,9 @@ class GameView(arcade.View):
                 self.minigame_congrats_fade = max(0.0, self.minigame_congrats_fade - delta_time * 0.45)
                 if self.minigame_congrats_fade <= 0:
                     self.minigame_congrats_fade = None
+                    if self.minigame_win_return_screen is not None:
+                        self.screen = self.minigame_win_return_screen
+                        self.minigame_win_return_screen = None
                 return
 
             if self.menu_open and self.screen not in {"intro", "countdown"}:
@@ -1799,6 +1803,8 @@ class GameView(arcade.View):
                         self.message = "Repair complete."
                         self.hint = "Great work! Continue with the other repairs."
 
+                    self.minigame_win_return_screen = self.screen
+                    self.screen = "minigame_win"
                     self.minigame_congrats_fade = 1.0
                     self.active_minigame = None
                     self.minigame_target_spot = None
@@ -2709,6 +2715,24 @@ class GameView(arcade.View):
                 arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, 220))
                 arcade.draw_text("FAILED", 400, 320, arcade.color.RED, 52, anchor_x="center")
                 arcade.draw_text("Press SPACE to try again", 400, 258, arcade.color.WHITE, 18, anchor_x="center")
+                return
+
+            if self.screen == "minigame_win":
+                self.draw_scene()
+                if self.minigame_congrats_fade is not None:
+                    burst = 1.0 + (1.0 - self.minigame_congrats_fade) * 1.2
+                    overlay_alpha = int(255 * (1.0 - self.minigame_congrats_fade))
+                    half_w = 400 * burst
+                    half_h = 300 * burst
+                    arcade.draw_lrbt_rectangle_filled(
+                        400 - half_w,
+                        400 + half_w,
+                        300 - half_h,
+                        300 + half_h,
+                        (255, 255, 255, min(255, overlay_alpha + 80)),
+                    )
+                    arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, min(150, overlay_alpha)))
+                arcade.draw_text("CONGRATULATIONS", 400, 318, arcade.color.WHITE, 64, anchor_x="center")
                 return
 
             if self.minigame_congrats_fade is not None:
