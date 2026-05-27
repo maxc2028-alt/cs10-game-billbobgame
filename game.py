@@ -701,6 +701,7 @@ class GameView(arcade.View):
         self.minigame_return_screen = None
         self.minigame_parent_screen = None
         self.house_repair_progress: dict[int, set[str]] = {}
+        self.block_next_text_input = False
         self.configure_camera()
 
 
@@ -1302,7 +1303,7 @@ class GameView(arcade.View):
             return
 
         if key == arcade.key.T:
-            self.suppress_next_name_guess_char = True
+            self.block_next_text_input = True
             if self.screen == "playing":
                 if self.try_befriend():
                     return
@@ -1426,10 +1427,9 @@ class GameView(arcade.View):
 
 
     def on_text(self, text: str) -> None:
-        if self.suppress_next_name_guess_char:
-            self.suppress_next_name_guess_char = False
-            if text.lower() == "t":
-                return
+        if self.block_next_text_input:
+            self.block_next_text_input = False
+            return
 
         self.append_name_guess_char(text)
 
