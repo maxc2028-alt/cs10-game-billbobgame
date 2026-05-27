@@ -1681,7 +1681,7 @@ class GameView(arcade.View):
             return
 
         if self.screen == "perfect_area":
-            if 300 <= x <= 500 and 544 <= y <= 580:
+            if 300 <= x <= 500 and 22 <= y <= 58:
                 self.toggle_perfect_area_view()
                 return
             return
@@ -2842,9 +2842,9 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(0, 800, 122, 160, (193, 176, 143))
 
         button_label = "Show Inside" if self.perfect_area_view == "outside" else "Show Outside"
-        arcade.draw_lrbt_rectangle_filled(300, 500, 544, 580, (26, 34, 46))
-        arcade.draw_lrbt_rectangle_outline(300, 500, 544, 580, arcade.color.WHITE, 2)
-        arcade.draw_text(button_label, 400, 559, arcade.color.WHITE, 13, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(300, 500, 22, 58, (26, 34, 46))
+        arcade.draw_lrbt_rectangle_outline(300, 500, 22, 58, arcade.color.WHITE, 2)
+        arcade.draw_text(button_label, 400, 39, arcade.color.WHITE, 13, anchor_x="center")
 
         if self.perfect_area_view == "outside":
             arcade.draw_circle_filled(708, 520, 34, (255, 241, 145))
