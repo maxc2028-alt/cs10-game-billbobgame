@@ -324,8 +324,16 @@ class PipeMinigame:
             arcade.draw_text("FAILED", 205, 88, arcade.color.RED, 30, anchor_x="center")
         if self.win_fade is not None:
             glow = int(255 * (1.0 - self.win_fade))
-            arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, max(0, min(220, glow))))
-            arcade.draw_text("CONGRATS", 400, 320 + glow * 0.12, arcade.color.WHITE, 54, anchor_x="center")
+            overlay_alpha = max(0, min(220, glow))
+            arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, overlay_alpha))
+            arcade.draw_text(
+                "CONGRATULATIONS",
+                400,
+                325 + glow * 0.12,
+                arcade.color.WHITE,
+                56,
+                anchor_x="center",
+            )
 
 
 class BlockBlastMinigame:
@@ -2119,7 +2127,6 @@ class GameView(arcade.View):
 
     def draw_house_interior(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (25, 24, 31))
-        self.draw_clouds()
         repaired_inside = self.inside_building in self.inside_repaired_buildings
         upgrade_level = self.interior_upgrade_levels.get(self.inside_building, 0)
         wall_color = (93, 102, 100) if repaired_inside else (68, 65, 76)
