@@ -43,23 +43,23 @@ HOUSE_WIDTHS = [140, 170, 120]  # Different widths for variety
 HOUSE_HEIGHTS = [220, 235, 195]  # Different heights for variety
 RIDDLE_QUESTIONS = [
     {
-        "question": "I sit by the sidewalk and give tired neighbors a place to rest and talk. What am I?",
-        "answer": "bench",
+        "question": "I follow you everywhere, but I never speak. I grow bigger when the room is empty. What am I?",
+        "answer": "shadow",
         "letter": "j",
     },
     {
-        "question": "I shine over a block at night and help people feel less alone on the way home. What am I?",
-        "answer": "lamp",
+        "question": "I am a crowd of one, a party with no guests, and a song no one hears. What am I?",
+        "answer": "loneliness",
         "letter": "a",
     },
     {
-        "question": "I connect two places so people can reach each other instead of staying apart. What am I?",
-        "answer": "bridge",
+        "question": "I sit beside you at lunch, but no one sees me. I make silence feel louder. What am I?",
+        "answer": "feeling alone",
         "letter": "n",
     },
     {
-        "question": "I cover old walls and make a repaired room feel new and welcoming. What am I?",
-        "answer": "paint",
+        "question": "I am a house with lights on, but no voices inside. What am I?",
+        "answer": "empty home",
         "letter": "e",
     },
 ]
