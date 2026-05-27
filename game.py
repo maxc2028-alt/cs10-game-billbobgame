@@ -676,6 +676,7 @@ class GameView(arcade.View):
         self.name_riddle_progress = ""
         self.name_riddle_tries_left = 3
         self.name_riddle_wrong_guesses = 0
+        self.name_riddle_wrong_answers: set[str] = set()
         self.unlocked_riddle_hints: list[str] = []
         self.friend_riddle_progress: dict[str, tuple[int, str, list[str]]] = {}
         self.quiz_question = QUIZ_OPTIONS[0]
@@ -1135,6 +1136,7 @@ class GameView(arcade.View):
         self.name_riddle_progress = saved_progress
         self.unlocked_riddle_hints = list(saved_hints)
         self.name_riddle_wrong_guesses = 0
+        self.name_riddle_wrong_answers = set()
         self.screen = "name_guess"
         self.message = f"Riddle {self.name_riddle_index + 1} of 4 for {friend.name}."
         current_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
@@ -1166,6 +1168,7 @@ class GameView(arcade.View):
         if self.name_guess.strip().lower() == riddle["answer"]:
             self.name_guess = ""
             self.name_riddle_wrong_guesses = 0
+            self.name_riddle_wrong_answers = set()
             self.name_riddle_progress += riddle["letter"]
             self.name_riddle_index += 1
             if riddle["question"] not in self.unlocked_riddle_hints:
@@ -1186,8 +1189,11 @@ class GameView(arcade.View):
             self.hint = f"Riddle {self.name_riddle_index + 1} of 4: {next_riddle['question']}"
             return
 
+        normalized_guess = self.name_guess.strip().lower()
         self.name_guess = ""
-        self.name_riddle_wrong_guesses += 1
+        if normalized_guess and normalized_guess not in self.name_riddle_wrong_answers:
+            self.name_riddle_wrong_answers.add(normalized_guess)
+            self.name_riddle_wrong_guesses = len(self.name_riddle_wrong_answers)
         self.message = "Not quite. Try that riddle again."
         clue_steps = [
             f"Length: {len(riddle['answer'])} letters.",
