@@ -43,22 +43,22 @@ HOUSE_WIDTHS = [140, 170, 120]  # Different widths for variety
 HOUSE_HEIGHTS = [220, 235, 195]  # Different heights for variety
 RIDDLE_QUESTIONS = [
     {
-        "question": "A teen feels alone at night, but I still shine and help them find their way home. What am I?",
+        "question": "I shine at night and can help someone find their way home. What am I?",
         "answer": "moon",
         "letter": "m",
     },
     {
-        "question": "When a quiet teen needs somewhere safe to sit, I hold stories, knowledge, and a place to belong. What am I?",
+        "question": "I hold stories, knowledge, and a quiet place to belong. What am I?",
         "answer": "book",
         "letter": "b",
     },
     {
-        "question": "A neighborhood can grow stronger like me, with roots that stay and branches that shelter others. What am I?",
+        "question": "I have roots that stay in one place and branches that give shade. What am I?",
         "answer": "tree",
         "letter": "t",
     },
     {
-        "question": "A forgotten building becomes a home again when I open the door to repair, trust, and welcome. What am I?",
+        "question": "I can open a locked door and let repair, trust, and welcome begin. What am I?",
         "answer": "key",
         "letter": "k",
     },
