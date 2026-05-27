@@ -640,6 +640,7 @@ class GameView(arcade.View):
         self.message = "Press SPACE to begin."
         self.hint = "Clear every trash pile to move to the next building."
         self.trash_spots: list[TrashSpot] = []
+        self.interior_trash_spots: list[TrashSpot] = []
         self.repair_spots: list[RepairSpot] = []
         self.interior_spots: list[RepairSpot] = []
         self.friends: list[FriendNPC] = []
@@ -857,6 +858,22 @@ class GameView(arcade.View):
         )
 
 
+    def generate_interior_trash(self, building_index: int) -> list[TrashSpot]:
+        """Generate trash that appears inside the house."""
+        rng = random.Random(f"inside_trash_{building_index}")
+        base_positions = [
+            (180, 140),
+            (260, 150),
+            (410, 132),
+            (500, 142),
+            (610, 155),
+        ]
+        return [
+            TrashSpot(x + rng.randint(-14, 14), y + rng.randint(-10, 10))
+            for x, y in base_positions
+        ]
+
+
     def enter_house(self) -> None:
         # Generate repair spots procedurally
         template_index = self.level_template_index(self.current_building)
@@ -888,6 +905,7 @@ class GameView(arcade.View):
         self.message = f"You enter {self.get_building_name(self.current_building)}. Click each repair spot."
         self.hint = "Repair the damaged wall, floor, window, and doorway details to finish this house."
         self.interior_spots = []
+        self.interior_trash_spots = self.generate_interior_trash(self.current_building)
 
 
     def start_house_minigame(self, spot: RepairSpot, return_screen: str) -> None:
@@ -933,6 +951,7 @@ class GameView(arcade.View):
                 RepairSpot(x, y, label, color, cost)
                 for x, y, label, color, cost in INTERIOR_REPAIR_SETS[template_index]
             ]
+        self.interior_trash_spots = self.generate_interior_trash(building_index)
         self.screen = "visit"
         self.round_started = False
         self.ball_x = 400.0
@@ -1334,6 +1353,7 @@ class GameView(arcade.View):
         self.message = "Press SPACE to begin."
         self.hint = "Clear every trash pile to move to the next building."
         self.trash_spots = []
+        self.interior_trash_spots = []
         self.repair_spots = []
         self.interior_spots = []
         self.friends = []
@@ -1350,6 +1370,7 @@ class GameView(arcade.View):
         self.house_exterior_repaired.clear()
         self.pending_house_style_building = None
         self.house_completion_flags.clear()
+        self.interior_trash_spots = []
         self.neighborhood_state = 0
         self.round_started = False
         self.sky_time = 0.0
@@ -1946,6 +1967,21 @@ class GameView(arcade.View):
 
 
         if self.screen == "repair":
+            for trash in list(self.interior_trash_spots):
+                if (x - trash.x) ** 2 + (y - trash.y) ** 2 > TRASH_CLICK_RADIUS ** 2:
+                    continue
+                if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
+                    self.message = "Move around closer to pick that up."
+                    self.hint = "Get near the trash, then click it to collect extra money inside."
+                    return
+
+                self.interior_trash_spots.remove(trash)
+                self.cleaned += 1
+                self.money += TRASH_SCORE + self.upgrades + 2
+                self.message = "Inside trash collected."
+                self.hint = "The house gives you extra trash to clean for more money."
+                return
+
             for spot in self.repair_spots:
                 if spot.fixed:
                     continue
@@ -1965,6 +2001,21 @@ class GameView(arcade.View):
 
 
         if self.screen == "visit":
+            for trash in list(self.interior_trash_spots):
+                if (x - trash.x) ** 2 + (y - trash.y) ** 2 > TRASH_CLICK_RADIUS ** 2:
+                    continue
+                if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
+                    self.message = "Move around closer to pick that up."
+                    self.hint = "Get near the trash, then click it to collect extra money inside."
+                    return
+
+                self.interior_trash_spots.remove(trash)
+                self.cleaned += 1
+                self.money += TRASH_SCORE + self.upgrades + 2
+                self.message = "Inside trash collected."
+                self.hint = "The house gives you extra trash to clean for more money."
+                return
+
             for spot in self.interior_spots:
                 if spot.fixed:
                     continue
@@ -2702,6 +2753,10 @@ class GameView(arcade.View):
             arcade.draw_line(461, 260, 486, 238, arcade.color.BLACK, 2)
             arcade.draw_line(392, 308, 414, 292, arcade.color.BLACK, 2)
             arcade.draw_line(414, 292, 442, 298, arcade.color.BLACK, 2)
+
+
+        for trash in self.interior_trash_spots:
+            self.draw_trash(trash)
 
 
         if self.screen == "visit":
