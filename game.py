@@ -2813,8 +2813,6 @@ class GameView(arcade.View):
             arcade.draw_text("Lv", 760, 469, (222, 222, 214), 11, anchor_x="center")
 
             if self.level_picker_open:
-                arcade.draw_lrbt_rectangle_filled(720, 800, 322, 430, (14, 17, 24, 245))
-                arcade.draw_lrbt_rectangle_outline(720, 800, 322, 430, (222, 222, 214), 2)
                 arcade.draw_lrbt_rectangle_filled(724, 796, 428, 454, (40, 50, 65))
                 arcade.draw_lrbt_rectangle_outline(724, 796, 428, 454, arcade.color.WHITE, 2)
                 arcade.draw_text("Level 1", 760, 441, arcade.color.WHITE, 11, anchor_x="center")
