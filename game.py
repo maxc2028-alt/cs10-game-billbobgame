@@ -2705,21 +2705,6 @@ class GameView(arcade.View):
             if self.camera is not None:
                 self.camera.use()
 
-            # Draw mini-games on top of everything
-            if self.active_minigame is not None:
-                if isinstance(self.active_minigame, PipeMinigame):
-                    self.active_minigame.draw()
-                elif isinstance(self.active_minigame, BlockBlastMinigame):
-                    self.active_minigame.draw()
-                return
-
-            if self.screen == "minigame_game_over":
-                self.draw_scene()
-                arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, 220))
-                arcade.draw_text("FAILED", 400, 320, arcade.color.RED, 52, anchor_x="center")
-                arcade.draw_text("Press SPACE to try again", 400, 258, arcade.color.WHITE, 18, anchor_x="center")
-                return
-
             if self.screen == "minigame_win":
                 self.draw_scene()
                 arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, 220))
@@ -2737,6 +2722,21 @@ class GameView(arcade.View):
                     )
                     arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, min(180, overlay_alpha)))
                 arcade.draw_text("CONGRATULATIONS", 400, 318, arcade.color.WHITE, 74, anchor_x="center")
+                return
+
+            # Draw mini-games on top of everything
+            if self.active_minigame is not None:
+                if isinstance(self.active_minigame, PipeMinigame):
+                    self.active_minigame.draw()
+                elif isinstance(self.active_minigame, BlockBlastMinigame):
+                    self.active_minigame.draw()
+                return
+
+            if self.screen == "minigame_game_over":
+                self.draw_scene()
+                arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, 220))
+                arcade.draw_text("FAILED", 400, 320, arcade.color.RED, 52, anchor_x="center")
+                arcade.draw_text("Press SPACE to try again", 400, 258, arcade.color.WHITE, 18, anchor_x="center")
                 return
 
             if self.minigame_congrats_fade is not None:
