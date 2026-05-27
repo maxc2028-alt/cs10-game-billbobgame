@@ -43,24 +43,24 @@ HOUSE_WIDTHS = [140, 170, 120]  # Different widths for variety
 HOUSE_HEIGHTS = [220, 235, 195]  # Different heights for variety
 RIDDLE_QUESTIONS = [
     {
-        "question": "I light up the sky at night and change shape as the month goes by. What am I?",
-        "answer": "moon",
-        "letter": "m",
+        "question": "I can brighten a dark room with a warm glow, even when the power is low. What am I?",
+        "answer": "lamp",
+        "letter": "l",
     },
     {
-        "question": "I have pages full of stories, facts, and ideas you can read. What am I?",
-        "answer": "book",
+        "question": "I give tired people a place to sit, rest, and talk with a friend. What am I?",
+        "answer": "bench",
         "letter": "b",
     },
     {
-        "question": "I have roots in the ground and branches that give shade and shelter. What am I?",
-        "answer": "tree",
-        "letter": "t",
+        "question": "I help people cross from one side to the other when something is in the way. What am I?",
+        "answer": "bridge",
+        "letter": "b",
     },
     {
-        "question": "I unlock doors and let people in when they need access. What am I?",
-        "answer": "key",
-        "letter": "k",
+        "question": "I add color to a wall and can make an old place feel alive again. What am I?",
+        "answer": "paint",
+        "letter": "p",
     },
 ]
 INTERIOR_REPAIR_SETS = [
