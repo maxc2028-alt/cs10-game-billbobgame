@@ -3029,34 +3029,32 @@ class GameView(arcade.View):
         arcade.draw_text("Tap the top button to switch back outside.", 400, 62, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
 
 
-    def draw_level4_lock(self) -> None:
+    def draw_level_lock(self) -> None:
         self.draw_background()
         arcade.draw_lrbt_rectangle_filled(100, 700, 110, 500, (22, 24, 32, 235))
         arcade.draw_lrbt_rectangle_outline(100, 700, 110, 500, arcade.color.WHITE, 3)
-        arcade.draw_text("LEVEL 4 LOCKED", 400, 454, arcade.color.GOLD, 28, anchor_x="center")
-        arcade.draw_text("Enter all three NPC names to unlock it.", 400, 420, arcade.color.WHITE, 14, anchor_x="center")
-        arcade.draw_text(f"Unlocked: {len(self.level4_lock_found_names)}/3", 400, 395, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        target_level = self.level_lock_target if self.level_lock_target is not None else 1
+        required_level = max(1, target_level)
+        arcade.draw_text(f"LEVEL {target_level + 1} LOCKED", 400, 454, arcade.color.GOLD, 28, anchor_x="center")
+        arcade.draw_text(
+            f"Enter the name of the NPC from Level {required_level}.",
+            400,
+            420,
+            arcade.color.WHITE,
+            14,
+            anchor_x="center",
+        )
+        arcade.draw_text(f"Required name: {self.level_lock_required_name or '???'}", 400, 395, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
 
-        slot_xs = [220, 400, 580]
-        for index, x in enumerate(slot_xs):
-            if index < len(self.level4_lock_found_names):
-                label = self.level4_lock_found_names[index]
-                fill = (52, 88, 68)
-            elif index < len(self.level4_lock_remaining_names):
-                label = "????"
-                fill = (56, 56, 66)
-            else:
-                label = "DONE"
-                fill = (44, 82, 96)
-            arcade.draw_lrbt_rectangle_filled(x - 70, x + 70, 300, 350, fill)
-            arcade.draw_lrbt_rectangle_outline(x - 70, x + 70, 300, 350, arcade.color.WHITE, 2)
-            arcade.draw_text(label, x, 323, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(200, 600, 300, 350, (52, 88, 68))
+        arcade.draw_lrbt_rectangle_outline(200, 600, 300, 350, arcade.color.WHITE, 2)
+        arcade.draw_text("Use the NPC name as the passcode.", 400, 323, arcade.color.WHITE, 16, anchor_x="center")
 
         arcade.draw_text("Type a name and press ENTER.", 400, 248, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_lrbt_rectangle_filled(300, 500, 206, 244, (40, 50, 65))
         arcade.draw_lrbt_rectangle_outline(300, 500, 206, 244, arcade.color.WHITE, 2)
-        caret = "_" if len(self.level4_lock_input) % 2 == 0 else " "
-        arcade.draw_text((self.level4_lock_input.upper() or "") + caret, 400, 218, arcade.color.WHITE, 18, anchor_x="center")
+        caret = "_" if len(self.level_lock_input) % 2 == 0 else " "
+        arcade.draw_text((self.level_lock_input.upper() or "") + caret, 400, 218, arcade.color.WHITE, 18, anchor_x="center")
         arcade.draw_lrbt_rectangle_filled(300, 500, 152, 186, (26, 34, 46))
         arcade.draw_lrbt_rectangle_outline(300, 500, 152, 186, arcade.color.WHITE, 2)
         arcade.draw_text("Back", 400, 164, arcade.color.WHITE, 14, anchor_x="center")
@@ -3133,16 +3131,16 @@ class GameView(arcade.View):
             arcade.draw_text("Lv", 760, 469, (222, 222, 214), 11, anchor_x="center")
 
             if self.level_picker_open:
-                arcade.draw_lrbt_rectangle_filled(724, 796, 428, 454, (40, 50, 65))
+                arcade.draw_lrbt_rectangle_filled(724, 796, 428, 454, (40, 50, 65) if self.level_is_unlocked(0) else (84, 48, 48))
                 arcade.draw_lrbt_rectangle_outline(724, 796, 428, 454, arcade.color.WHITE, 2)
                 arcade.draw_text("Level 1", 760, 441, arcade.color.WHITE, 11, anchor_x="center")
-                arcade.draw_lrbt_rectangle_filled(724, 796, 394, 420, (40, 50, 65))
+                arcade.draw_lrbt_rectangle_filled(724, 796, 394, 420, (40, 50, 65) if self.level_is_unlocked(1) else (84, 48, 48))
                 arcade.draw_lrbt_rectangle_outline(724, 796, 394, 420, arcade.color.WHITE, 2)
                 arcade.draw_text("Level 2", 760, 407, arcade.color.WHITE, 11, anchor_x="center")
-                arcade.draw_lrbt_rectangle_filled(724, 796, 360, 386, (40, 50, 65))
+                arcade.draw_lrbt_rectangle_filled(724, 796, 360, 386, (40, 50, 65) if self.level_is_unlocked(2) else (84, 48, 48))
                 arcade.draw_lrbt_rectangle_outline(724, 796, 360, 386, arcade.color.WHITE, 2)
                 arcade.draw_text("Level 3", 760, 373, arcade.color.WHITE, 11, anchor_x="center")
-                level4_fill = (40, 50, 65) if self.level4_unlocked else (84, 48, 48)
+                level4_fill = (40, 50, 65) if self.level_is_unlocked(3) else (84, 48, 48)
                 arcade.draw_lrbt_rectangle_filled(724, 796, 326, 352, level4_fill)
                 arcade.draw_lrbt_rectangle_outline(724, 796, 326, 352, arcade.color.WHITE, 2)
                 arcade.draw_text("Level 4", 760, 339, arcade.color.WHITE, 11, anchor_x="center")
