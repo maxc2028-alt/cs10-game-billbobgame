@@ -1528,21 +1528,17 @@ class GameView(arcade.View):
                 self.message = "Press SPACE to begin."
                 self.hint = "Clear every trash pile to move to the next building."
                 return
-            if 540 <= x <= 720 and 252 <= y <= 298:
-                self.jump_to_middle_house()
-                self.menu_open = False
-                return
             if 540 <= x <= 720 and 202 <= y <= 248:
                 if self.window is not None:
                     self.window.close()
                 return
             return
 
-        if 690 <= x <= 770 and 538 <= y <= 558:
+        if 10 <= x <= 45 and 58 <= y <= 93:
             self.jump_to_level(1)
             return
 
-        if 690 <= x <= 770 and 508 <= y <= 528:
+        if 10 <= x <= 45 and 98 <= y <= 133:
             self.jump_to_level(2)
             return
 
@@ -2794,17 +2790,14 @@ class GameView(arcade.View):
             arcade.draw_text("Back to Intro", 630, 328, arcade.color.WHITE, 14, anchor_x="center")
             arcade.draw_lrbt_rectangle_filled(560, 700, 260, 296, (40, 50, 65))
             arcade.draw_lrbt_rectangle_outline(560, 700, 260, 296, arcade.color.WHITE, 2)
-            arcade.draw_text("Go to Level 2", 630, 278, arcade.color.WHITE, 14, anchor_x="center")
-            arcade.draw_lrbt_rectangle_filled(560, 700, 210, 246, (40, 50, 65))
-            arcade.draw_lrbt_rectangle_outline(560, 700, 210, 246, arcade.color.WHITE, 2)
-            arcade.draw_text("Quit Game", 630, 228, arcade.color.WHITE, 14, anchor_x="center")
+            arcade.draw_text("Quit Game", 630, 278, arcade.color.WHITE, 14, anchor_x="center")
 
-        arcade.draw_lrbt_rectangle_filled(688, 774, 536, 560, (36, 46, 62))
-        arcade.draw_lrbt_rectangle_outline(688, 774, 536, 560, arcade.color.WHITE, 2)
-        arcade.draw_text("Level 2", 731, 545, arcade.color.WHITE, 11, anchor_x="center")
-        arcade.draw_lrbt_rectangle_filled(688, 774, 506, 530, (36, 46, 62))
-        arcade.draw_lrbt_rectangle_outline(688, 774, 506, 530, arcade.color.WHITE, 2)
-        arcade.draw_text("Level 3", 731, 515, arcade.color.WHITE, 11, anchor_x="center")
+        arcade.draw_circle_filled(28, 73, 17, (14, 17, 24))
+        arcade.draw_circle_outline(28, 73, 17, (222, 222, 214), 2)
+        arcade.draw_text("2", 28, 63, (222, 222, 214), 18, anchor_x="center")
+        arcade.draw_circle_filled(28, 113, 17, (14, 17, 24))
+        arcade.draw_circle_outline(28, 113, 17, (222, 222, 214), 2)
+        arcade.draw_text("3", 28, 103, (222, 222, 214), 18, anchor_x="center")
 
         if self.show_instructions:
             arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
