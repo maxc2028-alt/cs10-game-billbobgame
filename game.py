@@ -1267,11 +1267,19 @@ class GameView(arcade.View):
                 continue
 
 
-            clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 24 ** 2
+            clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 42 ** 2
             near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
 
 
-            if clicked_friend or (x is None and near_ball):
+            if clicked_friend:
+                if friend.name not in self.guessed_friend_names:
+                    self.start_name_guess(friend)
+                    return True
+
+                self.start_friend_quiz(friend)
+                return True
+
+            if x is None and near_ball:
                 if not near_ball:
                     self.message = "Move closer to the person first."
                     self.hint = "Friend balls can only hear you when your ball is nearby."
