@@ -2366,28 +2366,27 @@ class GameView(arcade.View):
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
             arcade.draw_text(f"Riddle {self.name_riddle_index + 1} of 4:", 400, 332, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
             arcade.draw_text(riddle["question"], 400, 304, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
-        arcade.draw_lrbt_rectangle_filled(215, 585, 238, 286, (40, 50, 65))
-        arcade.draw_lrbt_rectangle_outline(215, 585, 238, 286, arcade.color.WHITE, 2)
-        arcade.draw_text("Type your answer here", 400, 268, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
-        arcade.draw_text(self.name_guess.upper() or "", 400, 246, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(215, 585, 234, 290, (40, 50, 65))
+        arcade.draw_lrbt_rectangle_outline(215, 585, 234, 290, arcade.color.WHITE, 2)
+        arcade.draw_text("Answer", 400, 272, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_text(self.name_guess.upper() or "type your answer here", 400, 247, arcade.color.WHITE, 18, anchor_x="center")
         arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 230, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 208, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
-        arcade.draw_lrbt_rectangle_filled(170, 630, 132, 192, (28, 32, 42))
-        arcade.draw_lrbt_rectangle_outline(170, 630, 132, 192, arcade.color.WHITE, 1)
-        arcade.draw_text(f"Hint: {self.hint}", 400, 178, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=430, multiline=True)
-        arcade.draw_text("Each correct answer reveals one letter.", 400, 154, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
-
-        if self.trash_spots:
-            arcade.draw_text("Clear all trash to unlock the hint list.", 400, 122, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
-        else:
-            if self.unlocked_riddle_hints:
-                arcade.draw_text("Hint list", 400, 122, arcade.color.GOLD, 11, anchor_x="center")
-                y = 122
-                for i, clue in enumerate(self.unlocked_riddle_hints[-4:]):
-                    arcade.draw_text(f"{i + 1}. {clue}", 400, y, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=560, multiline=True)
-                    y -= 58
-            else:
-                arcade.draw_text("No hints unlocked yet.", 400, 122, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(170, 630, 126, 196, (28, 32, 42))
+        arcade.draw_lrbt_rectangle_outline(170, 630, 126, 196, arcade.color.WHITE, 1)
+        arcade.draw_text("Hint area", 400, 182, arcade.color.GOLD, 12, anchor_x="center")
+        if self.guess_friend is not None:
+            riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+            answer = riddle["answer"]
+            hint_lines = [
+                f"Length: {len(answer)} letters.",
+                f"First letter: {answer[0].upper()}",
+                f"Last letter: {answer[-1].upper()}",
+            ]
+            y = 162
+            for line in hint_lines:
+                arcade.draw_text(line, 400, y, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=440, multiline=True)
+                y -= 16
 
 
     def draw_decorate(self) -> None:
