@@ -43,9 +43,9 @@ HOUSE_WIDTHS = [140, 170, 120]  # Different widths for variety
 HOUSE_HEIGHTS = [220, 235, 195]  # Different heights for variety
 RIDDLE_QUESTIONS = [
     {
-        "question": "I am a phone that never rings, a message never sent, and a name no one calls. What am I?",
-        "answer": "isolation",
-        "letter": "i",
+        "question": "I follow you everywhere, but I never speak. I grow bigger when the room is empty. What am I?",
+        "answer": "shadow",
+        "letter": "j",
     },
     {
         "question": "I can fill a room without taking up space, and I feel heaviest when no one is there. What am I?",
