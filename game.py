@@ -1527,9 +1527,9 @@ class GameView(arcade.View):
 
             key_rows = self.name_guess_keyboard
             key_layout = [
-                (170, 476, 106, 134, key_rows[0]),
-                (205, 522, 68, 96, key_rows[1]),
-                (248, 554, 30, 58, key_rows[2]),
+                (140, 660, 94, 130, key_rows[0]),
+                (180, 620, 54, 90, key_rows[1]),
+                (240, 560, 14, 50, key_rows[2]),
             ]
             for left, right, bottom, top, letters in key_layout:
                 if bottom <= y <= top:
@@ -2468,21 +2468,21 @@ class GameView(arcade.View):
         arcade.draw_text("Delete", 642, 190, arcade.color.WHITE, 12, anchor_x="center")
         arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 142, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 160, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
-        arcade.draw_text("Or click the letter keys below.", 400, 128, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_text("Or click the letter keys below.", 400, 136, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
         key_rows = self.name_guess_keyboard
         key_layout = [
-            (170, 476, 106, 134, key_rows[0]),
-            (205, 522, 68, 96, key_rows[1]),
-            (248, 554, 30, 58, key_rows[2]),
+            (140, 660, 94, 130, key_rows[0]),
+            (180, 620, 54, 90, key_rows[1]),
+            (240, 560, 14, 50, key_rows[2]),
         ]
         for left, right, bottom, top, letters in key_layout:
             button_width = (right - left) / len(letters)
             for index, letter in enumerate(letters):
-                key_left = left + index * button_width + 2
-                key_right = left + (index + 1) * button_width - 2
+                key_left = left + index * button_width + 3
+                key_right = left + (index + 1) * button_width - 3
                 arcade.draw_lrbt_rectangle_filled(key_left, key_right, bottom, top, (34, 41, 55))
                 arcade.draw_lrbt_rectangle_outline(key_left, key_right, bottom, top, arcade.color.WHITE, 1)
-                arcade.draw_text(letter, (key_left + key_right) / 2, bottom + 10, arcade.color.WHITE, 11, anchor_x="center")
+                arcade.draw_text(letter, (key_left + key_right) / 2, bottom + 11, arcade.color.WHITE, 13, anchor_x="center")
         if self.guess_friend is not None:
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
             answer = riddle["answer"]
