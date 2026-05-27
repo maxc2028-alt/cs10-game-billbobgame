@@ -1042,7 +1042,6 @@ class GameView(arcade.View):
     def friend_action_hint(self) -> str:
         if self.screen != "playing":
             return ""
-        target_name = self.current_target_friend_name()
         if self.trash_spots:
             return "Clean trash first."
         return "Move close to the NPC and click the friend to talk."
