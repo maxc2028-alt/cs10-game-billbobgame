@@ -1917,41 +1917,28 @@ class GameView(arcade.View):
         return (r, g, b)
 
 
+    def draw_player_avatar(self, x: float, y: float, color: tuple[int, int, int]) -> None:
+        """Draw the player stick figure at a custom position and color."""
+        shadow_color = (15, 18, 25, 120)
+
+        arcade.draw_ellipse_filled(x, y - 18, 28, 6, shadow_color)
+        arcade.draw_circle_filled(x, y + 8, 7, color)
+        arcade.draw_circle_outline(x, y + 8, 7, arcade.color.BLACK, 1.5)
+        arcade.draw_line(x, y, x, y - 10, color, 3)
+        arcade.draw_line(x, y - 2, x - 8, y + 2, color, 2.5)
+        arcade.draw_line(x, y - 2, x + 8, y + 2, color, 2.5)
+        arcade.draw_line(x, y - 10, x - 5, y - 20, color, 2.5)
+        arcade.draw_line(x, y - 10, x + 5, y - 20, color, 2.5)
+        arcade.draw_circle_filled(x - 2, y + 10, 1.5, arcade.color.BLACK)
+        arcade.draw_circle_filled(x + 2, y + 10, 1.5, arcade.color.BLACK)
+
+
     def draw_ball(self) -> None:
         """Draw stick figure player that changes color with friendship."""
         if self.screen == "playing":
             arcade.draw_circle_outline(self.ball_x, self.ball_y, COLLECT_DISTANCE, (128, 133, 140), 1)
 
-        player_color = self.get_player_color()
-        shadow_color = (15, 18, 25, 120)
-
-        # Shadow
-        arcade.draw_ellipse_filled(self.ball_x, self.ball_y - 18, 28, 6, shadow_color)
-
-        # Head
-        arcade.draw_circle_filled(self.ball_x, self.ball_y + 8, 7, player_color)
-        arcade.draw_circle_outline(self.ball_x, self.ball_y + 8, 7, arcade.color.BLACK, 1.5)
-
-        # Body (vertical line)
-        arcade.draw_line(self.ball_x, self.ball_y, self.ball_x, self.ball_y - 10, player_color, 3)
-
-        # Left arm
-        arcade.draw_line(self.ball_x, self.ball_y - 2, self.ball_x - 8, self.ball_y + 2, player_color, 2.5)
-
-        # Right arm
-        arcade.draw_line(self.ball_x, self.ball_y - 2, self.ball_x + 8, self.ball_y + 2, player_color, 2.5)
-
-        # Left leg
-        arcade.draw_line(self.ball_x, self.ball_y - 10, self.ball_x - 5, self.ball_y - 20, player_color, 2.5)
-
-        # Right leg
-        arcade.draw_line(self.ball_x, self.ball_y - 10, self.ball_x + 5, self.ball_y - 20, player_color, 2.5)
-
-        # Eyes (simple dots)
-        eye_offset_x = 2
-        eye_offset_y = 2
-        arcade.draw_circle_filled(self.ball_x - eye_offset_x, self.ball_y + 10, 1.5, arcade.color.BLACK)
-        arcade.draw_circle_filled(self.ball_x + eye_offset_x, self.ball_y + 10, 1.5, arcade.color.BLACK)
+        self.draw_player_avatar(self.ball_x, self.ball_y, self.get_player_color())
 
 
     def draw_trash(self, trash: TrashSpot) -> None:
@@ -2907,12 +2894,8 @@ class GameView(arcade.View):
             arcade.draw_circle_outline(fx, fy + 30, 15, arcade.color.BLACK, 2)
             arcade.draw_text(name, fx, fy + 56, arcade.color.WHITE, 10, anchor_x="center")
 
-        arcade.draw_lrbt_rectangle_filled(150, 280, 210, 240, (74, 86, 97))
-        arcade.draw_lrbt_rectangle_outline(150, 280, 210, 240, arcade.color.BLACK, 2)
-        arcade.draw_text("snacks", 215, 186, arcade.color.WHITE, 10, anchor_x="center")
-        arcade.draw_lrbt_rectangle_filled(330, 470, 212, 240, (156, 176, 188))
-        arcade.draw_lrbt_rectangle_outline(330, 470, 212, 240, arcade.color.BLACK, 2)
-        arcade.draw_text("music", 400, 186, arcade.color.WHITE, 10, anchor_x="center")
+        self.draw_player_avatar(400, 162, (255, 145, 55))
+        arcade.draw_text("you", 400, 218, arcade.color.WHITE, 10, anchor_x="center")
 
         arcade.draw_text("Press SPACE to return to the intro.", 400, 82, arcade.color.WHITE, 12, anchor_x="center")
         arcade.draw_text("Tap the top button to switch back outside.", 400, 62, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
