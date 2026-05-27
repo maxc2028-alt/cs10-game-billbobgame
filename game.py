@@ -1092,12 +1092,12 @@ class GameView(arcade.View):
 
 
     def reveal_friend_name_hint(self) -> str:
-        name = self.current_target_friend_name()
+        name = self.guess_friend.name if self.guess_friend is not None else self.current_target_friend_name()
         if name not in self.friend_name_hints:
             self.friend_name_hints[name] = 0
 
         if self.name_riddle_index < len(RIDDLE_QUESTIONS):
-            riddle = RIDDLE_QUESTIONS[self.name_riddle_index]
+            riddle = self.riddle_for_friend(name, self.name_riddle_index)
             return f"Riddle clue unlocked: {riddle['question']}"
 
         return f"All riddle clues are ready for {name}. Move close and click the friend to answer them."
@@ -1207,7 +1207,7 @@ class GameView(arcade.View):
         self.menu_open = False
         self.screen = "name_guess"
         self.message = f"Riddle {self.name_riddle_index + 1} of 4 for {friend.name}."
-        current_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+        current_riddle = self.riddle_for_friend(friend.name, self.name_riddle_index)
         self.hint = f"Length: {len(current_riddle['answer'])} letters."
 
 
@@ -1248,7 +1248,8 @@ class GameView(arcade.View):
         if self.guess_friend is None:
             return
 
-        riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+        friend_name = self.guess_friend.name
+        riddle = self.riddle_for_friend(friend_name, self.name_riddle_index)
         if self.name_guess.strip().lower() == riddle["answer"]:
             self.name_riddle_wrong_guesses = 0
             self.name_riddle_wrong_answers = set()
@@ -1274,8 +1275,8 @@ class GameView(arcade.View):
                     self.screen = "playing"
                 return
 
-            next_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
-            self.friend_riddle_progress[self.guess_friend.name] = (self.name_riddle_index, self.name_riddle_progress, list(self.unlocked_riddle_hints))
+            next_riddle = self.riddle_for_friend(friend_name, self.name_riddle_index)
+            self.friend_riddle_progress[friend_name] = (self.name_riddle_index, self.name_riddle_progress, list(self.unlocked_riddle_hints))
             self.message = f"Correct. Letter revealed: {self.name_riddle_progress.upper()}."
             self.hint = f"Riddle {self.name_riddle_index + 1} of 4: {next_riddle['question']}"
             self.name_guess = ""
@@ -2493,7 +2494,7 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_outline(120, 680, 90, 420, arcade.color.WHITE, 3)
         arcade.draw_text("Riddle Name Challenge", 400, 382, arcade.color.GOLD, 26, anchor_x="center")
         if self.guess_friend is not None:
-            riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+            riddle = self.riddle_for_friend(self.guess_friend.name, self.name_riddle_index)
             arcade.draw_text(f"Riddle {self.name_riddle_index + 1} of 4:", 400, 332, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
             arcade.draw_text(riddle["question"], 400, 304, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
         arcade.draw_lrbt_rectangle_filled(215, 585, 176, 230, (40, 50, 65))
@@ -2504,7 +2505,7 @@ class GameView(arcade.View):
         arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 142, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 160, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
         if self.guess_friend is not None:
-            riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+            riddle = self.riddle_for_friend(self.guess_friend.name, self.name_riddle_index)
             answer = riddle["answer"]
             if self.name_riddle_wrong_guesses >= 3:
                 arcade.draw_text(f"Full answer: {answer.upper()}", 400, 124, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=440, multiline=True)
