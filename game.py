@@ -2389,7 +2389,14 @@ class GameView(arcade.View):
         if self.guess_friend is not None:
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
             answer = riddle["answer"]
-            hint_lines = [`r`n                f"Length: {len(answer)} letters.",`r`n                "Keep trying different ideas.",`r`n                "Almost there. One more unique wrong guess unlocks the answer.",`r`n                "Final clue coming next.",`r`n                f"Full answer: {answer.upper()}",`r`n            ]`r`n            shown_count = len(hint_lines) if self.name_riddle_wrong_guesses >= 5 else min(max(self.name_riddle_wrong_guesses, 1), len(hint_lines) - 1)
+            hint_lines = [
+                f"Length: {len(answer)} letters.",
+                "Keep trying different ideas.",
+                "Almost there. One more unique wrong guess unlocks the answer.",
+                "Final clue coming next.",
+                f"Full answer: {answer.upper()}",
+            ]
+            shown_count = len(hint_lines) if self.name_riddle_wrong_guesses >= 5 else min(max(self.name_riddle_wrong_guesses, 1), len(hint_lines) - 1)
             y = 124
             for line in hint_lines[:shown_count]:
                 arcade.draw_text(line, 400, y, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=440, multiline=True)
