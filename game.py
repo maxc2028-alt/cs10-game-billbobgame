@@ -2419,47 +2419,12 @@ class GameView(arcade.View):
             arcade.draw_text(f"Riddle {self.name_riddle_index + 1} of 4:", 400, 332, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
             arcade.draw_text(riddle["question"], 400, 304, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
         arcade.draw_lrbt_rectangle_filled(215, 585, 176, 230, (40, 50, 65))
-        box_outline = arcade.color.GOLD if self.name_guess_active else arcade.color.WHITE
-        arcade.draw_lrbt_rectangle_outline(215, 585, 176, 230, box_outline, 2)
+        arcade.draw_lrbt_rectangle_outline(215, 585, 176, 230, arcade.color.WHITE, 2)
         arcade.draw_text("Type your answer here", 400, 215, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         caret = "_" if len(self.name_guess) % 2 == 0 else " "
         arcade.draw_text((self.name_guess.upper() or "") + caret, 400, 193, arcade.color.WHITE, 18, anchor_x="center")
-        arcade.draw_text("Click the box, then type.", 400, 177, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
-        arcade.draw_text(f"Input: {self.name_guess.upper() or '-'}", 400, 176, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
-        arcade.draw_lrbt_rectangle_filled(610, 675, 216, 252, (63, 83, 68))
-        arcade.draw_lrbt_rectangle_outline(610, 675, 216, 252, arcade.color.WHITE, 2)
-        arcade.draw_text("Submit", 642, 232, arcade.color.WHITE, 12, anchor_x="center")
-        arcade.draw_lrbt_rectangle_filled(610, 675, 174, 210, (84, 58, 58))
-        arcade.draw_lrbt_rectangle_outline(610, 675, 174, 210, arcade.color.WHITE, 2)
-        arcade.draw_text("Delete", 642, 190, arcade.color.WHITE, 12, anchor_x="center")
         arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 142, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 160, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
-        arcade.draw_text("Or click the letter keys below.", 400, 136, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
-        key_rows = self.name_guess_keyboard
-        key_layout = [
-            (140, 660, 94, 130, key_rows[0]),
-            (180, 620, 54, 90, key_rows[1]),
-            (240, 560, 14, 50, key_rows[2]),
-        ]
-        for left, right, bottom, top, letters in key_layout:
-            button_width = (right - left) / len(letters)
-            for index, letter in enumerate(letters):
-                key_left = left + index * button_width + 3
-                key_right = left + (index + 1) * button_width - 3
-                arcade.draw_lrbt_rectangle_filled(key_left, key_right, bottom, top, (34, 41, 55))
-                arcade.draw_lrbt_rectangle_outline(key_left, key_right, bottom, top, arcade.color.WHITE, 1)
-                arcade.draw_text(letter, (key_left + key_right) / 2, bottom + 11, arcade.color.WHITE, 13, anchor_x="center")
-        answer_buttons = [
-            (150, 385, 30, 68, self.name_guess_options[0]),
-            (415, 650, 30, 68, self.name_guess_options[1]),
-            (150, 385, 74, 112, self.name_guess_options[2]),
-            (415, 650, 74, 112, self.name_guess_options[3]),
-        ]
-        arcade.draw_text("Or tap one answer choice:", 400, 95, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
-        for left, right, bottom, top, answer in answer_buttons:
-            arcade.draw_lrbt_rectangle_filled(left, right, bottom, top, (52, 62, 78))
-            arcade.draw_lrbt_rectangle_outline(left, right, bottom, top, arcade.color.WHITE, 1)
-            arcade.draw_text(answer.upper(), (left + right) / 2, bottom + 16, arcade.color.WHITE, 12, anchor_x="center")
         if self.guess_friend is not None:
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
             answer = riddle["answer"]
