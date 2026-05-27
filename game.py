@@ -833,7 +833,7 @@ class GameView(arcade.View):
         self.screen = "playing"
         self.round_started = True
         self.outside_cleanup_started = False
-        self.show_instructions = True
+        self.show_instructions = False
 
 
     def door_index_near_player(self) -> int | None:
@@ -1432,7 +1432,7 @@ class GameView(arcade.View):
         self.outside_cleanup_started = False
         self.keys_down.clear()
         self.start_countdown = 3.0
-        self.show_instructions = True
+        self.show_instructions = False
         self.message = "Get ready."
         self.hint = "The game starts when the countdown reaches zero. The help panel is open for a quick guide."
 
@@ -1947,9 +1947,9 @@ class GameView(arcade.View):
             self.show_instructions = not self.show_instructions
             return
 
-        if self.screen == "playing" and 610 <= x <= 700 and 552 <= y <= 590:
+        if self.screen == "playing" and 540 <= x <= 630 and 552 <= y <= 590:
             self.outside_cleanup_started = True
-            self.show_instructions = True
+            self.show_instructions = False
             self.message = "Cleanup started."
             self.hint = "Now the outside trash timer is running. Keep cleaning to earn money."
             return
@@ -3220,9 +3220,9 @@ class GameView(arcade.View):
 
         if self.screen == "playing" and not self.menu_open:
             button_fill = (174, 151, 82) if not self.outside_cleanup_started else (78, 90, 100)
-            arcade.draw_lrbt_rectangle_filled(610, 700, 556, 590, button_fill)
-            arcade.draw_lrbt_rectangle_outline(610, 700, 556, 590, arcade.color.BLACK, 2)
-            arcade.draw_text("START", 655, 567, arcade.color.BLACK, 13, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(540, 630, 556, 590, button_fill)
+            arcade.draw_lrbt_rectangle_outline(540, 630, 556, 590, arcade.color.BLACK, 2)
+            arcade.draw_text("START", 585, 567, arcade.color.BLACK, 13, anchor_x="center")
             arcade.draw_circle_filled(760, 478, 17, (18, 24, 34))
             arcade.draw_circle_outline(760, 478, 17, (222, 222, 214), 2)
             arcade.draw_text("Lv", 760, 469, (222, 222, 214), 11, anchor_x="center")
