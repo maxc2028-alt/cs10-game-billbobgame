@@ -43,24 +43,24 @@ HOUSE_WIDTHS = [140, 170, 120]  # Different widths for variety
 HOUSE_HEIGHTS = [220, 235, 195]  # Different heights for variety
 RIDDLE_QUESTIONS = [
     {
-        "question": "I follow you everywhere, but I never speak. I grow bigger when the room is empty. What am I?",
-        "answer": "shadow",
-        "letter": "j",
-    },
-    {
-        "question": "I can fill a room without taking up space, and I feel heaviest when no one is there. What am I?",
-        "answer": "silence",
-        "letter": "s",
-    },
-    {
-        "question": "I walk through a crowd but still feel unseen. What am I?",
+        "question": "What can make a busy room feel empty, even when people are all around?",
         "answer": "loneliness",
         "letter": "l",
     },
     {
-        "question": "I am an echo with no voice calling back. What am I?",
-        "answer": "being alone",
-        "letter": "b",
+        "question": "What grows stronger when no one checks on you?",
+        "answer": "isolation",
+        "letter": "i",
+    },
+    {
+        "question": "What feels loudest when everything is quiet?",
+        "answer": "silence",
+        "letter": "s",
+    },
+    {
+        "question": "What follows you home after everyone else leaves?",
+        "answer": "emptiness",
+        "letter": "e",
     },
 ]
 INTERIOR_REPAIR_SETS = [
@@ -1004,6 +1004,19 @@ class GameView(arcade.View):
     def current_target_friend_name(self) -> str:
         template_index = self.level_template_index(self.current_building)
         return FRIEND_NAMES[template_index % len(FRIEND_NAMES)]
+
+
+    def riddle_order_for_friend(self, friend_name: str) -> list[int]:
+        """Return a stable shuffled riddle order for each NPC."""
+        order = list(range(len(RIDDLE_QUESTIONS)))
+        rng = random.Random(f"riddle_order:{friend_name}")
+        rng.shuffle(order)
+        return order
+
+
+    def riddle_for_friend(self, friend_name: str, riddle_index: int) -> dict:
+        order = self.riddle_order_for_friend(friend_name)
+        return RIDDLE_QUESTIONS[order[riddle_index % len(order)]]
 
 
     def known_name_letters(self, name: str) -> int:
