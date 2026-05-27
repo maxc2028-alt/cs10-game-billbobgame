@@ -1162,11 +1162,11 @@ class GameView(arcade.View):
 
         riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
         if self.name_guess.strip().lower() == riddle["answer"]:
+            self.name_guess = ""
             self.name_riddle_progress += riddle["letter"]
             self.name_riddle_index += 1
             if riddle["question"] not in self.unlocked_riddle_hints:
                 self.unlocked_riddle_hints.append(riddle["question"])
-            self.name_guess = ""
             if self.name_riddle_index >= 4:
                 friend = self.guess_friend
                 self.guessed_friend_names.add(friend.name)
@@ -1308,7 +1308,7 @@ class GameView(arcade.View):
             if key == arcade.key.ENTER:
                 self.submit_name_riddle()
                 return
-            if key == arcade.key.BACKSPACE:
+            if key in {arcade.key.BACKSPACE, arcade.key.DELETE}:
                 self.name_guess = self.name_guess[:-1]
                 return
             return
