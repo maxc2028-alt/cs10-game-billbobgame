@@ -1427,6 +1427,10 @@ class GameView(arcade.View):
             self.suppress_next_name_guess_char = False
             return
 
+        if self.screen == "name_guess" and text in {"\r", "\n"}:
+            self.submit_name_riddle()
+            return
+
         self.append_name_guess_char(text)
 
 
