@@ -2953,6 +2953,23 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_outline(310, 490, 135, 190, arcade.color.BLACK, 3)
         arcade.draw_text("START", 400, 153, arcade.color.BLACK, 22, anchor_x="center")
 
+        if self.show_instructions:
+            arcade.draw_lrbt_rectangle_filled(175, 625, 250, 410, (14, 17, 24, 235))
+            arcade.draw_lrbt_rectangle_outline(175, 625, 250, 410, (222, 222, 214), 2)
+            arcade.draw_text("How to Play", 400, 380, (222, 222, 214), 18, anchor_x="center")
+            arcade.draw_text(
+                "Move around with WASD or the arrow keys.\n"
+                "Click the START button near the top to begin outside cleanup.\n"
+                "Pick up trash to earn money, then use it to fix houses and help friends.",
+                200,
+                350,
+                (156, 160, 166),
+                11,
+                width=400,
+                multiline=True,
+            )
+            arcade.draw_text("Click the ? icon anytime for this again.", 400, 270, (156, 160, 166), 10, anchor_x="center")
+
     def draw_countdown(self) -> None:
         self.draw_intro()
         arcade.draw_lrbt_rectangle_filled(225, 575, 210, 390, (15, 18, 25, 220))
@@ -2960,6 +2977,20 @@ class GameView(arcade.View):
         arcade.draw_text("Starting in", 400, 350, arcade.color.LIGHT_GRAY, 18, anchor_x="center")
         arcade.draw_text(f"{math.ceil(self.start_countdown)}", 400, 272, arcade.color.GOLD, 72, anchor_x="center")
         arcade.draw_text("Get ready to clean the block.", 400, 228, arcade.color.WHITE, 14, anchor_x="center")
+        if self.show_instructions:
+            arcade.draw_lrbt_rectangle_filled(175, 625, 90, 200, (14, 17, 24, 235))
+            arcade.draw_lrbt_rectangle_outline(175, 625, 90, 200, (222, 222, 214), 2)
+            arcade.draw_text("Tip", 400, 166, (222, 222, 214), 16, anchor_x="center")
+            arcade.draw_text(
+                "The timer pauses until you press START outside.\n"
+                "Then the trash cleanup clock begins.",
+                200,
+                142,
+                (156, 160, 166),
+                11,
+                width=400,
+                multiline=True,
+            )
 
 
     def draw_dark_challenge(self) -> None:
