@@ -2401,7 +2401,7 @@ class GameView(arcade.View):
                 "Final clue: the answer will be shown next time.",
                 f"Full answer: {answer.upper()}",
             ]
-            shown_count = len(hint_lines) if self.name_riddle_wrong_guesses >= 5 else min(self.name_riddle_wrong_guesses, len(hint_lines) - 1)
+            shown_count = len(hint_lines) if self.name_riddle_wrong_guesses >= 5 else min(max(self.name_riddle_wrong_guesses, 1), len(hint_lines) - 1)
             y = 124
             for line in hint_lines[:shown_count]:
                 arcade.draw_text(line, 400, y, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=440, multiline=True)
@@ -2870,4 +2870,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
 
