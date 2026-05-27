@@ -1228,7 +1228,8 @@ class GameView(arcade.View):
                 self.guess_friend = None
                 self.name_guess = ""
                 self.menu_open = False
-                self.screen = "playing"
+                if not self.maybe_open_house_style_choice(self.current_building):
+                    self.screen = "playing"
                 return
 
             next_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
