@@ -854,6 +854,16 @@ class GameView(arcade.View):
         self.interior_spots = []
 
 
+    def start_house_minigame(self, spot: RepairSpot, return_screen: str) -> None:
+        """Launch the same repair mini-game for every house spot."""
+        self.minigame_target_spot = spot
+        self.minigame_return_screen = return_screen
+        self.minigame_parent_screen = return_screen
+        self.active_minigame = PipeMinigame(difficulty=self.current_building // 5 + 1)
+        self.message = "Match the wall colors to repair the hole!"
+        self.hint = "Click any tile to cycle its color until the whole patch matches."
+
+
     def visit_house(self, building_index: int) -> None:
         self.time_left = QUEST_TIME
         self.exit_spawn_x = self.ball_x
@@ -1510,17 +1520,8 @@ class GameView(arcade.View):
                         self.hint = "Trash gives you repair money. Clean outside piles before fixing everything."
                         return
 
-                    # Launch mini-game instead of instant completion
-                    self.minigame_target_spot = spot
-                    self.minigame_return_screen = "repair"
-                    self.minigame_parent_screen = "repair"
-                    repair_type = spot.label.lower()
-
-                    # Choose mini-game based on repair type
-                    self.active_minigame = PipeMinigame(difficulty=self.current_building // 5 + 1)
-                    self.message = "Match the wall colors to repair the hole!"
-                    self.hint = "Click any tile to cycle its color until the whole patch matches."
-
+                    # Always reuse the same repair mini-game for every spot.
+                    self.start_house_minigame(spot, "repair")
                     self.hint = "Complete the mini-game to finish this repair!"
                     return
             return
@@ -1540,10 +1541,7 @@ class GameView(arcade.View):
                             return
 
                         # Launch mini-game for interior work too
-                        self.minigame_target_spot = spot
-                        self.minigame_return_screen = "visit"
-                        self.minigame_parent_screen = "visit"
-                        self.active_minigame = PipeMinigame(difficulty=self.current_building // 5 + 1)
+                        self.start_house_minigame(spot, "visit")
                         self.message = "Match the wall colors to repair the inside!"
                         self.hint = "Click any tile to cycle its color until the whole patch matches."
                         return
