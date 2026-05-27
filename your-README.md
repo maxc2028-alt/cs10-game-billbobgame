@@ -16,7 +16,7 @@
 `![Screenshot description](path/to/screenshot.png)`]
 
 ## How to Install & Play
-
+ 
 Simply download the game files for your operating system and run the project locally.
 
 Mac:
