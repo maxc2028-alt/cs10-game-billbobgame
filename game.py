@@ -1016,7 +1016,7 @@ class GameView(arcade.View):
         target_name = self.current_target_friend_name()
         if self.trash_spots:
             return "Clean trash first."
-        return "Move close to the NPC and press C to talk to NPC."
+        return "Move close to the NPC and click the friend to talk."
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
@@ -1062,7 +1062,7 @@ class GameView(arcade.View):
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index]
             return f"Riddle clue unlocked: {riddle['question']}"
 
-        return f"All riddle clues are ready for {name}. Move close and press C, or click the friend, to answer them."
+        return f"All riddle clues are ready for {name}. Move close and click the friend to answer them."
 
 
     def next_building(self) -> None:
@@ -1286,7 +1286,7 @@ class GameView(arcade.View):
 
 
         if x is None and y is None:
-            self.message = "Move closer to the NPC and press C to talk to NPC."
+            self.message = "Move closer to the NPC and click the friend to talk."
             self.hint = "Pick up trash for hints, then use those hints near other friends."
             return True
 
@@ -1297,15 +1297,6 @@ class GameView(arcade.View):
     def on_key_press(self, key: int, modifiers: int) -> None:
         if self.screen == "name_guess" and key == arcade.key.ESCAPE:
             self.cancel_name_guess()
-            return
-
-        if key == arcade.key.C:
-            self.suppress_next_name_guess_char = True
-            if self.screen == "playing":
-                if self.try_befriend():
-                    return
-                self.message = "Move closer to the NPC to talk."
-                self.hint = "Press C near a friend to start the dialogue."
             return
 
         if key == arcade.key.ESCAPE:
