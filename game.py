@@ -1102,13 +1102,7 @@ class GameView(arcade.View):
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
-        if friend.name in self.befriended_friends:
-            return "friend"
-        if self.known_name_letters(friend.name) < len(friend.name):
-            return "Talk"
-        if friend.name in self.guessed_friend_names:
-            return "quiz time"
-        return "Talk"
+        return ""
 
 
     def buy_food_for_friend(self, friend: FriendNPC) -> bool:
@@ -2063,6 +2057,11 @@ class GameView(arcade.View):
 
 
         if self.try_befriend(x, y):
+            return
+
+        if not self.outside_cleanup_started:
+            self.message = "Press START first."
+            self.hint = "The outside trash timer does not begin until you press START."
             return
 
 
@@ -3171,10 +3170,10 @@ class GameView(arcade.View):
         arcade.draw_text("ESC quits", 720, 565, (156, 160, 166), 10, anchor_x="center")
         arcade.draw_text(f"Building: {self.get_building_name(self.current_building)}", 22, 538, (156, 160, 166), 12)
         arcade.draw_text(f"Trash: {self.cleaned}", 22, 516, (214, 215, 212), 12)
-        arcade.draw_text(f"Money: ${self.money}", 125, 516, (214, 215, 212), 12)
-        arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, (214, 215, 212), 12)
-        arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
-        arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Money: ${self.money}", 130, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Friendship: {self.friendship}", 245, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 395, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Time: {self.time_left:0.1f}s", 565, 516, (214, 215, 212), 12)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
