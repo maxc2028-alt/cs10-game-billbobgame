@@ -772,13 +772,27 @@ class GameView(arcade.View):
 
 
     def reset_round(self) -> None:
+        # Clear any leftover per-house interaction state before generating the next cleanup run.
+        self.active_minigame = None
+        self.minigame_target_spot = None
+        self.minigame_return_screen = None
+        self.minigame_parent_screen = None
+        self.quiz_friend = None
+        self.guess_friend = None
+        self.name_guess = ""
+        self.pending_house_style_building = None
+        self.interior_spots = []
+        self.repair_spots = []
+        self.friends = []
+        self.inside_building = self.current_building
+        self.interior_mode = "repair"
+        self.door_cooldown = 0.0
+
         self.time_left = QUEST_TIME
         self.cleaned = 0
-        self.repair_spots = []
         self.message = "Click trash piles to clean the building."
         self.hint = "Move the ball close to trash with WASD or arrows, then click to pick it up."
         self.trash_spots = []
-        self.friends = []
 
         # Generate trash for current building
         left, right, base_y, height = self.get_house_position(self.current_building)
