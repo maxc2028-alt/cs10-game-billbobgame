@@ -689,6 +689,7 @@ class GameView(arcade.View):
         self.door_cooldown = 0.0
         self.level_picker_open = False
         self.conclusion_time = 0.0
+        self.perfect_area_time = 0.0
         self.exit_spawn_x = 400.0
         self.exit_spawn_y = 300.0
         self.minigame_fail_fade: float | None = None
@@ -1132,6 +1133,9 @@ class GameView(arcade.View):
 
     def jump_to_level(self, building_index: int) -> None:
         """Jump to a specific level index and restart the cleanup round."""
+        if building_index >= 3:
+            self.enter_perfect_area()
+            return
         self.current_building = max(0, min(building_index, BUILDING_STAGES - 1))
         self.buildings_cleaned = self.current_building
         self.level_picker_open = False
@@ -1139,8 +1143,33 @@ class GameView(arcade.View):
         if self.current_building == 1:
             self.hint = "Level 2 uses the same cleanup setup as level 1."
         else:
-            self.hint = f"You are now on level {self.current_building + 1}."
+        self.hint = f"You are now on level {self.current_building + 1}."
         self.reset_round()
+
+
+    def enter_perfect_area(self) -> None:
+        """Send the player to the perfect-house area."""
+        self.screen = "perfect_area"
+        self.round_started = False
+        self.keys_down.clear()
+        self.level_picker_open = False
+        self.menu_open = False
+        self.active_minigame = None
+        self.minigame_target_spot = None
+        self.minigame_return_screen = None
+        self.minigame_parent_screen = None
+        self.quiz_friend = None
+        self.guess_friend = None
+        self.trash_spots = []
+        self.repair_spots = []
+        self.interior_spots = []
+        self.current_building = 0
+        self.buildings_cleaned = 0
+        self.ball_x = 400.0
+        self.ball_y = 155.0
+        self.perfect_area_time = 0.0
+        self.message = "Level 4: Perfect Block."
+        self.hint = "Every house is already perfect. Press SPACE to return."
 
 
     def finish_repair(self) -> None:
@@ -1570,6 +1599,12 @@ class GameView(arcade.View):
         try:
             if self.screen == "conclusion":
                 self.restart_game()
+            elif self.screen == "perfect_area":
+                self.screen = "intro"
+                self.intro_time = 0.0
+                self.intro_walk_x = 85.0
+                self.message = "Press SPACE to begin."
+                self.hint = "Clear every trash pile to move to the next building."
             elif self.screen in {"complete", "failed", "trash_game_over", "minigame_game_over"}:
                 self.reset_round()
             elif self.screen == "intro":
@@ -1640,6 +1675,7 @@ class GameView(arcade.View):
         level_one_hit = level_control_visible and 724 <= x <= 796 and 428 <= y <= 454
         level_two_hit = level_control_visible and 724 <= x <= 796 and 394 <= y <= 420
         level_three_hit = level_control_visible and 724 <= x <= 796 and 360 <= y <= 386
+        level_four_hit = level_control_visible and 724 <= x <= 796 and 326 <= y <= 352
 
         if self.level_picker_open:
             if level_one_hit:
@@ -1650,6 +1686,9 @@ class GameView(arcade.View):
                 return
             if level_three_hit:
                 self.jump_to_level(2)
+                return
+            if level_four_hit:
+                self.jump_to_level(3)
                 return
             if not level_toggle_hit:
                 self.level_picker_open = False
@@ -2071,6 +2110,10 @@ class GameView(arcade.View):
 
             if self.screen == "conclusion":
                 self.conclusion_time += delta_time
+                return
+
+            if self.screen == "perfect_area":
+                self.perfect_area_time += delta_time
                 return
 
             if self.screen == "intro":
@@ -2854,6 +2897,9 @@ class GameView(arcade.View):
                 arcade.draw_lrbt_rectangle_filled(724, 796, 360, 386, (40, 50, 65))
                 arcade.draw_lrbt_rectangle_outline(724, 796, 360, 386, arcade.color.WHITE, 2)
                 arcade.draw_text("Level 3", 760, 373, arcade.color.WHITE, 11, anchor_x="center")
+                arcade.draw_lrbt_rectangle_filled(724, 796, 326, 352, (40, 50, 65))
+                arcade.draw_lrbt_rectangle_outline(724, 796, 326, 352, arcade.color.WHITE, 2)
+                arcade.draw_text("Level 4", 760, 339, arcade.color.WHITE, 11, anchor_x="center")
 
         if self.menu_open:
             arcade.draw_lrbt_rectangle_filled(490, 770, 190, 430, (14, 17, 24, 240))
