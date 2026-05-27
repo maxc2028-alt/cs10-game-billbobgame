@@ -45,22 +45,22 @@ RIDDLE_QUESTIONS = [
     {
         "question": "I sit by the sidewalk and give tired neighbors a place to rest and talk. What am I?",
         "answer": "bench",
-        "letter": "b",
+        "letter": "j",
     },
     {
         "question": "I shine over a block at night and help people feel less alone on the way home. What am I?",
         "answer": "lamp",
-        "letter": "l",
+        "letter": "a",
     },
     {
         "question": "I connect two places so people can reach each other instead of staying apart. What am I?",
         "answer": "bridge",
-        "letter": "r",
+        "letter": "n",
     },
     {
         "question": "I cover old walls and make a repaired room feel new and welcoming. What am I?",
         "answer": "paint",
-        "letter": "p",
+        "letter": "e",
     },
 ]
 INTERIOR_REPAIR_SETS = [
