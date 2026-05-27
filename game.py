@@ -1197,8 +1197,9 @@ class GameView(arcade.View):
         self.message = "Not quite. Try that riddle again."
         clue_steps = [
             f"Length: {len(riddle['answer'])} letters.",
-            f"First letter: {riddle['answer'][0].upper()}",
-            f"Last letter: {riddle['answer'][-1].upper()}",
+            "Keep trying different ideas. You’ll get the answer after the fifth miss.",
+            "Almost there. One more wrong guess unlocks the answer.",
+            "Final clue: the answer will be shown next time.",
             f"Full answer: {riddle['answer'].upper()}",
         ]
         shown_count = min(self.name_riddle_wrong_guesses, len(clue_steps))
@@ -2393,8 +2394,9 @@ class GameView(arcade.View):
             answer = riddle["answer"]
             hint_lines = [
                 f"Length: {len(answer)} letters.",
-                f"First letter: {answer[0].upper()}",
-                f"Last letter: {answer[-1].upper()}",
+                "Keep trying different ideas. You’ll get the answer after the fifth miss.",
+                "Almost there. One more wrong guess unlocks the answer.",
+                "Final clue: the answer will be shown next time.",
                 f"Full answer: {answer.upper()}",
             ]
             shown_count = min(self.name_riddle_wrong_guesses, len(hint_lines))
