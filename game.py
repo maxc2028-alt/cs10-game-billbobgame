@@ -1138,7 +1138,7 @@ class GameView(arcade.View):
         self.screen = "name_guess"
         self.message = f"Riddle {self.name_riddle_index + 1} of 4 for {friend.name}."
         current_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
-        self.hint = f"Think about the object or idea described here: {current_riddle['question']}"
+        self.hint = f"Length: {len(current_riddle['answer'])} letters."
 
 
     def cancel_name_guess(self) -> None:
@@ -2383,7 +2383,9 @@ class GameView(arcade.View):
             arcade.draw_text(riddle["question"], 400, 304, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
         arcade.draw_lrbt_rectangle_filled(215, 585, 176, 230, (40, 50, 65))
         arcade.draw_lrbt_rectangle_outline(215, 585, 176, 230, arcade.color.WHITE, 2)
-        arcade.draw_text(self.name_guess.upper() or "type your answer here", 400, 203, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_text("Type your answer here", 400, 215, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        caret = "_" if len(self.name_guess) % 2 == 0 else " "
+        arcade.draw_text((self.name_guess.upper() or "") + caret, 400, 193, arcade.color.WHITE, 18, anchor_x="center")
         arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 142, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 160, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
         if self.guess_friend is not None:
@@ -2396,7 +2398,9 @@ class GameView(arcade.View):
                 "Final clue coming next.",
                 f"Full answer: {answer.upper()}",
             ]
-            shown_count = len(hint_lines) if self.name_riddle_wrong_guesses >= 5 else min(max(self.name_riddle_wrong_guesses, 1), len(hint_lines) - 1)
+            shown_count = 1 if self.name_riddle_wrong_guesses == 0 else (
+                len(hint_lines) if self.name_riddle_wrong_guesses >= 5 else min(self.name_riddle_wrong_guesses + 1, len(hint_lines) - 1)
+            )
             y = 124
             for line in hint_lines[:shown_count]:
                 arcade.draw_text(line, 400, y, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=440, multiline=True)
