@@ -1072,13 +1072,23 @@ class GameView(arcade.View):
         return self.scrambled_name_hint(name)
 
 
+    def house_interior_complete(self, building_index: int) -> bool:
+        repaired = building_index in self.inside_repaired_buildings
+        upgrade_level = self.interior_upgrade_levels.get(building_index, 0)
+        return repaired and upgrade_level >= MAX_INTERIOR_UPGRADES
+
+
     def friend_action_hint(self) -> str:
         if self.screen != "playing":
             return ""
+        if not self.house_interior_complete(self.current_building):
+            return "Finish the house interior before talking to NPCs."
         return "Move close to any NPC and click them to talk."
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
+        if not self.house_interior_complete(self.current_building):
+            return "finish inside"
         if friend.name in self.befriended_friends:
             return "friend"
         if self.known_name_letters(friend.name) < len(friend.name):
@@ -1560,12 +1570,17 @@ class GameView(arcade.View):
         if self.screen != "playing":
             return False
 
+        interior_complete = self.house_interior_complete(self.current_building)
         for friend in self.friends:
             clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 42 ** 2
             near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
 
 
             if clicked_friend:
+                if not interior_complete:
+                    self.message = "Finish the house interior before talking to NPCs."
+                    self.hint = "Complete every interior repair and upgrade first."
+                    return True
                 if friend.name not in self.guessed_friend_names:
                     self.start_name_guess(friend)
                     return True
@@ -1574,6 +1589,10 @@ class GameView(arcade.View):
                 return True
 
             if x is None and near_ball:
+                if not interior_complete:
+                    self.message = "Finish the house interior before talking to NPCs."
+                    self.hint = "Complete every interior repair and upgrade first."
+                    return True
                 if not near_ball:
                     self.message = "Move closer to the person first."
                     self.hint = "Friend balls can only hear you when your ball is nearby."
