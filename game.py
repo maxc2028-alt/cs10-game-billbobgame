@@ -1119,13 +1119,15 @@ class GameView(arcade.View):
 
 
     def start_friend_quiz(self, friend: FriendNPC) -> None:
-        self.quiz_friend = friend
-        self.quiz_question = QUIZ_OPTIONS[(self.current_building + self.friendship) % len(QUIZ_OPTIONS)]
-        self.quiz_tries_left = 2
-        self.screen = "quiz"
-        self.inside_building = self.current_building
-        self.message = f"You and {friend.name} are inside the house. Answer their question."
-        self.hint = "You get 2 tries. Read the choices carefully before you pick one."
+        self.friendship += 1
+        self.befriended_friends.add(friend.name)
+        self.lesson_completed_buildings.add(self.current_building)
+        self.friend_inside_by_building[self.current_building] = friend.name
+        self.quiz_friend = None
+        self.screen = "playing"
+        self.inside_building = 0
+        self.message = f"Correct. {friend.name} became your friend."
+        self.hint = "The multiple-choice community question has been removed."
 
 
     def start_name_guess(self, friend: FriendNPC) -> None:
