@@ -1206,7 +1206,7 @@ class GameView(arcade.View):
         if self.name_riddle_wrong_guesses >= 3:
             self.hint = f"Full answer: {riddle['answer'].upper()}"
             return
-        self.hint = f"Length: {len(riddle['answer'])} letters."
+        self.hint = ""
 
 
     def answer_quiz(self, answer_index: int) -> None:
@@ -2397,20 +2397,8 @@ class GameView(arcade.View):
         if self.guess_friend is not None:
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
             answer = riddle["answer"]
-            hint_lines = [
-                f"Length: {len(answer)} letters.",
-                "Keep trying different ideas.",
-                "Almost there. One more unique wrong guess unlocks the answer.",
-                "Final clue coming next.",
-                f"Full answer: {answer.upper()}",
-            ]
-            shown_count = 1 if self.name_riddle_wrong_guesses == 0 else (
-                len(hint_lines) if self.name_riddle_wrong_guesses >= 5 else min(self.name_riddle_wrong_guesses + 1, len(hint_lines) - 1)
-            )
-            y = 124
-            for line in hint_lines[:shown_count]:
-                arcade.draw_text(line, 400, y, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=440, multiline=True)
-                y -= 16
+            if self.name_riddle_wrong_guesses >= 3:
+                arcade.draw_text(f"Full answer: {answer.upper()}", 400, 124, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=440, multiline=True)
 
 
     def draw_decorate(self) -> None:
