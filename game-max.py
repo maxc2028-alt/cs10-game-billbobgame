@@ -1,10 +1,3 @@
-"""Neighborhood Cleanup: a more detailed MVP for the serious game idea.
-
-
-The player cleans abandoned buildings, meets friends, earns money, and unlocks
-small upgrades that make the neighborhood feel more alive.
-"""
-
 
 from __future__ import annotations
 
@@ -25,7 +18,8 @@ SCREEN_TITLE = "Neighborhood Cleanup: South Block"
 QUEST_TIME = 4.0
 MAX_UPGRADES = 3
 MAX_INTERIOR_UPGRADES = 3
-TRASH_SCORE = 4
+TRASH_SCORE = 7
+NPC_FOOD_COST = 5
 BUILDING_STAGES = 3
 BALL_SPEED = 220
 BALL_RADIUS = 16
@@ -639,6 +633,7 @@ class GameView(arcade.View):
         self.message = "Press SPACE to begin."
         self.hint = "Clear every trash pile to move to the next building."
         self.trash_spots: list[TrashSpot] = []
+        self.interior_trash_spots: list[TrashSpot] = []
         self.repair_spots: list[RepairSpot] = []
         self.interior_spots: list[RepairSpot] = []
         self.friends: list[FriendNPC] = []
@@ -685,16 +680,16 @@ class GameView(arcade.View):
         self.quiz_question = QUIZ_OPTIONS[0]
         self.quiz_tries_left = 2
         self.game_over_ready = False
-        self.show_instructions = False
+        self.show_instructions = True
         self.door_cooldown = 0.0
         self.level_picker_open = False
         self.conclusion_time = 0.0
         self.perfect_area_time = 0.0
         self.perfect_area_view = "outside"
-        self.level4_unlocked = False
-        self.level4_lock_input = ""
-        self.level4_lock_found_names: list[str] = []
-        self.level4_lock_remaining_names = list(FRIEND_NAMES)
+        self.unlocked_levels: set[int] = {0}
+        self.level_lock_target: int | None = None
+        self.level_lock_input = ""
+        self.level_lock_required_name = ""
         self.exit_spawn_x = 400.0
         self.exit_spawn_y = 300.0
         self.minigame_fail_fade: float | None = None
@@ -702,6 +697,7 @@ class GameView(arcade.View):
         self.minigame_win_return_screen: str | None = None
         self.minigame_win_hold: float = 0.0
         self.suppress_next_name_guess_char = False
+        self.outside_cleanup_started = False
         # Infinite world state
         self.world_offset_x = 0  # Track camera position in world
         self.house_rng = random.Random(42)  # Seeded for consistent generation
@@ -764,6 +760,18 @@ class GameView(arcade.View):
         return building_index
 
 
+    def level_is_unlocked(self, level_index: int) -> bool:
+        """Return True when a level has been unlocked through the name lock."""
+        return level_index in self.unlocked_levels
+
+
+    def required_name_for_level(self, level_index: int) -> str:
+        """Level 2 uses the Level 1 NPC, Level 3 uses the Level 2 NPC, and so on."""
+        if level_index <= 0:
+            return ""
+        return FRIEND_NAMES[min(level_index - 1, len(FRIEND_NAMES) - 1)]
+
+
     def on_show_view(self) -> None:
         arcade.set_background_color(self.background_color)
         self.configure_camera()
@@ -792,7 +800,7 @@ class GameView(arcade.View):
         self.cleaned = 0
         self.trash_spots = []
         self.message = "Click trash piles to clean the building."
-        self.hint = "Move the ball close to trash with WASD or arrows, then click to pick it up."
+        self.hint = "Move around close to trash with WASD or arrows, then click to pick it up."
         self.friends = []
 
         # Generate trash for current building
@@ -817,6 +825,8 @@ class GameView(arcade.View):
         self.ball_y = base_y + 50
         self.screen = "playing"
         self.round_started = True
+        self.outside_cleanup_started = False
+        self.show_instructions = True
 
 
     def door_index_near_player(self) -> int | None:
@@ -842,6 +852,22 @@ class GameView(arcade.View):
             door_left - padding <= self.ball_x <= door_right + padding
             and door_bottom - padding <= self.ball_y <= door_top + padding
         )
+
+
+    def generate_interior_trash(self, building_index: int) -> list[TrashSpot]:
+        """Generate trash that appears inside the house."""
+        rng = random.Random(f"inside_trash_{building_index}")
+        base_positions = [
+            (180, 140),
+            (260, 150),
+            (410, 132),
+            (500, 142),
+            (610, 155),
+        ]
+        return [
+            TrashSpot(x + rng.randint(-14, 14), y + rng.randint(-10, 10))
+            for x, y in base_positions
+        ]
 
 
     def enter_house(self) -> None:
@@ -875,6 +901,7 @@ class GameView(arcade.View):
         self.message = f"You enter {self.get_building_name(self.current_building)}. Click each repair spot."
         self.hint = "Repair the damaged wall, floor, window, and doorway details to finish this house."
         self.interior_spots = []
+        self.interior_trash_spots = self.generate_interior_trash(self.current_building)
 
 
     def start_house_minigame(self, spot: RepairSpot, return_screen: str) -> None:
@@ -920,6 +947,7 @@ class GameView(arcade.View):
                 RepairSpot(x, y, label, color, cost)
                 for x, y, label, color, cost in INTERIOR_REPAIR_SETS[template_index]
             ]
+        self.interior_trash_spots = self.generate_interior_trash(building_index)
         self.screen = "visit"
         self.round_started = False
         self.ball_x = 400.0
@@ -1067,13 +1095,21 @@ class GameView(arcade.View):
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
-        if friend.name in self.befriended_friends:
-            return "friend"
-        if self.known_name_letters(friend.name) < len(friend.name):
-            return "find clues"
-        if friend.name in self.guessed_friend_names:
-            return "quiz time"
-        return "Talk"
+        return ""
+
+
+    def buy_food_for_friend(self, friend: FriendNPC) -> bool:
+        if self.money < NPC_FOOD_COST:
+            self.message = f"Need ${NPC_FOOD_COST} to buy food for {friend.name}."
+            self.hint = "Keep picking up trash to earn more money."
+            return False
+
+        self.money -= NPC_FOOD_COST
+        self.friendship += 2
+        self.befriended_friends.add(friend.name)
+        self.message = f"You bought food for {friend.name}."
+        self.hint = "Trash pays for repairs and gives you a way to get closer to friends."
+        return True
 
 
     def letter_clue(self, letter: str, position: int) -> str:
@@ -1138,13 +1174,26 @@ class GameView(arcade.View):
 
     def jump_to_level(self, building_index: int) -> None:
         """Jump to a specific level index and restart the cleanup round."""
-        if building_index >= 3:
-            if self.level4_unlocked:
-                self.enter_perfect_area()
-            else:
-                self.enter_level4_lock()
+        target_level = max(0, min(building_index, BUILDING_STAGES))
+        if target_level == 0:
+            self.current_building = 0
+            self.buildings_cleaned = 0
+            self.level_picker_open = False
+            self.message = f"Jumped to {self.get_building_name(self.current_building)}."
+            self.hint = "You are now on level 1."
+            self.reset_round()
             return
-        self.current_building = max(0, min(building_index, BUILDING_STAGES - 1))
+
+        for prerequisite_level in range(1, target_level + 1):
+            if not self.level_is_unlocked(prerequisite_level):
+                self.enter_level_lock(prerequisite_level)
+                return
+
+        if target_level >= BUILDING_STAGES:
+            self.enter_perfect_area()
+            return
+
+        self.current_building = target_level
         self.buildings_cleaned = self.current_building
         self.level_picker_open = False
         self.message = f"Jumped to {self.get_building_name(self.current_building)}."
@@ -1181,18 +1230,18 @@ class GameView(arcade.View):
         self.hint = "Every house is already perfect. Press SPACE to return."
 
 
-    def enter_level4_lock(self) -> None:
-        """Open the Level 4 name lock screen."""
-        self.screen = "level4_lock"
+    def enter_level_lock(self, level_index: int) -> None:
+        """Open the lock screen for a specific level."""
+        self.screen = "level_lock"
         self.round_started = False
         self.keys_down.clear()
         self.level_picker_open = False
         self.menu_open = False
-        self.level4_lock_input = ""
-        self.level4_lock_found_names = []
-        self.level4_lock_remaining_names = list(FRIEND_NAMES)
-        self.message = "Level 4 is locked."
-        self.hint = "Enter all three NPC names, one at a time, to unlock it."
+        self.level_lock_target = level_index
+        self.level_lock_input = ""
+        self.level_lock_required_name = self.required_name_for_level(level_index)
+        self.message = f"Level {level_index + 1} is locked."
+        self.hint = f"Enter the name of the NPC from Level {level_index} to unlock it."
 
 
     def toggle_perfect_area_view(self) -> None:
@@ -1203,50 +1252,46 @@ class GameView(arcade.View):
         self.hint = "Press the top button to switch views. SPACE returns to the intro."
 
 
-    def submit_level4_lock_name(self) -> None:
-        """Check the current name entry against the remaining NPC names."""
-        if self.screen != "level4_lock":
+    def submit_level_lock_name(self) -> None:
+        """Check the current name entry against the required NPC name for the level."""
+        if self.screen != "level_lock" or self.level_lock_target is None:
             return
 
-        guess = self.level4_lock_input.strip().lower()
-        self.level4_lock_input = ""
+        guess = self.level_lock_input.strip().lower()
+        target_level = self.level_lock_target
+        required_name = self.level_lock_required_name
+        self.level_lock_input = ""
         if not guess:
             self.message = "Type a name first."
             return
 
-        matched_name = next((name for name in self.level4_lock_remaining_names if name.lower() == guess), None)
-        if matched_name is None:
-            self.message = "Not quite. Try one of the NPC names."
-            self.hint = f"{len(self.level4_lock_remaining_names)} name(s) still needed."
+        if guess != required_name.lower():
+            self.message = "Not quite. Try the NPC from the previous level."
+            self.hint = f"Level {target_level} needs {required_name}."
             return
 
-        self.level4_lock_remaining_names.remove(matched_name)
-        if matched_name not in self.level4_lock_found_names:
-            self.level4_lock_found_names.append(matched_name)
-
-        if not self.level4_lock_remaining_names:
-            self.level4_unlocked = True
+        self.unlocked_levels.add(target_level)
+        self.level_lock_target = None
+        self.message = f"Correct: {required_name}. Level {target_level + 1} unlocked."
+        self.hint = "Loading the next level now."
+        self.jump_to_level(target_level)
+        if target_level >= BUILDING_STAGES:
             self.message = "Level 4 unlocked."
-            self.hint = "Click Level 4 again to enter the perfect area."
-            self.screen = "playing"
-            return
-
-        self.message = f"Correct: {matched_name}."
-        self.hint = f"{len(self.level4_lock_remaining_names)} name(s) still needed."
+            self.hint = "You can enter the perfect area now."
 
 
-    def append_level4_lock_char(self, text: str) -> None:
-        if self.screen != "level4_lock" or len(self.level4_lock_input) >= 16:
+    def append_level_lock_char(self, text: str) -> None:
+        if self.screen != "level_lock" or len(self.level_lock_input) >= 16:
             return
         if text.isalpha():
-            self.level4_lock_input += text.lower()
-        elif text == " " and self.level4_lock_input and not self.level4_lock_input.endswith(" "):
-            self.level4_lock_input += " "
+            self.level_lock_input += text.lower()
+        elif text == " " and self.level_lock_input and not self.level_lock_input.endswith(" "):
+            self.level_lock_input += " "
 
 
-    def delete_level4_lock_char(self) -> None:
-        if self.screen == "level4_lock" and self.level4_lock_input:
-            self.level4_lock_input = self.level4_lock_input[:-1]
+    def delete_level_lock_char(self) -> None:
+        if self.screen == "level_lock" and self.level_lock_input:
+            self.level_lock_input = self.level_lock_input[:-1]
 
 
     def finish_repair(self) -> None:
@@ -1294,8 +1339,9 @@ class GameView(arcade.View):
         self.upgrades = 0
         self.interior_upgrade_levels.clear()
         self.message = "Press SPACE to begin."
-        self.hint = "Clear every trash pile to move to the next building."
+        self.hint = "Click START near the top of the screen or the big START button to begin."
         self.trash_spots = []
+        self.interior_trash_spots = []
         self.repair_spots = []
         self.interior_spots = []
         self.friends = []
@@ -1312,6 +1358,8 @@ class GameView(arcade.View):
         self.house_exterior_repaired.clear()
         self.pending_house_style_building = None
         self.house_completion_flags.clear()
+        self.interior_trash_spots = []
+        self.outside_cleanup_started = False
         self.neighborhood_state = 0
         self.round_started = False
         self.sky_time = 0.0
@@ -1336,16 +1384,16 @@ class GameView(arcade.View):
         self.quiz_question = QUIZ_OPTIONS[0]
         self.quiz_tries_left = 2
         self.game_over_ready = False
-        self.show_instructions = False
+        self.show_instructions = True
         self.door_cooldown = 0.0
         self.level_picker_open = False
         self.conclusion_time = 0.0
         self.perfect_area_time = 0.0
         self.perfect_area_view = "outside"
-        self.level4_unlocked = False
-        self.level4_lock_input = ""
-        self.level4_lock_found_names = []
-        self.level4_lock_remaining_names = list(FRIEND_NAMES)
+        self.unlocked_levels = {0}
+        self.level_lock_target = None
+        self.level_lock_input = ""
+        self.level_lock_required_name = ""
         self.exit_spawn_x = 400.0
         self.exit_spawn_y = 300.0
         self.minigame_fail_fade = None
@@ -1366,10 +1414,12 @@ class GameView(arcade.View):
     def start_game_countdown(self) -> None:
         self.screen = "countdown"
         self.round_started = False
+        self.outside_cleanup_started = False
         self.keys_down.clear()
         self.start_countdown = 3.0
+        self.show_instructions = False
         self.message = "Get ready."
-        self.hint = "The game starts when the countdown reaches zero."
+        self.hint = "The game starts when the countdown reaches zero. The help panel is open for a quick guide."
 
 
     def fail_round(self) -> None:
@@ -1437,7 +1487,7 @@ class GameView(arcade.View):
         self.name_guess = ""
         self.menu_open = False
         self.screen = "playing"
-        self.message = f"You stepped away from {friend_name}'s riddles."
+        self.message = "Riddle progress saved."
         self.hint = "Your riddle progress is saved. Come back when you're ready."
 
 
@@ -1545,6 +1595,8 @@ class GameView(arcade.View):
 
 
             if clicked_friend:
+                if friend.name in self.befriended_friends:
+                    return self.buy_food_for_friend(friend)
                 if friend.name not in self.guessed_friend_names:
                     self.start_name_guess(friend)
                     return True
@@ -1555,7 +1607,7 @@ class GameView(arcade.View):
             if x is None and near_ball:
                 if not near_ball:
                     self.message = "Move closer to the person first."
-                    self.hint = "Friend balls can only hear you when your ball is nearby."
+                    self.hint = "Friends can only hear you when you are nearby."
                     return True
                 if friend.name not in self.guessed_friend_names:
                     self.start_name_guess(friend)
@@ -1576,18 +1628,18 @@ class GameView(arcade.View):
 
 
     def on_key_press(self, key: int, modifiers: int) -> None:
-        if self.screen == "level4_lock":
+        if self.screen == "level_lock":
             if key == arcade.key.ESCAPE:
                 self.screen = "playing"
                 self.level_picker_open = False
-                self.message = "Level 4 remains locked."
-                self.hint = "Enter all three NPC names to unlock it."
+                self.message = "Level remains locked."
+                self.hint = "Enter the previous level NPC name to unlock it."
                 return
             if key in {arcade.key.ENTER, arcade.key.NUM_ENTER}:
-                self.submit_level4_lock_name()
+                self.submit_level_lock_name()
                 return
             if key in {arcade.key.BACKSPACE, arcade.key.DELETE}:
-                self.delete_level4_lock_char()
+                self.delete_level_lock_char()
                 return
             return
 
@@ -1702,7 +1754,7 @@ class GameView(arcade.View):
                 self.intro_time = 0.0
                 self.intro_walk_x = 85.0
                 self.message = "Press SPACE to begin."
-                self.hint = "Clear every trash pile to move to the next building."
+                self.hint = "Click START near the top of the screen or the big START button to begin."
             elif self.screen in {"complete", "failed", "trash_game_over", "minigame_game_over"}:
                 self.reset_round()
             elif self.screen == "intro":
@@ -1724,8 +1776,8 @@ class GameView(arcade.View):
             self.suppress_next_name_guess_char = False
             return
 
-        if self.screen == "level4_lock":
-            self.append_level4_lock_char(text)
+        if self.screen == "level_lock":
+            self.append_level_lock_char(text)
             return
 
         if self.screen == "name_guess" and text in {"\r", "\n"}:
@@ -1736,9 +1788,9 @@ class GameView(arcade.View):
 
 
     def on_text_motion(self, motion: int) -> None:
-        if self.screen == "level4_lock":
+        if self.screen == "level_lock":
             if motion in {arcade.key.MOTION_BACKSPACE, arcade.key.MOTION_DELETE}:
-                self.delete_level4_lock_char()
+                self.delete_level_lock_char()
             return
         if self.screen != "name_guess":
             return
@@ -1782,14 +1834,14 @@ class GameView(arcade.View):
                 return
             return
 
-        if self.screen == "level4_lock":
+        if self.screen == "level_lock":
             if 300 <= x <= 500 and 206 <= y <= 244:
-                self.submit_level4_lock_name()
+                self.submit_level_lock_name()
                 return
             if 300 <= x <= 500 and 152 <= y <= 186:
                 self.screen = "playing"
-                self.message = "Level 4 remains locked."
-                self.hint = "Enter all three NPC names to unlock it."
+                self.message = "Level remains locked."
+                self.hint = "Enter the previous level NPC name to unlock it."
                 return
             return
 
@@ -1866,10 +1918,6 @@ class GameView(arcade.View):
 
             return
 
-        if screen_y >= 492:
-            return
-
-
         if self.screen == "intro":
             if 310 <= x <= 490 and 135 <= y <= 190:
                 self.start_game_countdown()
@@ -1882,6 +1930,13 @@ class GameView(arcade.View):
 
         if 10 <= x <= 45 and 18 <= y <= 53:
             self.show_instructions = not self.show_instructions
+            return
+
+        if self.screen == "playing" and 540 <= x <= 630 and 552 <= y <= 590:
+            self.outside_cleanup_started = True
+            self.show_instructions = False
+            self.message = "Cleanup started."
+            self.hint = "Now the outside trash timer is running. Keep cleaning to earn money."
             return
 
 
@@ -1906,6 +1961,21 @@ class GameView(arcade.View):
 
 
         if self.screen == "repair":
+            for trash in list(self.interior_trash_spots):
+                if (x - trash.x) ** 2 + (y - trash.y) ** 2 > TRASH_CLICK_RADIUS ** 2:
+                    continue
+                if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
+                    self.message = "Move around closer to pick that up."
+                    self.hint = "Get near the trash, then click it to collect extra money inside."
+                    return
+
+                self.interior_trash_spots.remove(trash)
+                self.cleaned += 1
+                self.money += TRASH_SCORE + self.upgrades + 2
+                self.message = "Inside trash collected."
+                self.hint = "The house gives you extra trash to clean for more money."
+                return
+
             for spot in self.repair_spots:
                 if spot.fixed:
                     continue
@@ -1925,6 +1995,21 @@ class GameView(arcade.View):
 
 
         if self.screen == "visit":
+            for trash in list(self.interior_trash_spots):
+                if (x - trash.x) ** 2 + (y - trash.y) ** 2 > TRASH_CLICK_RADIUS ** 2:
+                    continue
+                if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
+                    self.message = "Move around closer to pick that up."
+                    self.hint = "Get near the trash, then click it to collect extra money inside."
+                    return
+
+                self.interior_trash_spots.remove(trash)
+                self.cleaned += 1
+                self.money += TRASH_SCORE + self.upgrades + 2
+                self.message = "Inside trash collected."
+                self.hint = "The house gives you extra trash to clean for more money."
+                return
+
             for spot in self.interior_spots:
                 if spot.fixed:
                     continue
@@ -1967,12 +2052,17 @@ class GameView(arcade.View):
         if self.try_befriend(x, y):
             return
 
+        if not self.outside_cleanup_started:
+            self.message = "Press START first."
+            self.hint = "The outside trash timer does not begin until you press START."
+            return
+
 
         for trash in list(self.trash_spots):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= TRASH_CLICK_RADIUS ** 2:
                 if (self.ball_x - trash.x) ** 2 + (self.ball_y - trash.y) ** 2 > COLLECT_DISTANCE ** 2:
-                    self.message = "Move the ball closer to pick that up."
-                    self.hint = "Use WASD or arrow keys to get near the trash, then click it."
+                    self.message = "Move around closer to pick that up."
+                    self.hint = "Use WASD or arrow keys to move around near the trash, then click it."
                     return
 
 
@@ -2048,18 +2138,20 @@ class GameView(arcade.View):
         self.draw_player_avatar(self.ball_x, self.ball_y, self.get_player_color())
 
 
-    def draw_trash(self, trash: TrashSpot) -> None:
+    def draw_trash(self, trash: TrashSpot, interior: bool = False) -> None:
         """Draw detailed trash objects instead of simple circles."""
         x, y = trash.x, trash.y
-        glow_color = (255, 240, 170, 35)
+        glow_color = (255, 240, 170, 35) if not interior else (150, 195, 255, 30)
         arcade.draw_circle_filled(x, y, 24, glow_color)
 
         if trash.trash_type == "can":
             # Draw a trash can
-            arcade.draw_lrbt_rectangle_filled(x - 10, x + 10, y - 14, y + 8, (120, 120, 120))
+            body_color = (120, 120, 120) if not interior else (166, 158, 146)
+            lid_color = (100, 100, 100) if not interior else (132, 124, 112)
+            arcade.draw_lrbt_rectangle_filled(x - 10, x + 10, y - 14, y + 8, body_color)
             arcade.draw_lrbt_rectangle_outline(x - 10, x + 10, y - 14, y + 8, arcade.color.BLACK, 2)
             # Lid
-            arcade.draw_circle_filled(x, y + 10, 11, (100, 100, 100))
+            arcade.draw_circle_filled(x, y + 10, 11, lid_color)
             arcade.draw_circle_outline(x, y + 10, 11, arcade.color.BLACK, 1)
             # Dents
             arcade.draw_circle_outline(x - 6, y - 2, 3, arcade.color.BLACK, 1)
@@ -2074,19 +2166,23 @@ class GameView(arcade.View):
                 (x, y + 10),
                 (x - 14, y + 6),
             ]
-            arcade.draw_polygon_filled(points, (80, 80, 80))
+            bag_color = (80, 80, 80) if not interior else (172, 168, 178)
+            arcade.draw_polygon_filled(points, bag_color)
             arcade.draw_polygon_outline(points, arcade.color.BLACK, 2)
             # Wrinkles in bag
-            arcade.draw_line(x - 8, y - 10, x - 6, y + 4, (60, 60, 60), 1)
-            arcade.draw_line(x + 4, y - 12, x + 6, y + 2, (60, 60, 60), 1)
-            arcade.draw_line(x - 2, y - 14, x, y + 3, (60, 60, 60), 1)
+            wrinkle_color = (60, 60, 60) if not interior else (130, 126, 136)
+            arcade.draw_line(x - 8, y - 10, x - 6, y + 4, wrinkle_color, 1)
+            arcade.draw_line(x + 4, y - 12, x + 6, y + 2, wrinkle_color, 1)
+            arcade.draw_line(x - 2, y - 14, x, y + 3, wrinkle_color, 1)
 
         elif trash.trash_type == "box":
             # Draw a cardboard box
-            arcade.draw_lrbt_rectangle_filled(x - 12, x + 12, y - 10, y + 10, (180, 140, 100))
+            box_color = (180, 140, 100) if not interior else (194, 170, 136)
+            tape_color = (180, 50, 50) if not interior else (122, 102, 72)
+            arcade.draw_lrbt_rectangle_filled(x - 12, x + 12, y - 10, y + 10, box_color)
             arcade.draw_lrbt_rectangle_outline(x - 12, x + 12, y - 10, y + 10, arcade.color.BLACK, 2)
             # Tape
-            arcade.draw_line(x - 12, y + 2, x + 12, y + 2, (180, 50, 50), 3)
+            arcade.draw_line(x - 12, y + 2, x + 12, y + 2, tape_color, 3)
             # Flaps
             arcade.draw_line(x - 12, y + 10, x, y + 15, arcade.color.BLACK, 1)
             arcade.draw_line(x + 12, y + 10, x, y + 15, arcade.color.BLACK, 1)
@@ -2095,18 +2191,19 @@ class GameView(arcade.View):
             # Draw scattered rubble/debris
             arcade.draw_polygon_filled(
                 [(x - 14, y - 6), (x - 8, y - 12), (x - 2, y - 8), (x - 8, y)],
-                (100, 90, 80)
+                (100, 90, 80) if not interior else (184, 178, 168)
             )
             arcade.draw_polygon_filled(
                 [(x + 4, y - 10), (x + 12, y - 8), (x + 10, y + 2), (x + 2, y + 1)],
-                (110, 100, 90)
+                (110, 100, 90) if not interior else (198, 188, 176)
             )
             arcade.draw_polygon_filled(
                 [(x - 4, y + 4), (x + 6, y + 2), (x + 8, y + 10), (x, y + 12)],
-                (95, 85, 75)
+                (95, 85, 75) if not interior else (176, 170, 158)
             )
             # Cracks
-            arcade.draw_line(x - 8, y - 2, x + 4, y + 4, (60, 50, 40), 1)
+            crack_color = (60, 50, 40) if not interior else (140, 132, 120)
+            arcade.draw_line(x - 8, y - 2, x + 4, y + 4, crack_color, 1)
 
 
     def update_ball(self, delta_time: float) -> None:
@@ -2257,6 +2354,10 @@ class GameView(arcade.View):
 
 
             if self.screen != "playing":
+                return
+
+
+            if not self.outside_cleanup_started:
                 return
 
 
@@ -2489,7 +2590,7 @@ class GameView(arcade.View):
                 friend, friend.x, friend.y,
                 highlight=is_highlighted,
                 name_override=self.friend_display_name(friend),
-                line_override=self.friend_label_text(friend),
+                show_line=False,
             )
 
         self.draw_ball()
@@ -2662,6 +2763,10 @@ class GameView(arcade.View):
             arcade.draw_line(461, 260, 486, 238, arcade.color.BLACK, 2)
             arcade.draw_line(392, 308, 414, 292, arcade.color.BLACK, 2)
             arcade.draw_line(414, 292, 442, 298, arcade.color.BLACK, 2)
+
+
+        for trash in self.interior_trash_spots:
+            self.draw_trash(trash, interior=True)
 
 
         if self.screen == "visit":
@@ -2838,7 +2943,6 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_outline(310, 490, 135, 190, arcade.color.BLACK, 3)
         arcade.draw_text("START", 400, 153, arcade.color.BLACK, 22, anchor_x="center")
 
-
     def draw_countdown(self) -> None:
         self.draw_intro()
         arcade.draw_lrbt_rectangle_filled(225, 575, 210, 390, (15, 18, 25, 220))
@@ -3008,34 +3112,32 @@ class GameView(arcade.View):
         arcade.draw_text("Tap the top button to switch back outside.", 400, 62, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
 
 
-    def draw_level4_lock(self) -> None:
+    def draw_level_lock(self) -> None:
         self.draw_background()
         arcade.draw_lrbt_rectangle_filled(100, 700, 110, 500, (22, 24, 32, 235))
         arcade.draw_lrbt_rectangle_outline(100, 700, 110, 500, arcade.color.WHITE, 3)
-        arcade.draw_text("LEVEL 4 LOCKED", 400, 454, arcade.color.GOLD, 28, anchor_x="center")
-        arcade.draw_text("Enter all three NPC names to unlock it.", 400, 420, arcade.color.WHITE, 14, anchor_x="center")
-        arcade.draw_text(f"Unlocked: {len(self.level4_lock_found_names)}/3", 400, 395, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        target_level = self.level_lock_target if self.level_lock_target is not None else 1
+        required_level = max(1, target_level)
+        arcade.draw_text(f"LEVEL {target_level + 1} LOCKED", 400, 454, arcade.color.GOLD, 28, anchor_x="center")
+        arcade.draw_text(
+            f"Enter the name of the NPC from Level {required_level}.",
+            400,
+            420,
+            arcade.color.WHITE,
+            14,
+            anchor_x="center",
+        )
+        arcade.draw_text("Passcode: the NPC name from the previous level.", 400, 395, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
 
-        slot_xs = [220, 400, 580]
-        for index, x in enumerate(slot_xs):
-            if index < len(self.level4_lock_found_names):
-                label = self.level4_lock_found_names[index]
-                fill = (52, 88, 68)
-            elif index < len(self.level4_lock_remaining_names):
-                label = "????"
-                fill = (56, 56, 66)
-            else:
-                label = "DONE"
-                fill = (44, 82, 96)
-            arcade.draw_lrbt_rectangle_filled(x - 70, x + 70, 300, 350, fill)
-            arcade.draw_lrbt_rectangle_outline(x - 70, x + 70, 300, 350, arcade.color.WHITE, 2)
-            arcade.draw_text(label, x, 323, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(200, 600, 300, 350, (52, 88, 68))
+        arcade.draw_lrbt_rectangle_outline(200, 600, 300, 350, arcade.color.WHITE, 2)
+        arcade.draw_text("Use the NPC name as the passcode.", 400, 323, arcade.color.WHITE, 16, anchor_x="center")
 
         arcade.draw_text("Type a name and press ENTER.", 400, 248, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_lrbt_rectangle_filled(300, 500, 206, 244, (40, 50, 65))
         arcade.draw_lrbt_rectangle_outline(300, 500, 206, 244, arcade.color.WHITE, 2)
-        caret = "_" if len(self.level4_lock_input) % 2 == 0 else " "
-        arcade.draw_text((self.level4_lock_input.upper() or "") + caret, 400, 218, arcade.color.WHITE, 18, anchor_x="center")
+        caret = "_" if len(self.level_lock_input) % 2 == 0 else " "
+        arcade.draw_text((self.level_lock_input.upper() or "") + caret, 400, 218, arcade.color.WHITE, 18, anchor_x="center")
         arcade.draw_lrbt_rectangle_filled(300, 500, 152, 186, (26, 34, 46))
         arcade.draw_lrbt_rectangle_outline(300, 500, 152, 186, arcade.color.WHITE, 2)
         arcade.draw_text("Back", 400, 164, arcade.color.WHITE, 14, anchor_x="center")
@@ -3061,11 +3163,10 @@ class GameView(arcade.View):
         arcade.draw_text("ESC quits", 720, 565, (156, 160, 166), 10, anchor_x="center")
         arcade.draw_text(f"Building: {self.get_building_name(self.current_building)}", 22, 538, (156, 160, 166), 12)
         arcade.draw_text(f"Trash: {self.cleaned}", 22, 516, (214, 215, 212), 12)
-        arcade.draw_text(f"Money: ${self.money}", 125, 516, (214, 215, 212), 12)
-        arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, (214, 215, 212), 12)
-        arcade.draw_text(f"Riddles: {self.name_riddle_progress.upper() or '-'}", 390, 516, (214, 215, 212), 12)
-        arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
-        arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Money: ${self.money}", 130, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Friendship: {self.friendship}", 245, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 395, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Time: {self.time_left:0.1f}s", 565, 516, (214, 215, 212), 12)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
@@ -3107,21 +3208,25 @@ class GameView(arcade.View):
         arcade.draw_text("?", 28, 25, (222, 222, 214), 18, anchor_x="center")
 
         if self.screen == "playing" and not self.menu_open:
+            button_fill = (174, 151, 82) if not self.outside_cleanup_started else (78, 90, 100)
+            arcade.draw_lrbt_rectangle_filled(540, 630, 556, 590, button_fill)
+            arcade.draw_lrbt_rectangle_outline(540, 630, 556, 590, arcade.color.BLACK, 2)
+            arcade.draw_text("START", 585, 567, arcade.color.BLACK, 13, anchor_x="center")
             arcade.draw_circle_filled(760, 478, 17, (18, 24, 34))
             arcade.draw_circle_outline(760, 478, 17, (222, 222, 214), 2)
             arcade.draw_text("Lv", 760, 469, (222, 222, 214), 11, anchor_x="center")
 
             if self.level_picker_open:
-                arcade.draw_lrbt_rectangle_filled(724, 796, 428, 454, (40, 50, 65))
+                arcade.draw_lrbt_rectangle_filled(724, 796, 428, 454, (40, 50, 65) if self.level_is_unlocked(0) else (84, 48, 48))
                 arcade.draw_lrbt_rectangle_outline(724, 796, 428, 454, arcade.color.WHITE, 2)
                 arcade.draw_text("Level 1", 760, 441, arcade.color.WHITE, 11, anchor_x="center")
-                arcade.draw_lrbt_rectangle_filled(724, 796, 394, 420, (40, 50, 65))
+                arcade.draw_lrbt_rectangle_filled(724, 796, 394, 420, (40, 50, 65) if self.level_is_unlocked(1) else (84, 48, 48))
                 arcade.draw_lrbt_rectangle_outline(724, 796, 394, 420, arcade.color.WHITE, 2)
                 arcade.draw_text("Level 2", 760, 407, arcade.color.WHITE, 11, anchor_x="center")
-                arcade.draw_lrbt_rectangle_filled(724, 796, 360, 386, (40, 50, 65))
+                arcade.draw_lrbt_rectangle_filled(724, 796, 360, 386, (40, 50, 65) if self.level_is_unlocked(2) else (84, 48, 48))
                 arcade.draw_lrbt_rectangle_outline(724, 796, 360, 386, arcade.color.WHITE, 2)
                 arcade.draw_text("Level 3", 760, 373, arcade.color.WHITE, 11, anchor_x="center")
-                level4_fill = (40, 50, 65) if self.level4_unlocked else (84, 48, 48)
+                level4_fill = (40, 50, 65) if self.level_is_unlocked(3) else (84, 48, 48)
                 arcade.draw_lrbt_rectangle_filled(724, 796, 326, 352, level4_fill)
                 arcade.draw_lrbt_rectangle_outline(724, 796, 326, 352, arcade.color.WHITE, 2)
                 arcade.draw_text("Level 4", 760, 339, arcade.color.WHITE, 11, anchor_x="center")
@@ -3141,18 +3246,19 @@ class GameView(arcade.View):
             arcade.draw_text("Quit Game", 630, 228, arcade.color.WHITE, 14, anchor_x="center")
 
         if self.show_instructions:
-            arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
-            arcade.draw_lrbt_rectangle_outline(175, 625, 112, 248, (222, 222, 214), 2)
-            arcade.draw_text("Instructions", 400, 220, (222, 222, 214), 18, anchor_x="center")
-            arcade.draw_text(self.hint, 198, 188, (156, 160, 166), 11, width=404, multiline=True)
-            arcade.draw_text(
-                "Move: WASD/arrows   Talk: T   Door/leave: F   Menu: ESC   Help: ?",
-                400,
-                132,
-                (156, 160, 166),
-                10,
-                anchor_x="center",
-            )
+            if self.screen == "playing":
+                arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
+                arcade.draw_lrbt_rectangle_outline(175, 625, 112, 248, (222, 222, 214), 2)
+                arcade.draw_text("Instructions", 400, 220, (222, 222, 214), 18, anchor_x="center")
+                arcade.draw_text(self.hint, 198, 188, (156, 160, 166), 11, width=404, multiline=True)
+                arcade.draw_text(
+                    "Move: WASD/arrows   Talk: T   Door/leave: F   Menu: ESC   Help: ?",
+                    400,
+                    132,
+                    (156, 160, 166),
+                    10,
+                    anchor_x="center",
+                )
 
         if self.menu_open and self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"}:
             arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, 110))
@@ -3273,8 +3379,8 @@ class GameView(arcade.View):
                 return
 
 
-            if self.screen == "level4_lock":
-                self.draw_level4_lock()
+            if self.screen == "level_lock":
+                self.draw_level_lock()
                 return
 
 
@@ -3307,6 +3413,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 
 
