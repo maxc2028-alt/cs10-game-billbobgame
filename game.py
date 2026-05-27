@@ -690,6 +690,7 @@ class GameView(arcade.View):
         self.level_picker_open = False
         self.conclusion_time = 0.0
         self.perfect_area_time = 0.0
+        self.perfect_area_view = "outside"
         self.exit_spawn_x = 400.0
         self.exit_spawn_y = 300.0
         self.minigame_fail_fade: float | None = None
@@ -1168,6 +1169,7 @@ class GameView(arcade.View):
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.perfect_area_time = 0.0
+        self.perfect_area_view = "outside"
         self.message = "Level 4: Perfect Block."
         self.hint = "Every house is already perfect. Press SPACE to return."
 
