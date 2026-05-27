@@ -1048,10 +1048,9 @@ class GameView(arcade.View):
             return ""
         if not self.is_house_restored(self.current_building):
             return "Restore this house before talking to the NPC."
-        target_name = self.current_target_friend_name()
         if self.trash_spots:
             return "Clean trash first."
-        return "Move close to the NPC and click the friend to talk."
+        return "Move close to the current NPC and press T."
 
 
     def friend_label_text(self, friend: FriendNPC, building_index: int | None = None) -> str:
@@ -1104,11 +1103,12 @@ class GameView(arcade.View):
 
     def is_house_restored(self, building_index: int) -> bool:
         flags = self.house_completion_flags.get(building_index, set())
-        return (
-            building_index in self.house_styles
-            and "exterior" in flags
-            and "interior" in flags
-        )
+        return "exterior" in flags and "interior" in flags
+
+
+    def current_house_friend(self) -> FriendNPC | None:
+        target_name = self.current_target_friend_name()
+        return next((friend for friend in self.friends if friend.name == target_name), None)
 
 
     def next_building(self) -> None:
@@ -1326,55 +1326,39 @@ class GameView(arcade.View):
         if self.screen != "playing":
             return False
 
-        found_restored_friend = False
-        blocked_by_unrestored_friend = False
-
-        for building_index, friend in enumerate(self.friends):
-            if friend.name in self.befriended_friends and self.current_building in self.lesson_completed_buildings:
-                continue
-
-
-            clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 42 ** 2
-            near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
-            interacting = clicked_friend or near_ball
-
-            if not self.is_house_restored(building_index):
-                if interacting:
-                    blocked_by_unrestored_friend = True
-                continue
-
-            found_restored_friend = True
-
-            if clicked_friend:
-                if friend.name not in self.guessed_friend_names:
-                    self.start_name_guess(friend)
-                    return True
-
-                self.start_friend_quiz(friend)
-                return True
-
-            if x is None and near_ball:
-                if friend.name not in self.guessed_friend_names:
-                    self.start_name_guess(friend)
-                    return True
-
-
-                self.start_friend_quiz(friend)
-                return True
-
-
-        if blocked_by_unrestored_friend:
-            self.message = "Restore the house before talking to the NPC."
-            self.hint = "Finish the repair steps first, then the friend will be available."
+        if not self.is_house_restored(self.current_building):
+            self.message = "Restore this house before talking to the NPC."
+            self.hint = "Finish the exterior and interior repairs first."
             return True
 
-        if x is None and y is None and not found_restored_friend:
-            self.message = "Move closer to the NPC and click the friend to talk."
-            self.hint = "Pick up trash for hints, then use those hints near other friends."
+        friend = self.current_house_friend()
+        if friend is None:
+            self.message = "No NPC is available for this house yet."
+            self.hint = "Finish the house, then try the current friend again."
             return True
 
+        clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 42 ** 2
+        near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
 
-        return False
+        if not clicked_friend and not near_ball:
+            if x is None and y is None:
+                self.message = "Move closer to the NPC and press T."
+                self.hint = "Use WASD or arrows to walk up to the current house friend."
+            else:
+                self.message = "That is not the current house friend."
+                self.hint = "Talk to the NPC by the house you just restored."
+            return True
+
+        if friend.name in self.befriended_friends:
+            self.message = f"{friend.name} is already your friend."
+            self.hint = "Move on to the next house."
+            return True
+
+        if friend.name not in self.guessed_friend_names:
+            self.start_name_guess(friend)
+        else:
+            self.start_friend_quiz(friend)
+        return True
 
 
     def on_key_press(self, key: int, modifiers: int) -> None:
