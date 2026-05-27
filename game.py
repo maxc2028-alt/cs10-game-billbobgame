@@ -1143,7 +1143,7 @@ class GameView(arcade.View):
         if self.current_building == 1:
             self.hint = "Level 2 uses the same cleanup setup as level 1."
         else:
-        self.hint = f"You are now on level {self.current_building + 1}."
+            self.hint = f"You are now on level {self.current_building + 1}."
         self.reset_round()
 
 
