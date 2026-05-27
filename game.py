@@ -1301,6 +1301,15 @@ class GameView(arcade.View):
             self.cancel_name_guess()
             return
 
+        if key == arcade.key.T:
+            self.suppress_next_name_guess_char = True
+            if self.screen == "playing":
+                if self.try_befriend():
+                    return
+                self.message = "Move closer to the NPC to talk."
+                self.hint = "Press T near a friend to start the dialogue."
+            return
+
         if key == arcade.key.ESCAPE:
             if self.active_minigame is not None:
                 self.cancel_house_minigame()
@@ -1382,16 +1391,6 @@ class GameView(arcade.View):
                 self.message = "Stand near the door to enter the house."
                 self.hint = "Clear the trash first, then press F by the door."
                 return
-
-
-        if key == arcade.key.T:
-            if self.screen == "playing":
-                self.suppress_next_name_guess_char = True
-                if self.try_befriend():
-                    return
-                self.message = "Move closer to the NPC to talk."
-                self.hint = "Press T near a friend to start the dialogue."
-            return
 
 
         number_keys = (arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3)
