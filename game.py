@@ -1515,6 +1515,16 @@ class GameView(arcade.View):
                 self.name_guess_active = True
                 return
 
+            if 610 <= x <= 675 and 174 <= y <= 210:
+                self.name_guess = self.name_guess[:-1]
+                self.name_guess_active = True
+                return
+
+            if 610 <= x <= 675 and 216 <= y <= 252:
+                self.submit_name_riddle()
+                self.name_guess_active = True
+                return
+
             key_rows = self.name_guess_keyboard
             key_layout = [
                 (170, 476, 106, 134, key_rows[0]),
@@ -2450,6 +2460,12 @@ class GameView(arcade.View):
         arcade.draw_text((self.name_guess.upper() or "") + caret, 400, 193, arcade.color.WHITE, 18, anchor_x="center")
         arcade.draw_text("Click the box, then type.", 400, 177, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
         arcade.draw_text(f"Input: {self.name_guess.upper() or '-'}", 400, 176, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(610, 675, 216, 252, (63, 83, 68))
+        arcade.draw_lrbt_rectangle_outline(610, 675, 216, 252, arcade.color.WHITE, 2)
+        arcade.draw_text("Submit", 642, 232, arcade.color.WHITE, 12, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(610, 675, 174, 210, (84, 58, 58))
+        arcade.draw_lrbt_rectangle_outline(610, 675, 174, 210, arcade.color.WHITE, 2)
+        arcade.draw_text("Delete", 642, 190, arcade.color.WHITE, 12, anchor_x="center")
         arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 142, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
         arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 160, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
         arcade.draw_text("Or click the letter keys below.", 400, 128, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
