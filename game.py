@@ -772,27 +772,13 @@ class GameView(arcade.View):
 
 
     def reset_round(self) -> None:
-        # Clear any leftover per-house interaction state before generating the next cleanup run.
-        self.active_minigame = None
-        self.minigame_target_spot = None
-        self.minigame_return_screen = None
-        self.minigame_parent_screen = None
-        self.quiz_friend = None
-        self.guess_friend = None
-        self.name_guess = ""
-        self.pending_house_style_building = None
-        self.interior_spots = []
         self.repair_spots = []
-        self.friends = []
-        self.inside_building = self.current_building
-        self.interior_mode = "repair"
-        self.door_cooldown = 0.0
-
         self.time_left = QUEST_TIME
         self.cleaned = 0
+        self.trash_spots = []
         self.message = "Click trash piles to clean the building."
         self.hint = "Move the ball close to trash with WASD or arrows, then click to pick it up."
-        self.trash_spots = []
+        self.friends = []
 
         # Generate trash for current building
         left, right, base_y, height = self.get_house_position(self.current_building)
@@ -1046,16 +1032,13 @@ class GameView(arcade.View):
     def friend_action_hint(self) -> str:
         if self.screen != "playing":
             return ""
-        if not self.is_house_restored(self.current_building):
-            return "Restore this house before talking to the NPC."
+        target_name = self.current_target_friend_name()
         if self.trash_spots:
             return "Clean trash first."
-        return "Move close to the current NPC and press T."
+        return "Move close to the NPC and click the friend to talk."
 
 
-    def friend_label_text(self, friend: FriendNPC, building_index: int | None = None) -> str:
-        if building_index is not None and not self.is_house_restored(building_index):
-            return "restore house first"
+    def friend_label_text(self, friend: FriendNPC) -> str:
         if friend.name in self.befriended_friends:
             return "friend"
         if friend.name != self.current_target_friend_name():
@@ -1099,16 +1082,6 @@ class GameView(arcade.View):
             return f"Riddle clue unlocked: {riddle['question']}"
 
         return f"All riddle clues are ready for {name}. Move close and click the friend to answer them."
-
-
-    def is_house_restored(self, building_index: int) -> bool:
-        flags = self.house_completion_flags.get(building_index, set())
-        return "exterior" in flags and "interior" in flags
-
-
-    def current_house_friend(self) -> FriendNPC | None:
-        target_name = self.current_target_friend_name()
-        return next((friend for friend in self.friends if friend.name == target_name), None)
 
 
     def next_building(self) -> None:
@@ -1326,39 +1299,44 @@ class GameView(arcade.View):
         if self.screen != "playing":
             return False
 
-        if not self.is_house_restored(self.current_building):
-            self.message = "Restore this house before talking to the NPC."
-            self.hint = "Finish the exterior and interior repairs first."
+        for friend in self.friends:
+            if friend.name in self.befriended_friends and self.current_building in self.lesson_completed_buildings:
+                continue
+
+
+            clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 42 ** 2
+            near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
+
+
+            if clicked_friend:
+                if friend.name not in self.guessed_friend_names:
+                    self.start_name_guess(friend)
+                    return True
+
+                self.start_friend_quiz(friend)
+                return True
+
+            if x is None and near_ball:
+                if not near_ball:
+                    self.message = "Move closer to the person first."
+                    self.hint = "Friend balls can only hear you when your ball is nearby."
+                    return True
+                if friend.name not in self.guessed_friend_names:
+                    self.start_name_guess(friend)
+                    return True
+
+
+                self.start_friend_quiz(friend)
+                return True
+
+
+        if x is None and y is None:
+            self.message = "Move closer to the NPC and click the friend to talk."
+            self.hint = "Pick up trash for hints, then use those hints near other friends."
             return True
 
-        friend = self.current_house_friend()
-        if friend is None:
-            self.message = "No NPC is available for this house yet."
-            self.hint = "Finish the house, then try the current friend again."
-            return True
 
-        clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 42 ** 2
-        near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
-
-        if not clicked_friend and not near_ball:
-            if x is None and y is None:
-                self.message = "Move closer to the NPC and press T."
-                self.hint = "Use WASD or arrows to walk up to the current house friend."
-            else:
-                self.message = "That is not the current house friend."
-                self.hint = "Talk to the NPC by the house you just restored."
-            return True
-
-        if friend.name in self.befriended_friends:
-            self.message = f"{friend.name} is already your friend."
-            self.hint = "Move on to the next house."
-            return True
-
-        if friend.name not in self.guessed_friend_names:
-            self.start_name_guess(friend)
-        else:
-            self.start_friend_quiz(friend)
-        return True
+        return False
 
 
     def on_key_press(self, key: int, modifiers: int) -> None:
@@ -1417,11 +1395,6 @@ class GameView(arcade.View):
             arcade.key.RIGHT,
         ):
             self.keys_down.add(key)
-            return
-
-
-        if key == arcade.key.T:
-            self.try_befriend()
             return
 
 
@@ -2209,7 +2182,7 @@ class GameView(arcade.View):
                 friend, friend.x, friend.y,
                 highlight=is_highlighted,
                 name_override=self.friend_display_name(friend),
-                line_override=self.friend_label_text(friend, building_index),
+                line_override=self.friend_label_text(friend),
             )
 
         self.draw_ball()
