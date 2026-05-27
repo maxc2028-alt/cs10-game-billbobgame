@@ -1510,6 +1510,27 @@ class GameView(arcade.View):
             self.show_instructions = not self.show_instructions
             return
 
+        if self.screen == "name_guess":
+            if 215 <= x <= 585 and 176 <= y <= 230:
+                self.name_guess_active = True
+                return
+
+            key_rows = self.name_guess_keyboard
+            key_layout = [
+                (170, 476, 106, 134, key_rows[0]),
+                (205, 522, 68, 96, key_rows[1]),
+                (248, 554, 30, 58, key_rows[2]),
+            ]
+            for left, right, bottom, top, letters in key_layout:
+                if bottom <= y <= top:
+                    button_width = (right - left) / len(letters)
+                    index = int((x - left) / button_width)
+                    if 0 <= index < len(letters):
+                        self.append_name_guess_char(letters[index])
+                        self.name_guess_active = True
+                        return
+            return
+
         # Handle mini-game clicks
         if self.active_minigame is not None:
             self.active_minigame.click_pipe(x, y) if isinstance(self.active_minigame, PipeMinigame) else self.active_minigame.click_block(x, y)
@@ -1576,27 +1597,6 @@ class GameView(arcade.View):
                 if left <= x <= right and 235 <= y <= 385:
                     self.choose_house_style(index)
                     return
-            return
-
-
-        if self.screen == "name_guess":
-            if 215 <= x <= 585 and 176 <= y <= 230:
-                self.name_guess_active = True
-                return
-            key_rows = self.name_guess_keyboard
-            key_layout = [
-                (170, 476, 106, 134, key_rows[0]),
-                (205, 522, 68, 96, key_rows[1]),
-                (248, 554, 30, 58, key_rows[2]),
-            ]
-            for left, right, bottom, top, letters in key_layout:
-                if bottom <= y <= top:
-                    button_width = (right - left) / len(letters)
-                    index = int((x - left) / button_width)
-                    if 0 <= index < len(letters):
-                        self.append_name_guess_char(letters[index])
-                        self.name_guess_active = True
-                        return
             return
 
 
