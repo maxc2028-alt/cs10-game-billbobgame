@@ -2290,8 +2290,6 @@ class GameView(arcade.View):
         interior_spots = self.interior_spots if self.screen == "visit" else self.repair_spots
         for spot in interior_spots:
             if spot.fixed:
-                arcade.draw_circle_filled(spot.x, spot.y, spot.radius + 1, wall_color)
-                arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 1, wall_color, 2)
                 continue
 
             arcade.draw_circle_filled(spot.x, spot.y, spot.radius + 2, (194, 191, 177, 120))
