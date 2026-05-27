@@ -671,7 +671,6 @@ class GameView(arcade.View):
         self.hud_collapsed = False
         self.quiz_friend: FriendNPC | None = None
         self.guess_friend: FriendNPC | None = None
-        self.name_guess = ""
         self.name_riddle_index = 0
         self.name_riddle_progress = ""
         self.name_riddle_tries_left = 3
@@ -1130,7 +1129,6 @@ class GameView(arcade.View):
 
     def start_name_guess(self, friend: FriendNPC) -> None:
         self.guess_friend = friend
-        self.name_guess = ""
         saved_index, saved_progress, saved_hints = self.friend_riddle_progress.get(friend.name, (0, "", []))
         self.name_riddle_index = saved_index
         self.name_riddle_progress = saved_progress
@@ -1154,7 +1152,6 @@ class GameView(arcade.View):
             list(self.unlocked_riddle_hints),
         )
         self.guess_friend = None
-        self.name_guess = ""
         self.screen = "playing"
         self.message = f"You stepped away from {friend_name}'s riddles."
         self.hint = "Your riddle progress is saved. Come back when you're ready."
@@ -1166,7 +1163,6 @@ class GameView(arcade.View):
 
         riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
         if self.name_guess.strip().lower() == riddle["answer"]:
-            self.name_guess = ""
             self.name_riddle_wrong_guesses = 0
             self.name_riddle_wrong_answers = set()
             self.name_riddle_progress += riddle["letter"]
@@ -1190,7 +1186,6 @@ class GameView(arcade.View):
             return
 
         normalized_guess = self.name_guess.strip().lower()
-        self.name_guess = ""
         if normalized_guess and normalized_guess not in self.name_riddle_wrong_answers:
             self.name_riddle_wrong_answers.add(normalized_guess)
             self.name_riddle_wrong_guesses = len(self.name_riddle_wrong_answers)
@@ -2394,14 +2389,7 @@ class GameView(arcade.View):
         if self.guess_friend is not None:
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
             answer = riddle["answer"]
-            hint_lines = [
-                f"Length: {len(answer)} letters.",
-                "Keep trying different ideas. You’ll get the answer after the fifth miss.",
-                "Almost there. One more wrong guess unlocks the answer.",
-                "Final clue: the answer will be shown next time.",
-                f"Full answer: {answer.upper()}",
-            ]
-            shown_count = len(hint_lines) if self.name_riddle_wrong_guesses >= 5 else min(max(self.name_riddle_wrong_guesses, 1), len(hint_lines) - 1)
+            hint_lines = [`r`n                f"Length: {len(answer)} letters.",`r`n                "Keep trying different ideas.",`r`n                "Almost there. One more unique wrong guess unlocks the answer.",`r`n                "Final clue coming next.",`r`n                f"Full answer: {answer.upper()}",`r`n            ]`r`n            shown_count = len(hint_lines) if self.name_riddle_wrong_guesses >= 5 else min(max(self.name_riddle_wrong_guesses, 1), len(hint_lines) - 1)
             y = 124
             for line in hint_lines[:shown_count]:
                 arcade.draw_text(line, 400, y, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=440, multiline=True)
@@ -2870,6 +2858,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
 
