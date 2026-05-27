@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import random
 import math
+import traceback
 
 
 import arcade
@@ -21,7 +22,7 @@ SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Neighborhood Cleanup: South Block"
 
 
-QUEST_TIME = 11.0
+QUEST_TIME = 4.0
 MAX_UPGRADES = 3
 MAX_INTERIOR_UPGRADES = 3
 TRASH_SCORE = 4
@@ -40,6 +41,28 @@ HOUSE_BASE_Y = 120  # Base Y position for all houses
 FRIEND_NAMES = ["Jane", "Billy Bob", "Max"]
 HOUSE_WIDTHS = [140, 170, 120]  # Different widths for variety
 HOUSE_HEIGHTS = [220, 235, 195]  # Different heights for variety
+RIDDLE_QUESTIONS = [
+    {
+        "question": "I follow you everywhere, but I never speak. I grow bigger when the room is empty. What am I?",
+        "answer": "shadow",
+        "letter": "j",
+    },
+    {
+        "question": "I am a crowd of one, a party with no guests, and a song no one hears. What am I?",
+        "answer": "loneliness",
+        "letter": "a",
+    },
+    {
+        "question": "I sit beside you at lunch, but no one sees me. I make silence feel louder. What am I?",
+        "answer": "feelingalone",
+        "letter": "n",
+    },
+    {
+        "question": "I am a house with lights on, but no voices inside. What am I?",
+        "answer": "emptyhome",
+        "letter": "e",
+    },
+]
 INTERIOR_REPAIR_SETS = [
     [
         (205, 355, "fix the ceiling crack", arcade.color.LIGHT_STEEL_BLUE, 3),
@@ -183,89 +206,138 @@ class RepairSpot:
 
 
 class PipeMinigame:
-    """Pipe connection puzzle - rotate pipes to connect them."""
+    """Color rotation puzzle - cycle wall patch colors to match the target."""
     def __init__(self, difficulty: int = 1) -> None:
         self.difficulty = min(difficulty, 3)
-        self.grid_size = 3 + difficulty  # 3x3, 4x4, or 5x5
-        self.cell_size = 80
-        self.start_x = 150
-        self.start_y = 150
-        self.pipes = self._generate_pipes()
-        self.selected_pipe = None
-        self.time_left = 30
+        self.grid_size = 3 + self.difficulty
+        self.cell_size = 76
+        self.start_x = 133
+        self.start_y = 110
+        self.colors = [
+            (176, 106, 82),
+            (96, 147, 196),
+            (146, 182, 96),
+            (214, 173, 89),
+            (157, 118, 178),
+        ]
+        self.target_color = random.choice(self.colors)
+        self.grid = self._generate_grid()
+        self.time_left = 35
         self.completed = False
+        self.started = False
+        self.win_fade: float | None = None
 
-    def _generate_pipes(self) -> dict:
-        """Generate random pipe grid with at least one solution path."""
-        pipes = {}
-        pipe_types = ["horizontal", "vertical", "turn_90", "t_junction"]
-
+    def _generate_grid(self) -> dict:
+        """Generate a scrambled starting pattern that can be cycled to one target color."""
+        grid = {}
         for row in range(self.grid_size):
             for col in range(self.grid_size):
                 rng = random.Random(f"pipe_{row}_{col}_{self.difficulty}")
-                pipe_type = rng.choice(pipe_types)
-                rotation = rng.randint(0, 3) * 90
-                pipes[(row, col)] = {"type": pipe_type, "rotation": rotation, "connected": False}
-
-        return pipes
+                grid[(row, col)] = rng.choice(self.colors)
+        return grid
 
     def click_pipe(self, x: float, y: float) -> None:
-        """Handle pipe click to rotate it."""
-        for (row, col), pipe in self.pipes.items():
-            px = self.start_x + col * self.cell_size + self.cell_size // 2
-            py = self.start_y + row * self.cell_size + self.cell_size // 2
+        """Handle a color tile click to cycle it forward."""
+        if not self.started:
+            start_left, start_right = 570, 640
+            start_bottom, start_top = 228, 262
+            if start_left <= x <= start_right and start_bottom <= y <= start_top:
+                self.started = True
+            return
 
-            if abs(x - px) < self.cell_size // 2 and abs(y - py) < self.cell_size // 2:
-                pipe["rotation"] = (pipe["rotation"] + 90) % 360
-                self.selected_pipe = (row, col)
-                self.check_completion()
-                break
+        col = max(0, min(self.grid_size - 1, int((x - self.start_x) / self.cell_size)))
+        nearest_row = int(round((y - self.start_y - self.cell_size / 2) / self.cell_size))
+        row = max(0, min(self.grid_size - 1, nearest_row))
+
+        px = self.start_x + col * self.cell_size
+        py = self.start_y + row * self.cell_size
+        center_x = px + self.cell_size / 2
+        center_y = py + self.cell_size / 2
+        y_padding = 36 if row == self.grid_size - 1 else 16
+        top_edge_bonus = 12 if row == self.grid_size - 1 else 0
+        if abs(x - center_x) > self.cell_size / 2 + 16 or abs(y - center_y) > self.cell_size / 2 + y_padding + top_edge_bonus:
+            return
+
+        color = self.grid[(row, col)]
+        current_index = self.colors.index(color)
+        self.grid[(row, col)] = self.colors[(current_index + 1) % len(self.colors)]
+        self.check_completion()
 
     def check_completion(self) -> bool:
-        """Check if all pipes form a valid connection path."""
-        # Simplified check: all pipes rotated at least once = completed
-        if all(pipe["rotation"] > 0 for pipe in self.pipes.values()):
+        """Check if the current grid matches the single target color."""
+        if all(color == self.target_color for color in self.grid.values()):
             self.completed = True
+            self.win_fade = 1.0
             return True
         return False
 
     def update(self, delta_time: float) -> None:
-        self.time_left -= delta_time
+        if self.started and not self.completed:
+            self.time_left -= delta_time
+        if self.win_fade is not None:
+            self.win_fade = max(0.0, self.win_fade - delta_time * 0.35)
 
     def draw(self) -> None:
-        arcade.draw_lrbt_rectangle_filled(100, 700, 100, 500, (30, 30, 40))
-        arcade.draw_lrbt_rectangle_outline(100, 700, 100, 500, arcade.color.WHITE, 3)
+        arcade.draw_lrbt_rectangle_filled(100, 700, 60, 470, (34, 31, 38))
+        arcade.draw_lrbt_rectangle_outline(100, 700, 60, 470, arcade.color.WHITE, 3)
 
-        arcade.draw_text("Connect the pipes!", 400, 460, arcade.color.GOLD, 18, anchor_x="center")
-        arcade.draw_text(f"Time: {self.time_left:.1f}s", 400, 430, arcade.color.WHITE, 14, anchor_x="center")
+        # Right-side instruction panel
+        arcade.draw_lrbt_rectangle_filled(520, 690, 80, 450, (24, 22, 30))
+        arcade.draw_lrbt_rectangle_outline(520, 690, 80, 450, arcade.color.WHITE, 2)
+        arcade.draw_text("Target color", 605, 418, arcade.color.GOLD, 18, anchor_x="center")
+        arcade.draw_circle_filled(605, 394, 10, self.target_color)
+        arcade.draw_circle_outline(605, 394, 10, arcade.color.BLACK, 1)
+        arcade.draw_text(
+            "Click boxes to change their color and match the chosen color.",
+            605,
+            370,
+            arcade.color.LIGHT_GRAY,
+            11,
+            anchor_x="center",
+            width=150,
+            align="center",
+            multiline=True,
+        )
+        arcade.draw_text("ESC returns you to the house.", 605, 304, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_text(f"Time: {self.time_left:.1f}s", 605, 276, arcade.color.WHITE, 14, anchor_x="center")
+        if not self.started:
+            arcade.draw_lrbt_rectangle_filled(560, 650, 210, 250, (56, 74, 98))
+            arcade.draw_lrbt_rectangle_outline(560, 650, 210, 250, arcade.color.WHITE, 2)
+            arcade.draw_text("Start", 605, 230, arcade.color.WHITE, 16, anchor_x="center")
 
-        for (row, col), pipe in self.pipes.items():
+        arcade.draw_lrbt_rectangle_outline(self.start_x - 4, self.start_x + self.grid_size * self.cell_size + 4, self.start_y - 4, self.start_y + self.grid_size * self.cell_size + 4, arcade.color.WHITE, 2)
+        for (row, col), color in self.grid.items():
             px = self.start_x + col * self.cell_size
             py = self.start_y + row * self.cell_size
 
-            arcade.draw_lrbt_rectangle_outline(px, px + self.cell_size, py, py + self.cell_size, arcade.color.DARK_GRAY, 2)
-
-            # Draw pipe based on type
-            cx = px + self.cell_size // 2
-            cy = py + self.cell_size // 2
-
-            if pipe["type"] == "horizontal":
-                arcade.draw_lrbt_rectangle_filled(px + 15, px + 65, cy - 8, cy + 8, (150, 100, 80))
-            elif pipe["type"] == "vertical":
-                arcade.draw_lrbt_rectangle_filled(cx - 8, cx + 8, py + 15, py + 65, (150, 100, 80))
-            elif pipe["type"] == "turn_90":
-                arcade.draw_lrbt_rectangle_filled(px + 15, cx + 8, cy - 8, cy + 8, (150, 100, 80))
-                arcade.draw_lrbt_rectangle_filled(cx - 8, cx + 8, cy - 8, py + 15, (150, 100, 80))
-            elif pipe["type"] == "t_junction":
-                arcade.draw_lrbt_rectangle_filled(px + 15, px + 65, cy - 8, cy + 8, (150, 100, 80))
-                arcade.draw_lrbt_rectangle_filled(cx - 8, cx + 8, cy - 8, py + 15, (150, 100, 80))
-
-            # Highlight selected
-            if self.selected_pipe == (row, col):
-                arcade.draw_lrbt_rectangle_outline(px, px + self.cell_size, py, py + self.cell_size, arcade.color.GOLD, 3)
+            border_color = arcade.color.GOLD if self.grid[(row, col)] == self.target_color else arcade.color.DARK_GRAY
+            arcade.draw_lrbt_rectangle_filled(px + 2, px + self.cell_size - 2, py + 2, py + self.cell_size - 2, color)
+            arcade.draw_lrbt_rectangle_outline(px, px + self.cell_size, py, py + self.cell_size, border_color, 2)
+            arcade.draw_circle_outline(px + self.cell_size / 2, py + self.cell_size / 2, 10, arcade.color.BLACK, 2)
+            if self.grid[(row, col)] != self.target_color:
+                arcade.draw_line(px + 12, py + 12, px + self.cell_size - 12, py + self.cell_size - 12, arcade.color.BLACK, 2)
+                arcade.draw_line(px + 12, py + self.cell_size - 12, px + self.cell_size - 12, py + 12, arcade.color.BLACK, 2)
 
         if self.completed:
-            arcade.draw_text("SUCCESS!", 400, 50, arcade.color.LIGHT_GREEN, 24, anchor_x="center")
+            arcade.draw_text("WALL FIXED!", 205, 52, arcade.color.LIGHT_GREEN, 24, anchor_x="center")
+        if self.time_left <= 0 and not self.completed:
+            arcade.draw_text("FAILED", 205, 88, arcade.color.RED, 30, anchor_x="center")
+        if self.win_fade is not None:
+            glow = int(255 * (1.0 - self.win_fade))
+            overlay_alpha = max(0, min(255, glow + 90))
+            burst_size = 1.0 + (1.0 - self.win_fade) * 1.1
+            half_w = 400 * burst_size
+            half_h = 300 * burst_size
+            arcade.draw_lrbt_rectangle_filled(400 - half_w, 400 + half_w, 300 - half_h, 300 + half_h, (255, 255, 255, overlay_alpha))
+            arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, min(120, overlay_alpha)))
+            arcade.draw_text(
+                "CONGRATULATIONS",
+                400,
+                325 + glow * 0.14,
+                arcade.color.WHITE,
+                68,
+                anchor_x="center",
+            )
 
 
 class BlockBlastMinigame:
@@ -291,7 +363,19 @@ class BlockBlastMinigame:
         for row in range(self.grid_height):
             for col in range(self.grid_width):
                 rng = random.Random(f"block_{row}_{col}_{self.difficulty}")
-                grid[(row, col)] = {"color": rng.choice(colors), "active": True}
+                grid[(row, col)] = {"color": colors[(row + col + self.difficulty) % len(colors)], "active": True}
+
+        # Seed a few guaranteed matching clusters so there is always a valid move.
+        guaranteed_clusters = [
+            [(0, 0), (0, 1)],
+            [(2, 2), (2, 3), (3, 2)],
+            [(4, 0), (4, 1)],
+        ]
+        for cluster in guaranteed_clusters:
+            cluster_color = colors[random.Random(f"cluster_{cluster[0]}_{self.difficulty}").randrange(len(colors))]
+            for pos in cluster:
+                if pos in grid:
+                    grid[pos]["color"] = cluster_color
 
         return grid
 
@@ -349,8 +433,10 @@ class BlockBlastMinigame:
         arcade.draw_lrbt_rectangle_filled(100, 700, 80, 500, (30, 30, 40))
         arcade.draw_lrbt_rectangle_outline(100, 700, 80, 500, arcade.color.WHITE, 3)
 
-        arcade.draw_text("Clear the blocks!", 400, 460, arcade.color.GOLD, 18, anchor_x="center")
-        arcade.draw_text(f"Score: {self.score} | Time: {self.time_left:.1f}s", 400, 430, arcade.color.WHITE, 12, anchor_x="center")
+        arcade.draw_text("Clear the blocks!", 400, 475, arcade.color.GOLD, 18, anchor_x="center")
+        arcade.draw_text("Click a group of 2 or more matching colors to clear them.", 400, 448, arcade.color.LIGHT_GRAY, 11, anchor_x="center", width=520, multiline=True)
+        arcade.draw_text("ESC returns you to the house.", 400, 425, arcade.color.LIGHT_GRAY, 10, anchor_x="center")
+        arcade.draw_text(f"Score: {self.score} | Time: {self.time_left:.1f}s", 400, 410, arcade.color.WHITE, 12, anchor_x="center")
 
         for (row, col), block in self.grid.items():
             if not block["active"]:
@@ -567,6 +653,9 @@ class GameView(arcade.View):
         self.inside_building = 0
         self.interior_mode = "repair"
         self.house_styles: dict[int, tuple[tuple[int, int, int], tuple[int, int, int]]] = {}
+        self.house_exterior_repaired: set[int] = set()
+        self.pending_house_style_building: int | None = None
+        self.house_completion_flags: dict[int, set[str]] = {}
         self.style_options = [
             ("Garden green", (54, 77, 69), (86, 112, 98)),
             ("Warm brick", (89, 52, 48), (121, 76, 65)),
@@ -574,20 +663,37 @@ class GameView(arcade.View):
         ]
         self.neighborhood_state = 0
         self.round_started = False
+        self.sky_time = 0.0
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.intro_walk_x = 85.0
         self.intro_time = 0.0
         self.start_countdown = 0.0
         self.keys_down: set[int] = set()
-        self.paused = False
+        self.menu_open = False
+        self.hud_collapsed = False
         self.quiz_friend: FriendNPC | None = None
         self.guess_friend: FriendNPC | None = None
         self.name_guess = ""
+        self.name_riddle_index = 0
+        self.name_riddle_progress = ""
+        self.name_riddle_tries_left = 3
+        self.name_riddle_wrong_guesses = 0
+        self.name_riddle_wrong_answers: set[str] = set()
+        self.unlocked_riddle_hints: list[str] = []
+        self.friend_riddle_progress: dict[str, tuple[int, str, list[str]]] = {}
         self.quiz_question = QUIZ_OPTIONS[0]
         self.quiz_tries_left = 2
         self.game_over_ready = False
         self.show_instructions = False
+        self.door_cooldown = 0.0
+        self.exit_spawn_x = 400.0
+        self.exit_spawn_y = 300.0
+        self.minigame_fail_fade: float | None = None
+        self.minigame_congrats_fade: float | None = None
+        self.minigame_win_return_screen: str | None = None
+        self.minigame_win_hold: float = 0.0
+        self.suppress_next_name_guess_char = False
         # Infinite world state
         self.world_offset_x = 0  # Track camera position in world
         self.house_rng = random.Random(42)  # Seeded for consistent generation
@@ -595,6 +701,9 @@ class GameView(arcade.View):
         # Mini-game state
         self.active_minigame = None  # None, PipeMinigame, or BlockBlastMinigame
         self.minigame_target_spot = None  # Which repair spot is being worked on
+        self.minigame_return_screen = None
+        self.minigame_parent_screen = None
+        self.house_repair_progress: dict[int, set[str]] = {}
         self.configure_camera()
 
 
@@ -663,14 +772,27 @@ class GameView(arcade.View):
 
 
     def reset_round(self) -> None:
-        self.time_left = QUEST_TIME
-        self.paused = False
-        self.cleaned = 0
+        # Clear any leftover per-house interaction state before generating the next cleanup run.
+        self.active_minigame = None
+        self.minigame_target_spot = None
+        self.minigame_return_screen = None
+        self.minigame_parent_screen = None
+        self.quiz_friend = None
+        self.guess_friend = None
+        self.name_guess = ""
+        self.pending_house_style_building = None
+        self.interior_spots = []
         self.repair_spots = []
+        self.friends = []
+        self.inside_building = self.current_building
+        self.interior_mode = "repair"
+        self.door_cooldown = 0.0
+
+        self.time_left = QUEST_TIME
+        self.cleaned = 0
         self.message = "Click trash piles to clean the building."
         self.hint = "Move the ball close to trash with WASD or arrows, then click to pick it up."
         self.trash_spots = []
-        self.friends = []
 
         # Generate trash for current building
         left, right, base_y, height = self.get_house_position(self.current_building)
@@ -679,29 +801,21 @@ class GameView(arcade.View):
         # Trash positions relative to building center
         relative_positions = [(-45, -40), (-10, -50), (35, -35), (50, -10), (0, 10), (30, 15)]
         for rel_x, rel_y in relative_positions:
-            self.trash_spots.append(TrashSpot(building_center_x + rel_x, base_y + 100 + rel_y))
+            self.trash_spots.append(TrashSpot(building_center_x + rel_x, HOUSE_BASE_Y + 16 + rel_y * 0.15))
 
-        # Place friends for this building
-        for i in range(3):
-            friend_name = FRIEND_NAMES[i % len(FRIEND_NAMES)]
-            offset = (i - 1) * 120  # Spread them out
-            self.friends.append(FriendNPC(friend_name, building_center_x + offset, base_y + 24))
+        # Place one friend by each house in the block
+        self.friends = []
+        for building_index, friend_name in enumerate(FRIEND_NAMES):
+            house_left, house_right, house_base_y, _ = self.get_house_position(building_index)
+            friend_x = house_right + 26
+            friend_y = house_base_y + 26
+            self.friends.append(FriendNPC(friend_name, friend_x, friend_y))
 
         # Start at building entrance
         self.ball_x = building_center_x
         self.ball_y = base_y + 50
         self.screen = "playing"
         self.round_started = True
-
-    def toggle_pause(self) -> None:
-        if self.active_minigame is not None or self.screen in {"playing", "repair", "visit", "dark", "quiz", "decorate", "name_guess"}:
-            self.paused = not self.paused
-            if self.paused:
-                self.message = "Paused."
-                self.hint = "Press P or click the pause button to continue."
-            else:
-                self.message = "Back to work."
-                self.hint = "Keep cleaning, fixing, and helping."
 
 
     def door_index_near_player(self) -> int | None:
@@ -714,6 +828,19 @@ class GameView(arcade.View):
             if abs(self.ball_x - door_center) <= 45 and abs(self.ball_y - (base_y + 34)) <= 62:
                 return index
         return None
+
+
+    def interior_door_near_player(self) -> bool:
+        """Return True when the player is close enough to the interior doorway to leave."""
+        door_left = 360
+        door_right = 440
+        door_bottom = 120
+        door_top = 260
+        padding = 30
+        return (
+            door_left - padding <= self.ball_x <= door_right + padding
+            and door_bottom - padding <= self.ball_y <= door_top + padding
+        )
 
 
     def enter_house(self) -> None:
@@ -731,6 +858,12 @@ class GameView(arcade.View):
             RepairSpot(250 + i * 100, 295 - (i % 2) * 100, label, color, cost)
             for i, (label, color, cost) in enumerate(base_repairs)
         ]
+        saved_repairs = self.house_repair_progress.get(self.current_building, set())
+        for spot in self.repair_spots:
+            if spot.label in saved_repairs:
+                spot.fixed = True
+        self.exit_spawn_x = self.ball_x
+        self.exit_spawn_y = self.ball_y
         self.time_left = QUEST_TIME
         self.inside_building = self.current_building
         self.screen = "repair"
@@ -742,8 +875,31 @@ class GameView(arcade.View):
         self.interior_spots = []
 
 
+    def start_house_minigame(self, spot: RepairSpot, return_screen: str) -> None:
+        """Launch the same repair mini-game for every house spot."""
+        self.minigame_target_spot = spot
+        self.minigame_return_screen = return_screen
+        self.minigame_parent_screen = return_screen
+        self.active_minigame = PipeMinigame(difficulty=self.current_building // 5 + 1)
+        self.message = "Match the wall colors to repair the hole!"
+        self.hint = "Click any tile to cycle its color until the whole patch matches."
+
+
+    def begin_minigame_victory(self) -> None:
+        """Switch to the victory screen immediately after a mini-game is solved."""
+        self.minigame_win_return_screen = self.screen
+        self.screen = "minigame_win"
+        self.minigame_congrats_fade = 1.0
+        self.minigame_win_hold = 0.0
+        self.active_minigame = None
+        self.minigame_target_spot = None
+        self.minigame_parent_screen = None
+
+
     def visit_house(self, building_index: int) -> None:
         self.time_left = QUEST_TIME
+        self.exit_spawn_x = self.ball_x
+        self.exit_spawn_y = self.ball_y
         self.inside_building = building_index
         repaired = building_index in self.inside_repaired_buildings
         self.interior_mode = "upgrade" if repaired else "repair"
@@ -776,9 +932,15 @@ class GameView(arcade.View):
 
 
     def leave_house(self) -> None:
-        left, right, base_y, _ = self.get_house_position(self.inside_building)
-        self.ball_x = (left + right) / 2
-        self.ball_y = base_y + 35
+        if self.menu_open or self.active_minigame is not None:
+            return
+        self.active_minigame = None
+        self.minigame_target_spot = None
+        self.minigame_return_screen = None
+        self.keys_down.clear()
+        self.door_cooldown = 0.9
+        self.ball_x = self.exit_spawn_x
+        self.ball_y = self.exit_spawn_y
         self.screen = "playing"
         self.round_started = True
         self.message = "You step back outside."
@@ -788,12 +950,28 @@ class GameView(arcade.View):
             self.hint = "Press F near the current door when you are ready to go inside."
 
 
+    def cancel_house_minigame(self) -> None:
+        """Close the active house mini-game and return to the house interior."""
+        self.active_minigame = None
+        self.minigame_target_spot = None
+        self.minigame_parent_screen = None
+        self.minigame_return_screen = None
+        self.round_started = False
+        self.ball_x = 400.0
+        self.ball_y = 155.0
+        self.keys_down.clear()
+        self.message = "Mini-game closed."
+        self.hint = "Pick another repair spot when you're ready."
+
+
     def finish_interior_repair(self) -> None:
         self.inside_repaired_buildings.add(self.inside_building)
         self.interior_upgrade_levels.setdefault(self.inside_building, 0)
         self.interior_spots = []
         self.message = f"The inside of {self.get_building_name(self.inside_building)} is fixed."
-        # Just continue to decorate screen - no limit on buildings
+        self.house_completion_flags.setdefault(self.inside_building, set()).add("interior")
+        if self.maybe_open_house_style_choice(self.inside_building):
+            return
         self.hint = "Press F by the door to go back outside, then revisit later for interior upgrades."
 
 
@@ -813,8 +991,18 @@ class GameView(arcade.View):
             self.hint = "This house is fully upgraded. Press F by the door to go back outside."
 
 
-    def can_finish_current_house(self) -> bool:
-        return self.current_building in self.lesson_completed_buildings
+    def maybe_open_house_style_choice(self, building_index: int) -> bool:
+        flags = self.house_completion_flags.get(building_index, set())
+        if "riddle" in flags and ("exterior" in flags or "interior" in flags):
+            self.pending_house_style_building = building_index
+            self.inside_building = building_index
+            self.screen = "decorate"
+            self.round_started = False
+            self.keys_down.clear()
+            self.message = "Choose a clean finished house."
+            self.hint = "Pick 1, 2, or 3 to replace the broken house with a nicer one."
+            return True
+        return False
 
 
     def current_target_friend_name(self) -> str:
@@ -860,10 +1048,8 @@ class GameView(arcade.View):
             return ""
         target_name = self.current_target_friend_name()
         if self.trash_spots:
-            return "Clean trash first to reveal scrambled friend name clues."
-        if self.known_name_letters(target_name) < len(target_name):
-            return f"Friend clues: {self.display_name_from_hint(target_name)}."
-        return "Move close to the blue friend and press T, or click them, to unscramble the full name."
+            return "Clean trash first."
+        return "Move close to the NPC and click the friend to talk."
 
 
     def friend_label_text(self, friend: FriendNPC) -> str:
@@ -875,7 +1061,7 @@ class GameView(arcade.View):
             return "find clues"
         if friend.name in self.guessed_friend_names:
             return "quiz time"
-        return "press T"
+        return "Talk"
 
 
     def letter_clue(self, letter: str, position: int) -> str:
@@ -902,17 +1088,14 @@ class GameView(arcade.View):
 
     def reveal_friend_name_hint(self) -> str:
         name = self.current_target_friend_name()
-        known_letters = self.known_name_letters(name)
-        clues_per_pickup = 3 if len(name) > 6 else 2
-        if known_letters < len(name):
-            for _ in range(clues_per_pickup):
-                if known_letters >= len(name):
-                    break
-                known_letters += 1
-            self.friend_name_hints[name] = known_letters
-        if known_letters >= len(name):
-            return f"Scrambled clue complete: {self.name_hint_pattern(name)}. Move close and press T, or click the friend, to guess the name."
-        return f"Scrambled clue: {self.name_hint_pattern(name)}. Keep cleaning trash for more letters."
+        if name not in self.friend_name_hints:
+            self.friend_name_hints[name] = 0
+
+        if self.name_riddle_index < len(RIDDLE_QUESTIONS):
+            riddle = RIDDLE_QUESTIONS[self.name_riddle_index]
+            return f"Riddle clue unlocked: {riddle['question']}"
+
+        return f"All riddle clues are ready for {name}. Move close and click the friend to answer them."
 
 
     def next_building(self) -> None:
@@ -929,16 +1112,24 @@ class GameView(arcade.View):
 
     def finish_repair(self) -> None:
         self.friendship += 1
-        self.screen = "decorate"
-        self.round_started = False
+        self.house_exterior_repaired.add(self.current_building)
+        self.house_completion_flags.setdefault(self.current_building, set()).add("exterior")
+        if self.maybe_open_house_style_choice(self.current_building):
+            return
+        self.screen = "playing"
+        self.round_started = True
         self.keys_down.clear()
-        self.message = "Choose how this repaired house should look."
-        self.hint = "Press 1, 2, or 3 to pick a style. The next cleanup starts after your choice."
+        self.ball_x = self.exit_spawn_x
+        self.ball_y = self.exit_spawn_y
+        self.message = "The outside repair is done."
+        self.hint = "Finish the interior cleanup, then choose the clean house look."
 
 
     def choose_house_style(self, style_index: int) -> None:
         _, roof_color, wall_color = self.style_options[style_index]
-        self.house_styles[self.current_building] = (roof_color, wall_color)
+        target_building = self.pending_house_style_building if self.pending_house_style_building is not None else self.inside_building
+        self.house_styles[target_building] = (roof_color, wall_color)
+        self.pending_house_style_building = None
         self.next_building()
 
 
@@ -949,7 +1140,7 @@ class GameView(arcade.View):
         self.ball_x = 400.0
         self.ball_y = 155.0
         self.message = "The neighborhood comes together in one shared home."
-        self.hint = "Press SPACE to play again."
+        self.hint = "Press SPACE to play again, or ESC to quit."
 
 
     def start_game_countdown(self) -> None:
@@ -969,39 +1160,109 @@ class GameView(arcade.View):
 
 
     def start_friend_quiz(self, friend: FriendNPC) -> None:
-        self.quiz_friend = friend
-        self.quiz_question = QUIZ_OPTIONS[(self.current_building + self.friendship) % len(QUIZ_OPTIONS)]
-        self.quiz_tries_left = 2
-        self.screen = "quiz"
-        self.inside_building = self.current_building
-        self.message = f"You and {friend.name} are inside the house. Answer their question."
-        self.hint = "You get 2 tries. Read the choices carefully before you pick one."
+        self.friendship += 1
+        self.befriended_friends.add(friend.name)
+        self.lesson_completed_buildings.add(self.current_building)
+        self.friend_inside_by_building[self.current_building] = friend.name
+        self.quiz_friend = None
+        self.screen = "playing"
+        self.inside_building = 0
+        self.message = f"Correct. {friend.name} became your friend."
+        self.hint = "The multiple-choice community question has been removed."
 
 
     def start_name_guess(self, friend: FriendNPC) -> None:
         self.guess_friend = friend
+        saved_index, saved_progress, saved_hints = self.friend_riddle_progress.get(friend.name, (0, "", []))
+        self.name_riddle_index = saved_index
+        self.name_riddle_progress = saved_progress
         self.name_guess = ""
+        self.unlocked_riddle_hints = list(saved_hints)
+        self.name_riddle_wrong_guesses = 0
+        self.name_riddle_wrong_answers = set()
+        self.suppress_next_name_guess_char = False
+        self.menu_open = False
         self.screen = "name_guess"
-        self.message = f"Unscramble the friend's full name. Clue: {self.name_hint_pattern(friend.name)}"
-        self.hint = "Press ENTER to guess. Use BACKSPACE to erase. The scrambled clue above shows what is already known."
+        self.message = f"Riddle {self.name_riddle_index + 1} of 4 for {friend.name}."
+        current_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+        self.hint = f"Length: {len(current_riddle['answer'])} letters."
 
 
-    def submit_name_guess(self) -> None:
+    def append_name_guess_char(self, text: str) -> None:
+        if self.screen == "name_guess" and text.isalpha() and len(self.name_guess) < 16:
+            self.name_guess += text.lower()
+
+
+    def delete_name_guess_char(self) -> None:
+        if self.screen == "name_guess" and self.name_guess:
+            self.name_guess = self.name_guess[:-1]
+
+
+    def cancel_name_guess(self) -> None:
         if self.guess_friend is None:
             return
 
+        friend_name = self.guess_friend.name
+        self.friend_riddle_progress[friend_name] = (
+            self.name_riddle_index,
+            self.name_riddle_progress,
+            list(self.unlocked_riddle_hints),
+        )
+        self.guess_friend = None
+        self.name_guess = ""
+        self.menu_open = False
+        self.screen = "playing"
+        self.message = f"You stepped away from {friend_name}'s riddles."
+        self.hint = "Your riddle progress is saved. Come back when you're ready."
 
-        if self.name_guess.strip().lower() == self.guess_friend.name.lower():
-            friend = self.guess_friend
-            self.guessed_friend_names.add(friend.name)
-            self.guess_friend = None
-            self.name_guess = ""
-            self.start_friend_quiz(friend)
+
+    def submit_name_riddle(self) -> None:
+        if self.guess_friend is None:
             return
 
+        riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+        if self.name_guess.strip().lower() == riddle["answer"]:
+            self.name_riddle_wrong_guesses = 0
+            self.name_riddle_wrong_answers = set()
+            self.name_riddle_progress += riddle["letter"]
+            self.name_riddle_index += 1
+            if riddle["question"] not in self.unlocked_riddle_hints:
+                self.unlocked_riddle_hints.append(riddle["question"])
+            if self.name_riddle_index >= 4:
+                friend = self.guess_friend
+                self.guessed_friend_names.add(friend.name)
+                self.friendship += 1
+                self.befriended_friends.add(friend.name)
+                self.lesson_completed_buildings.add(self.current_building)
+                self.friend_inside_by_building[self.current_building] = friend.name
+                self.house_completion_flags.setdefault(self.current_building, set()).add("riddle")
+                self.friend_riddle_progress[friend.name] = (self.name_riddle_index, self.name_riddle_progress, list(self.unlocked_riddle_hints))
+                self.message = f"You revealed {friend.name}."
+                self.hint = f"All 4 riddles are complete. {friend.name} is the full name."
+                self.guess_friend = None
+                self.name_guess = ""
+                self.menu_open = False
+                if not self.maybe_open_house_style_choice(self.current_building):
+                    self.screen = "playing"
+                return
 
-        self.message = "That name is not right yet."
-        self.hint = f"Check the scrambled clue: {self.name_hint_pattern(self.guess_friend.name)}. Then try again."
+            next_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+            self.friend_riddle_progress[self.guess_friend.name] = (self.name_riddle_index, self.name_riddle_progress, list(self.unlocked_riddle_hints))
+            self.message = f"Correct. Letter revealed: {self.name_riddle_progress.upper()}."
+            self.hint = f"Riddle {self.name_riddle_index + 1} of 4: {next_riddle['question']}"
+            self.name_guess = ""
+            return
+
+        normalized_guess = self.name_guess.strip().lower()
+        if normalized_guess and normalized_guess not in self.name_riddle_wrong_answers:
+            self.name_riddle_wrong_answers.add(normalized_guess)
+            self.name_riddle_wrong_guesses = len(self.name_riddle_wrong_answers)
+        self.message = "Not quite. Try that riddle again."
+        self.name_guess = ""
+        if self.name_riddle_wrong_guesses >= 3:
+            self.hint = f"Full answer: {riddle['answer'].upper()}"
+            return
+        self.hint = ""
 
 
     def answer_quiz(self, answer_index: int) -> None:
@@ -1058,18 +1319,22 @@ class GameView(arcade.View):
                 continue
 
 
-            clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 24 ** 2
+            clicked_friend = x is not None and y is not None and (x - friend.x) ** 2 + (y - friend.y) ** 2 <= 42 ** 2
             near_ball = (self.ball_x - friend.x) ** 2 + (self.ball_y - friend.y) ** 2 <= FRIEND_DISTANCE ** 2
 
 
-            if clicked_friend or (x is None and near_ball):
+            if clicked_friend:
+                if friend.name not in self.guessed_friend_names:
+                    self.start_name_guess(friend)
+                    return True
+
+                self.start_friend_quiz(friend)
+                return True
+
+            if x is None and near_ball:
                 if not near_ball:
                     self.message = "Move closer to the person first."
                     self.hint = "Friend balls can only hear you when your ball is nearby."
-                    return True
-                if self.known_name_letters(friend.name) < len(friend.name):
-                    self.message = "You do not know this person's full name yet."
-                    self.hint = "Pick up trash to find name hints, then come back when the name is complete."
                     return True
                 if friend.name not in self.guessed_friend_names:
                     self.start_name_guess(friend)
@@ -1081,8 +1346,8 @@ class GameView(arcade.View):
 
 
         if x is None and y is None:
-            self.message = "Move close to a blue ball before pressing T."
-            self.hint = "Pick up trash for hints, then use those hints near other balls."
+            self.message = "Move closer to the NPC and click the friend to talk."
+            self.hint = "Pick up trash for hints, then use those hints near other friends."
             return True
 
 
@@ -1090,30 +1355,48 @@ class GameView(arcade.View):
 
 
     def on_key_press(self, key: int, modifiers: int) -> None:
+        if self.screen == "name_guess" and key == arcade.key.ESCAPE:
+            self.cancel_name_guess()
+            return
+
         if key == arcade.key.ESCAPE:
+            if self.active_minigame is not None:
+                self.cancel_house_minigame()
+                return
+            if self.menu_open:
+                self.menu_open = False
+                return
+            if self.window is not None:
+                if self.screen in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"}:
+                    self.window.close()
+                else:
+                    self.menu_open = True
+                    self.keys_down.clear()
+                    self.message = "Menu opened."
+                    self.hint = "Choose restart, intro, or quit."
+            return
+
+        if self.menu_open:
             return
 
         if key == arcade.key.P:
-            self.toggle_pause()
-            return
-
-        if self.paused:
+            if self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"} and self.active_minigame is None:
+                self.menu_open = not self.menu_open
+                if self.menu_open:
+                    self.keys_down.clear()
+                    self.message = "Menu opened."
+                    self.hint = "Choose restart, intro, or quit."
             return
 
 
         if self.screen == "name_guess":
-            if key == arcade.key.ENTER:
-                self.submit_name_guess()
+            if key in {arcade.key.ENTER, arcade.key.NUM_ENTER}:
+                self.submit_name_riddle()
                 return
-            if key == arcade.key.BACKSPACE:
-                self.name_guess = self.name_guess[:-1]
+            if key in {arcade.key.BACKSPACE, arcade.key.DELETE}:
+                self.delete_name_guess_char()
                 return
-            if key == arcade.key.SPACE and self.name_guess and len(self.name_guess) < 16:
-                self.name_guess += " "
-                return
-            if arcade.key.A <= key <= arcade.key.Z and len(self.name_guess) < 16:
-                self.name_guess += chr(key).lower()
-                return
+            return
 
 
         if key in (
@@ -1130,18 +1413,21 @@ class GameView(arcade.View):
             return
 
 
-        if key == arcade.key.E and self.screen == "playing" and not self.trash_spots:
-            if self.door_index_near_player() == self.current_building:
-                self.enter_house()
-            else:
-                self.message = "Stand by this house's door first."
-                self.hint = "After the trash is clear, press F at the door to go inside."
-            return
-
-
         if key == arcade.key.F:
+            if self.door_cooldown > 0:
+                return
             if self.screen in {"repair", "visit"}:
-                self.leave_house()
+                try:
+                    self.leave_house()
+                except Exception as exc:
+                    self.active_minigame = None
+                    self.minigame_target_spot = None
+                    self.keys_down.clear()
+                    self.screen = "playing"
+                    self.round_started = True
+                    self.message = "You step back outside."
+                    self.hint = "The exit glitched, but you are back outside now."
+                    print(f"leave_house error: {exc}")
                 return
             if self.screen == "playing":
                 door_index = self.door_index_near_player()
@@ -1151,14 +1437,9 @@ class GameView(arcade.View):
                 if door_index == self.current_building and not self.trash_spots:
                     self.enter_house()
                     return
-                self.message = "Stand near a repaired door to go back inside."
-                self.hint = "The current building opens after you clear the trash."
+                self.message = "Stand near the door to enter the house."
+                self.hint = "Clear the trash first, then press F by the door."
                 return
-
-
-        if key == arcade.key.T:
-            self.try_befriend()
-            return
 
 
         number_keys = (arcade.key.KEY_1, arcade.key.KEY_2, arcade.key.KEY_3)
@@ -1177,7 +1458,7 @@ class GameView(arcade.View):
 
 
         try:
-            if self.screen in {"complete", "failed", "trash_game_over", "conclusion"}:
+            if self.screen in {"complete", "failed", "trash_game_over", "conclusion", "minigame_game_over"}:
                 self.reset_round()
             elif self.screen == "intro":
                 self.start_game_countdown()
@@ -1193,20 +1474,69 @@ class GameView(arcade.View):
         self.keys_down.discard(key)
 
 
+    def on_text(self, text: str) -> None:
+        if self.suppress_next_name_guess_char:
+            self.suppress_next_name_guess_char = False
+            return
+
+        if self.screen == "name_guess" and text in {"\r", "\n"}:
+            self.submit_name_riddle()
+            return
+
+        self.append_name_guess_char(text)
+
+
+    def on_text_motion(self, motion: int) -> None:
+        if self.screen != "name_guess":
+            return
+        if motion in {arcade.key.MOTION_BACKSPACE, arcade.key.MOTION_DELETE}:
+            self.delete_name_guess_char()
+
+
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
         if button != arcade.MOUSE_BUTTON_LEFT:
             return
 
+        screen_x = x
+        screen_y = y
         if self.camera is not None:
             world_position = self.camera.unproject((x, y))
             x = world_position.x
             y = world_position.y
 
-        if 670 <= x <= 780 and 548 <= y <= 580:
-            self.toggle_pause()
+        if self.menu_open:
+            if 540 <= x <= 720 and 352 <= y <= 400:
+                self.reset_round()
+                self.menu_open = False
+                return
+            if 540 <= x <= 720 and 302 <= y <= 348:
+                self.menu_open = False
+                self.screen = "intro"
+                self.intro_time = 0.0
+                self.intro_walk_x = 85.0
+                self.message = "Press SPACE to begin."
+                self.hint = "Clear every trash pile to move to the next building."
+                return
+            if 540 <= x <= 720 and 252 <= y <= 298:
+                if self.window is not None:
+                    self.window.close()
+                return
             return
 
-        if self.paused:
+        if 10 <= x <= 45 and 18 <= y <= 53:
+            self.show_instructions = not self.show_instructions
+            return
+
+        if 748 <= x <= 790 and 558 <= y <= 590:
+            self.hud_collapsed = not self.hud_collapsed
+            return
+
+        if 10 <= x <= 45 and 518 <= y <= 553:
+            self.show_instructions = not self.show_instructions
+            return
+
+        if 748 <= x <= 790 and 558 <= y <= 590:
+            self.hud_collapsed = not self.hud_collapsed
             return
 
         # Handle mini-game clicks
@@ -1216,13 +1546,17 @@ class GameView(arcade.View):
             if self.active_minigame.completed:
                 # Mini-game won!
                 spot = self.minigame_target_spot
-                spot.fixed = True
-                self.money -= spot.cost
-                self.message = f"Repaired: {spot.label}!"
-                self.hint = "Great work! Continue with the other repairs."
+                if spot is not None:
+                    spot.fixed = True
+                    self.house_repair_progress.setdefault(self.current_building, set()).add(spot.label)
+                    self.money -= spot.cost
+                    self.message = f"Repaired: {spot.label}!"
+                    self.hint = "Great work! Continue with the other repairs."
+                else:
+                    self.message = "Repair complete."
+                    self.hint = "Great work! Continue with the other repairs."
 
-                self.active_minigame = None
-                self.minigame_target_spot = None
+                self.begin_minigame_victory()
 
                 # Check if all repairs done
                 if self.screen == "repair" and all(repair.fixed for repair in self.repair_spots):
@@ -1233,6 +1567,9 @@ class GameView(arcade.View):
                     else:
                         self.finish_interior_upgrade()
 
+            return
+
+        if screen_y >= 492:
             return
 
 
@@ -1271,39 +1608,20 @@ class GameView(arcade.View):
             return
 
 
-        if self.screen == "name_guess":
-            return
-
-
         if self.screen == "repair":
             for spot in self.repair_spots:
                 if spot.fixed:
                     continue
+                if (self.ball_x - spot.x) ** 2 + (self.ball_y - spot.y) ** 2 > (spot.radius + 18) ** 2:
+                    continue
                 if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= spot.radius ** 2:
-                    is_final_repair = all(repair.fixed or repair is spot for repair in self.repair_spots)
-                    if is_final_repair and not self.can_finish_current_house():
-                        self.message = "Before finishing the house, answer a friend's question correctly."
-                        self.hint = "Press F to go outside, then press T near a blue friend to learn the lesson."
-                        return
                     if self.money < spot.cost:
                         self.message = f"Need ${spot.cost} to {spot.label}. You have ${self.money}."
                         self.hint = "Trash gives you repair money. Clean outside piles before fixing everything."
                         return
 
-                    # Launch mini-game instead of instant completion
-                    self.minigame_target_spot = spot
-                    repair_type = spot.label.lower()
-
-                    # Choose mini-game based on repair type
-                    if "pipe" in repair_type or "floor" in repair_type or "window" in repair_type:
-                        self.active_minigame = PipeMinigame(difficulty=self.current_building // 5 + 1)
-                        self.message = "Rotate the pipes to connect them!"
-                    elif "wall" in repair_type or "block" in repair_type or "ceiling" in repair_type:
-                        self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
-                        self.message = "Match and clear the blocks!"
-                    else:
-                        self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
-
+                    # Always reuse the same repair mini-game for every spot.
+                    self.start_house_minigame(spot, "repair")
                     self.hint = "Complete the mini-game to finish this repair!"
                     return
             return
@@ -1313,23 +1631,45 @@ class GameView(arcade.View):
             for spot in self.interior_spots:
                 if spot.fixed:
                     continue
+                if (self.ball_x - spot.x) ** 2 + (self.ball_y - spot.y) ** 2 > (spot.radius + 18) ** 2:
+                    continue
                 if (x - spot.x) ** 2 + (y - spot.y) ** 2 <= spot.radius ** 2:
-                    if self.money < spot.cost:
-                        self.message = f"Need ${spot.cost} to {spot.label}. You have ${self.money}."
-                        self.hint = "Clean more trash outside to earn repair money."
-                        return
+                    try:
+                        if self.money < spot.cost:
+                            self.message = f"Need ${spot.cost} to {spot.label}. You have ${self.money}."
+                            self.hint = "Clean more trash outside to earn repair money."
+                            return
 
-                    # Launch mini-game for interior work too
-                    self.minigame_target_spot = spot
-                    self.active_minigame = BlockBlastMinigame(difficulty=self.current_building // 5 + 1)
-                    self.message = "Match the blocks to decorate!"
-                    self.hint = "Complete the mini-game to finish this upgrade!"
-                    return
+                        # Launch mini-game for interior work too
+                        self.start_house_minigame(spot, "visit")
+                        self.message = "Match the wall colors to repair the inside!"
+                        self.hint = "Click any tile to cycle its color until the whole patch matches."
+                        return
+                    except Exception as exc:
+                        self.active_minigame = None
+                        self.minigame_target_spot = None
+                        self.minigame_return_screen = None
+                        self.message = "That spot glitched instead of opening."
+                        self.hint = "Try another spot, or press F to leave and come back."
+                        print(f"Interior click error on {spot.label}: {exc}")
+                        return
+            return
+
+
+        if self.screen in {"repair", "visit"}:
+            if 360 <= x <= 440 and 120 <= y <= 260:
+                self.leave_house()
+                return
             return
 
 
         if self.screen != "playing":
             return
+
+
+        if self.try_befriend(x, y):
+            return
+
 
         for trash in list(self.trash_spots):
             if (x - trash.x) ** 2 + (y - trash.y) ** 2 <= TRASH_CLICK_RADIUS ** 2:
@@ -1342,22 +1682,15 @@ class GameView(arcade.View):
                 self.trash_spots.remove(trash)
                 self.cleaned += 1
                 self.money += TRASH_SCORE + self.upgrades
-                self.message = self.reveal_friend_name_hint()
-                self.hint = "When the full name is revealed, move near that person and press T, or click them, to continue."
+                self.message = "Trash collected."
+                self.hint = "Keep cleaning to open up the block."
                 if self.cleaned % 2 == 0:
                     self.neighborhood_state = min(BUILDING_STAGES - 1, self.neighborhood_state + 1)
                 if not self.trash_spots:
                     target_name = self.current_target_friend_name()
-                    if self.known_name_letters(target_name) >= len(target_name):
-                        self.message = "The outside is clear, and the name clues are complete."
-                        self.hint = "Move close to the person and press T, or click them, then type the full name."
-                    else:
-                        self.message = "The outside is clear. Press F to open the door."
-                        self.hint = "You can open the door, but you need the full friend name before the quiz."
-                return
-
-        if self.try_befriend(x, y):
-            return
+                    self.message = "The outside is clear. Press F to open the door."
+                    self.hint = "Cleaned-up blocks let you keep moving forward."
+                break
 
 
     def get_player_color(self) -> tuple[int, int, int]:
@@ -1434,8 +1767,8 @@ class GameView(arcade.View):
     def draw_trash(self, trash: TrashSpot) -> None:
         """Draw detailed trash objects instead of simple circles."""
         x, y = trash.x, trash.y
-        arcade.draw_circle_filled(x, y + 1, 24, (255, 220, 90, 18))
-        arcade.draw_circle_filled(x, y + 1, 14, (255, 238, 170, 28))
+        glow_color = (255, 240, 170, 35)
+        arcade.draw_circle_filled(x, y, 24, glow_color)
 
         if trash.trash_type == "can":
             # Draw a trash can
@@ -1534,69 +1867,153 @@ class GameView(arcade.View):
 
 
     def on_update(self, delta_time: float) -> None:
-        if self.paused:
-            return
-        # Handle mini-game updates
-        if self.active_minigame is not None:
-            self.active_minigame.update(delta_time)
+        try:
+            self.sky_time += delta_time
+            if self.door_cooldown > 0:
+                self.door_cooldown = max(0.0, self.door_cooldown - delta_time)
 
-            # Check if mini-game timed out
-            if self.active_minigame.time_left <= 0:
-                self.message = "Time's up! Try again."
-                self.hint = "Click on another repair to attempt a different mini-game."
-                self.active_minigame = None
-                self.minigame_target_spot = None
-            return
+            if self.minigame_fail_fade is not None:
+                self.minigame_fail_fade = max(0.0, self.minigame_fail_fade - delta_time * 0.9)
+                if self.minigame_fail_fade <= 0:
+                    self.minigame_fail_fade = None
+                    self.screen = "minigame_game_over"
+                    self.keys_down.clear()
+                    self.message = "FAILED"
+                    self.hint = "You ran out of time. Press SPACE to try again."
+                return
 
-        if self.screen == "intro":
-            self.intro_time += delta_time
-            self.intro_walk_x += 55 * delta_time
-            if self.intro_walk_x > 285:
-                self.intro_walk_x = 285
-            return
+            if self.minigame_congrats_fade is not None:
+                self.minigame_win_hold += delta_time
+                self.minigame_congrats_fade = max(0.0, self.minigame_congrats_fade - delta_time * 0.14)
+                if self.minigame_congrats_fade <= 0:
+                    self.minigame_congrats_fade = None
+                if self.minigame_win_hold >= 3.0:
+                    self.minigame_win_hold = 0.0
+                    if self.minigame_win_return_screen is not None:
+                        self.screen = self.minigame_win_return_screen
+                        self.minigame_win_return_screen = None
+                return
+
+            if self.menu_open and self.screen not in {"intro", "countdown"}:
+                return
+
+            # Handle mini-game updates
+            if self.active_minigame is not None:
+                self.active_minigame.update(delta_time)
+                if self.active_minigame.completed:
+                    spot = self.minigame_target_spot
+                    if spot is not None:
+                        spot.fixed = True
+                        self.house_repair_progress.setdefault(self.current_building, set()).add(spot.label)
+                        self.money -= spot.cost
+                        self.message = f"Repaired: {spot.label}!"
+                        self.hint = "Great work! Continue with the other repairs."
+                    else:
+                        self.message = "Repair complete."
+                        self.hint = "Great work! Continue with the other repairs."
+
+                    self.begin_minigame_victory()
+
+                    if self.screen == "repair" and all(repair.fixed for repair in self.repair_spots):
+                        self.finish_repair()
+                    elif self.screen == "visit" and all(interior.fixed for interior in self.interior_spots):
+                        if self.interior_mode == "repair":
+                            self.finish_interior_repair()
+                        else:
+                            self.finish_interior_upgrade()
+                    return
+
+                # Check if mini-game timed out
+                if self.active_minigame.time_left <= 0:
+                    self.message = "FAILED"
+                    self.hint = "Time ran out."
+                    self.active_minigame = None
+                    self.minigame_target_spot = None
+                    self.minigame_return_screen = None
+                    self.minigame_parent_screen = None
+                    self.minigame_fail_fade = 1.0
+                return
+
+            if self.screen == "intro":
+                self.intro_time += delta_time
+                self.intro_walk_x += 55 * delta_time
+                if self.intro_walk_x > 285:
+                    self.intro_walk_x = 285
+                return
 
 
-        if self.screen == "countdown":
-            self.intro_time += delta_time
-            self.start_countdown -= delta_time
-            if self.start_countdown <= 0:
-                self.start_countdown = 0
-                self.reset_round()
-            return
+            if self.screen == "countdown":
+                self.intro_time += delta_time
+                self.start_countdown -= delta_time
+                if self.start_countdown <= 0:
+                    self.start_countdown = 0
+                    self.reset_round()
+                return
 
 
-        self.update_ball(delta_time)
+            self.update_ball(delta_time)
+
+            if self.pending_house_style_building is None:
+                self.maybe_open_house_style_choice(self.current_building)
 
 
-        if self.screen == "dark" and self.reached_entrance():
-            self.screen = "game_over"
-            self.game_over_ready = True
-            self.keys_down.clear()
-            return
+            if self.screen == "dark" and self.reached_entrance():
+                self.screen = "game_over"
+                self.game_over_ready = True
+                self.keys_down.clear()
+                return
 
 
-        if self.screen != "playing":
-            return
+            if self.screen != "playing":
+                return
 
 
-        if not self.trash_spots:
-            return
+            if not self.trash_spots:
+                return
 
 
-        self.time_left -= delta_time
-        if self.time_left <= 0:
-            self.time_left = 0
-            self.fail_round()
+            self.time_left -= delta_time
+            if self.time_left <= 0:
+                self.time_left = 0
+                self.fail_round()
+        except Exception:
+            traceback.print_exc()
+            self.active_minigame = None
+            self.minigame_target_spot = None
+            self.message = "A game error happened, but the window stayed open."
+            self.hint = "Check the terminal traceback, then click again or press ESC."
 
 
     def draw_background(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (18, 22, 32))
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 120, (31, 38, 36))
+
+        self.draw_clouds()
+
         arcade.draw_circle_filled(95, 525, 34, (132, 126, 108))
         arcade.draw_circle_filled(140, 535, 24, (112, 108, 98))
         arcade.draw_circle_filled(700, 525, 22, (76, 86, 102))
         arcade.draw_circle_filled(735, 545, 30, (92, 96, 104))
         arcade.draw_line(0, 120, 800, 120, (49, 58, 55), 2)
+
+
+    def draw_clouds(self) -> None:
+        cloud_sets = [
+            (100, 555, 0.0, 1.15),
+            (340, 565, 1.7, 1.0),
+            (600, 548, 3.2, 1.1),
+            (760, 560, 4.6, 0.9),
+        ]
+        for base_x, base_y, phase, scale in cloud_sets:
+            drift_x = (self.sky_time * 10 * scale + phase * 40) % 920 - 60
+            x = base_x + drift_x
+            y = base_y
+            cloud_color = (244, 246, 250, 140)
+            shadow_color = (244, 246, 250, 80)
+            arcade.draw_circle_filled(x, y, 22 * scale, cloud_color)
+            arcade.draw_circle_filled(x + 18 * scale, y + 8, 28 * scale, cloud_color)
+            arcade.draw_circle_filled(x + 40 * scale, y + 2, 20 * scale, cloud_color)
+            arcade.draw_ellipse_filled(x + 20 * scale, y - 5, 68 * scale, 20 * scale, shadow_color)
 
 
     def draw_friend_character(
@@ -1612,10 +2029,8 @@ class GameView(arcade.View):
         friend_color = (118, 139, 129) if friend.name in self.befriended_friends else (86, 104, 123)
         if highlight:
             friend_color = (214, 181, 95)
-            arcade.draw_circle_filled(x, y + 36, 34, (255, 235, 150, 90))
-            arcade.draw_circle_filled(x, y + 36, 46, (255, 240, 198, 40))
-            arcade.draw_circle_outline(x, y + 36, 30, arcade.color.GOLD, 4)
-            arcade.draw_circle_outline(x, y + 36, 44, (255, 240, 198, 100), 3)
+            arcade.draw_circle_filled(x, y + 36, 22, (255, 235, 150, 90))
+            arcade.draw_circle_outline(x, y + 36, 24, arcade.color.GOLD, 3)
 
         arcade.draw_ellipse_filled(x, y - 16, 28, 7, (15, 18, 25, 120))
         arcade.draw_line(x, y + 28, x, y - 2, arcade.color.BLACK, 5)
@@ -1626,7 +2041,7 @@ class GameView(arcade.View):
         arcade.draw_circle_filled(x, y + 32, 16, friend_color)
         arcade.draw_circle_outline(x, y + 32, 16, arcade.color.BLACK, 2)
         if highlight:
-            arcade.draw_circle_outline(x, y + 32, 21, arcade.color.GOLD, 3)
+            arcade.draw_circle_outline(x, y + 32, 18, arcade.color.GOLD, 2)
         arcade.draw_text(name_override or friend.name, x, y + 58, arcade.color.WHITE, 11, anchor_x="center")
         if show_line:
             arcade.draw_text(
@@ -1948,16 +2363,15 @@ class GameView(arcade.View):
             arcade.draw_line(245, 121, 305, 105, arcade.color.BLACK, 2)
             arcade.draw_line(305, 105, 358, 118, arcade.color.BLACK, 2)
             arcade.draw_line(460, 116, 520, 101, arcade.color.BLACK, 2)
+            arcade.draw_line(358, 284, 383, 266, arcade.color.BLACK, 2)
+            arcade.draw_line(383, 266, 405, 275, arcade.color.BLACK, 2)
+            arcade.draw_line(405, 275, 432, 252, arcade.color.BLACK, 2)
+            arcade.draw_line(432, 252, 461, 260, arcade.color.BLACK, 2)
+            arcade.draw_line(461, 260, 486, 238, arcade.color.BLACK, 2)
+            arcade.draw_line(392, 308, 414, 292, arcade.color.BLACK, 2)
+            arcade.draw_line(414, 292, 442, 298, arcade.color.BLACK, 2)
 
 
-        arcade.draw_text(
-            f"Inside {self.building_names[self.inside_building]}",
-            400,
-            485,
-            arcade.color.WHITE,
-            22,
-            anchor_x="center",
-        )
         if self.screen == "visit":
             if repaired_inside:
                 if upgrade_level < MAX_INTERIOR_UPGRADES:
@@ -1978,13 +2392,11 @@ class GameView(arcade.View):
         interior_spots = self.interior_spots if self.screen == "visit" else self.repair_spots
         for spot in interior_spots:
             if spot.fixed:
-                arcade.draw_circle_outline(spot.x, spot.y, 17, arcade.color.DARK_SEA_GREEN, 3)
-                arcade.draw_text("fixed", spot.x, spot.y - 5, arcade.color.WHITE, 8, anchor_x="center")
                 continue
 
-
-            arcade.draw_circle_outline(spot.x, spot.y, spot.radius, spot.color, 4)
-            arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 3, arcade.color.WHITE, 1)
+            arcade.draw_circle_filled(spot.x, spot.y, spot.radius + 2, (194, 191, 177, 120))
+            arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 2, spot.color, 3)
+            arcade.draw_circle_outline(spot.x, spot.y, spot.radius + 5, arcade.color.WHITE, 1)
             arcade.draw_text(
                 f"${spot.cost}",
                 spot.x,
@@ -2033,22 +2445,26 @@ class GameView(arcade.View):
 
     def draw_name_guess(self) -> None:
         self.draw_background()
-        friend_label = "the person"
-        if self.guess_friend is not None:
-            friend_label = "???"
 
-
-        arcade.draw_lrbt_rectangle_filled(120, 680, 180, 430, (20, 20, 30))
-        arcade.draw_lrbt_rectangle_outline(120, 680, 180, 430, arcade.color.WHITE, 3)
-        arcade.draw_text("Guess The Name", 400, 382, arcade.color.GOLD, 26, anchor_x="center")
-        arcade.draw_text(f"Who is {friend_label}?", 400, 342, arcade.color.LIGHT_GRAY, 15, anchor_x="center")
+        arcade.draw_lrbt_rectangle_filled(120, 680, 90, 420, (20, 20, 30))
+        arcade.draw_lrbt_rectangle_outline(120, 680, 90, 420, arcade.color.WHITE, 3)
+        arcade.draw_text("Riddle Name Challenge", 400, 382, arcade.color.GOLD, 26, anchor_x="center")
         if self.guess_friend is not None:
-            arcade.draw_text(f"Clue: {self.name_hint_pattern(self.guess_friend.name)}", 400, 318, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
-        arcade.draw_lrbt_rectangle_filled(210, 590, 265, 315, (40, 50, 65))
-        arcade.draw_lrbt_rectangle_outline(210, 590, 265, 315, arcade.color.LIGHT_GRAY, 2)
-        arcade.draw_text(self.name_guess or "type name here", 400, 282, arcade.color.WHITE, 18, anchor_x="center")
-        arcade.draw_text("ENTER submits     BACKSPACE erases", 400, 220, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
-        arcade.draw_text("Use the trash clues to unscramble the full name.", 400, 196, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+            riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+            arcade.draw_text(f"Riddle {self.name_riddle_index + 1} of 4:", 400, 332, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+            arcade.draw_text(riddle["question"], 400, 304, arcade.color.LIGHT_GRAY, 12, anchor_x="center", width=500, multiline=True)
+        arcade.draw_lrbt_rectangle_filled(215, 585, 176, 230, (40, 50, 65))
+        arcade.draw_lrbt_rectangle_outline(215, 585, 176, 230, arcade.color.WHITE, 2)
+        arcade.draw_text("Type your answer here", 400, 215, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        caret = "_" if len(self.name_guess) % 2 == 0 else " "
+        arcade.draw_text((self.name_guess.upper() or "") + caret, 400, 193, arcade.color.WHITE, 18, anchor_x="center")
+        arcade.draw_text(f"Letters found: {self.name_riddle_progress.upper() or '-'}", 400, 142, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_text("ENTER submits     BACKSPACE erases     ESC backs out", 400, 160, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+        if self.guess_friend is not None:
+            riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
+            answer = riddle["answer"]
+            if self.name_riddle_wrong_guesses >= 3:
+                arcade.draw_text(f"Full answer: {answer.upper()}", 400, 124, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=440, multiline=True)
 
 
     def draw_decorate(self) -> None:
@@ -2056,15 +2472,16 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(80, 720, 120, 540, (20, 20, 30))
         arcade.draw_lrbt_rectangle_outline(80, 720, 120, 540, arcade.color.WHITE, 3)
 
-        arcade.draw_text("Choose a finished look", 400, 455, (222, 222, 214), 28, anchor_x="center")
+        arcade.draw_text("Replace the broken house", 400, 455, (222, 222, 214), 28, anchor_x="center")
         arcade.draw_text(
-            self.get_building_name(self.current_building),
+            self.get_building_name(self.pending_house_style_building if self.pending_house_style_building is not None else self.inside_building),
             400,
             420,
             (156, 160, 166),
             14,
             anchor_x="center",
         )
+        arcade.draw_text("Pick one of the three clean versions below.", 400, 396, (156, 160, 166), 12, anchor_x="center")
 
 
         for index, (name, roof_color, wall_color) in enumerate(self.style_options):
@@ -2159,7 +2576,7 @@ class GameView(arcade.View):
     def draw_game_over(self) -> None:
         arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, arcade.color.BLACK)
         arcade.draw_text("GAME OVER", 400, 330, arcade.color.GOLD, 64, anchor_x="center")
-        arcade.draw_text("Press SPACE to continue.", 400, 265, arcade.color.WHITE, 16, anchor_x="center")
+        arcade.draw_text("Press ESC to quit.", 400, 265, arcade.color.WHITE, 16, anchor_x="center")
         arcade.draw_text(self.quiz_question["fact"], 170, 215, arcade.color.LIGHT_GRAY, 13, width=460, multiline=True)
 
 
@@ -2169,7 +2586,7 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_outline(150, 650, 180, 450, arcade.color.WHITE, 3)
         arcade.draw_text("GAME OVER", 400, 380, arcade.color.GOLD, 64, anchor_x="center")
         arcade.draw_text("You ran out of time picking up trash.", 400, 310, arcade.color.WHITE, 18, anchor_x="center")
-        arcade.draw_text("Press SPACE to try again.", 400, 260, arcade.color.LIGHT_GRAY, 14, anchor_x="center")
+        arcade.draw_text("Press SPACE to try again or ESC to quit.", 400, 260, arcade.color.LIGHT_GRAY, 14, anchor_x="center")
 
 
     def draw_conclusion(self) -> None:
@@ -2277,30 +2694,31 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(130, 670, 68, 104, (18, 22, 31, 225))
         arcade.draw_lrbt_rectangle_outline(130, 670, 68, 104, arcade.color.WHITE, 2)
         arcade.draw_text("One big house. All of the friends together.", 400, 86, arcade.color.WHITE, 13, anchor_x="center")
-        arcade.draw_text("Press SPACE to play again.", 400, 68, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
+        arcade.draw_text("Press SPACE to play again or ESC to quit.", 400, 68, arcade.color.LIGHT_GRAY, 11, anchor_x="center")
 
 
     def draw_hud(self) -> None:
+        if self.hud_collapsed:
+            arcade.draw_lrbt_rectangle_filled(728, 790, 548, 590, (14, 17, 24))
+            arcade.draw_lrbt_rectangle_outline(728, 790, 548, 590, (126, 132, 142))
+            arcade.draw_line(742, 575, 776, 575, (222, 222, 214), 2)
+            arcade.draw_line(742, 566, 776, 566, (222, 222, 214), 2)
+            arcade.draw_line(742, 557, 776, 557, (222, 222, 214), 2)
+            return
+
         arcade.draw_lrbt_rectangle_filled(10, 790, 492, 590, (14, 17, 24))
         arcade.draw_lrbt_rectangle_outline(10, 790, 492, 590, (126, 132, 142))
 
-        arcade.draw_text("Neighborhood Cleanup", 22, 562, (220, 221, 218), 22)
-        arcade.draw_text("ESC is disabled", 620, 565, (156, 160, 166), 10, anchor_x="center")
-        button_label = "Resume" if self.paused else "Pause"
-        button_color = (90, 120, 98) if self.paused else (86, 92, 112)
-        arcade.draw_lrbt_rectangle_filled(670, 780, 548, 580, button_color)
-        arcade.draw_lrbt_rectangle_outline(670, 780, 548, 580, arcade.color.WHITE, 2)
-        arcade.draw_text(button_label, 725, 557, arcade.color.WHITE, 12, anchor_x="center")
+        current_house_label = f"{self.get_building_name(self.current_building)}"
+        arcade.draw_text(current_house_label, 22, 562, (220, 221, 218), 22)
+        arcade.draw_text("ESC quits", 720, 565, (156, 160, 166), 10, anchor_x="center")
         arcade.draw_text(f"Building: {self.get_building_name(self.current_building)}", 22, 538, (156, 160, 166), 12)
         arcade.draw_text(f"Trash: {self.cleaned}", 22, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Money: ${self.money}", 125, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Friendship: {self.friendship}", 240, 516, (214, 215, 212), 12)
-        target_name = self.current_target_friend_name()
-        arcade.draw_text(f"Clues: {self.display_name_from_hint(target_name)}", 390, 516, (214, 215, 212), 12)
+        arcade.draw_text(f"Riddles: {self.name_riddle_progress.upper() or '-'}", 390, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Upgrades: {self.upgrades}/{MAX_UPGRADES}", 500, 516, (214, 215, 212), 12)
         arcade.draw_text(f"Time: {self.time_left:0.1f}s", 650, 516, (214, 215, 212), 12)
-        arcade.draw_text(self.friend_action_hint(), 520, 538, (156, 160, 166), 10, width=248, align="left")
-        arcade.draw_text(f"Scramble: {self.name_hint_pattern(target_name)}", 22, 494, (156, 160, 166), 10)
         fixed_count = sum(1 for repair in self.repair_spots if repair.fixed)
         repair_total = len(self.repair_spots)
         if self.screen == "repair" and repair_total:
@@ -2315,8 +2733,9 @@ class GameView(arcade.View):
                 12,
             )
         else:
+            current_house_number = min(self.buildings_cleaned + 1, BUILDING_STAGES)
             arcade.draw_text(
-                f"Neighborhood level: {self.neighborhood_state + 1}/{BUILDING_STAGES}",
+                f"House: {current_house_number}/{BUILDING_STAGES}",
                 260,
                 538,
                 (156, 160, 166),
@@ -2340,13 +2759,27 @@ class GameView(arcade.View):
         arcade.draw_circle_outline(28, 35, 17, (222, 222, 214), 2)
         arcade.draw_text("?", 28, 25, (222, 222, 214), 18, anchor_x="center")
 
+        if self.menu_open:
+            arcade.draw_lrbt_rectangle_filled(490, 770, 220, 430, (14, 17, 24, 240))
+            arcade.draw_lrbt_rectangle_outline(490, 770, 220, 430, (222, 222, 214), 2)
+            arcade.draw_text("Menu", 630, 398, arcade.color.GOLD, 24, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(560, 700, 360, 396, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(560, 700, 360, 396, arcade.color.WHITE, 2)
+            arcade.draw_text("Restart Game", 630, 378, arcade.color.WHITE, 14, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(560, 700, 310, 346, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(560, 700, 310, 346, arcade.color.WHITE, 2)
+            arcade.draw_text("Back to Intro", 630, 328, arcade.color.WHITE, 14, anchor_x="center")
+            arcade.draw_lrbt_rectangle_filled(560, 700, 260, 296, (40, 50, 65))
+            arcade.draw_lrbt_rectangle_outline(560, 700, 260, 296, arcade.color.WHITE, 2)
+            arcade.draw_text("Quit Game", 630, 278, arcade.color.WHITE, 14, anchor_x="center")
+
         if self.show_instructions:
             arcade.draw_lrbt_rectangle_filled(175, 625, 112, 248, (14, 17, 24))
             arcade.draw_lrbt_rectangle_outline(175, 625, 112, 248, (222, 222, 214), 2)
             arcade.draw_text("Instructions", 400, 220, (222, 222, 214), 18, anchor_x="center")
             arcade.draw_text(self.hint, 198, 188, (156, 160, 166), 11, width=404, multiline=True)
             arcade.draw_text(
-                "Move: WASD/arrows   Talk: T   Door/leave: F   Pause: P",
+                "Move: WASD/arrows   Talk: T   Door/leave: F   Menu: ESC   Help: ?",
                 400,
                 132,
                 (156, 160, 166),
@@ -2354,85 +2787,134 @@ class GameView(arcade.View):
                 anchor_x="center",
             )
 
-        if self.paused:
-            arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, 120))
-            arcade.draw_lrbt_rectangle_filled(245, 555, 220, 380, (18, 22, 32, 230))
-            arcade.draw_lrbt_rectangle_outline(245, 555, 220, 380, arcade.color.GOLD, 3)
-            arcade.draw_text("PAUSED", 400, 330, arcade.color.GOLD, 34, anchor_x="center")
-            arcade.draw_text("Click Pause or press P to continue.", 400, 285, arcade.color.WHITE, 13, anchor_x="center")
+        if self.menu_open and self.screen not in {"intro", "countdown", "game_over", "trash_game_over", "conclusion"}:
+            arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, 110))
 
 
 
 
     def on_draw(self) -> None:
-        self.clear()
-        if self.camera is not None:
-            self.camera.use()
+        try:
+            self.clear()
+            if self.camera is not None:
+                self.camera.use()
 
-        # Draw mini-games on top of everything
-        if self.active_minigame is not None:
-            if isinstance(self.active_minigame, PipeMinigame):
-                self.active_minigame.draw()
-            elif isinstance(self.active_minigame, BlockBlastMinigame):
-                self.active_minigame.draw()
-            if self.paused:
-                arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, 120))
-                arcade.draw_lrbt_rectangle_filled(245, 555, 220, 380, (18, 22, 32, 230))
-                arcade.draw_lrbt_rectangle_outline(245, 555, 220, 380, arcade.color.GOLD, 3)
-                arcade.draw_text("PAUSED", 400, 330, arcade.color.GOLD, 34, anchor_x="center")
-                arcade.draw_text("Click Pause or press P to continue.", 400, 285, arcade.color.WHITE, 13, anchor_x="center")
-            return
+            if self.screen == "minigame_win":
+                self.draw_scene()
+                arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, 220))
+                if self.minigame_congrats_fade is not None:
+                    burst = 1.0 + (1.0 - self.minigame_congrats_fade) * 1.2
+                    overlay_alpha = int(255 * (1.0 - self.minigame_congrats_fade))
+                    half_w = 400 * burst
+                    half_h = 300 * burst
+                    arcade.draw_lrbt_rectangle_filled(
+                        400 - half_w,
+                        400 + half_w,
+                        300 - half_h,
+                        300 + half_h,
+                        (255, 255, 255, min(255, overlay_alpha + 80)),
+                    )
+                    arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, min(180, overlay_alpha)))
+                arcade.draw_text("VICTORY", 402, 392, arcade.color.BLACK, 80, anchor_x="center")
+                arcade.draw_text("VICTORY", 400, 394, arcade.color.WHITE, 78, anchor_x="center")
+                arcade.draw_text("CONGRATULATIONS", 402, 316, arcade.color.BLACK, 76, anchor_x="center")
+                arcade.draw_text("CONGRATULATIONS", 400, 318, arcade.color.GOLD, 74, anchor_x="center")
+                return
 
-        if self.screen == "intro":
-            self.draw_intro()
-            return
+            # Draw mini-games on top of everything
+            if self.active_minigame is not None:
+                if isinstance(self.active_minigame, PipeMinigame):
+                    self.active_minigame.draw()
+                elif isinstance(self.active_minigame, BlockBlastMinigame):
+                    self.active_minigame.draw()
+                return
+
+            if self.screen == "minigame_game_over":
+                self.draw_scene()
+                arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, 220))
+                arcade.draw_text("FAILED", 400, 320, arcade.color.RED, 52, anchor_x="center")
+                arcade.draw_text("Press SPACE to try again", 400, 258, arcade.color.WHITE, 18, anchor_x="center")
+                return
+
+            if self.minigame_congrats_fade is not None:
+                self.draw_scene()
+                burst = 1.0 + (1.0 - self.minigame_congrats_fade) * 1.2
+                overlay_alpha = int(255 * (1.0 - self.minigame_congrats_fade))
+                half_w = 400 * burst
+                half_h = 300 * burst
+                arcade.draw_lrbt_rectangle_filled(
+                    400 - half_w,
+                    400 + half_w,
+                    300 - half_h,
+                    300 + half_h,
+                    (255, 255, 255, min(255, overlay_alpha + 80)),
+                )
+                arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, min(150, overlay_alpha)))
+                arcade.draw_text("CONGRATULATIONS", 400, 318, arcade.color.WHITE, 64, anchor_x="center")
+                return
+
+            if self.minigame_fail_fade is not None:
+                self.draw_scene()
+                fade_alpha = int(220 * (1.0 - self.minigame_fail_fade))
+                arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (0, 0, 0, max(0, min(220, fade_alpha))))
+                arcade.draw_text("FAILED", 400, 320, arcade.color.RED, 52, anchor_x="center")
+                arcade.draw_text("Press SPACE to try again", 400, 258, arcade.color.WHITE, 18, anchor_x="center")
+                return
+
+            if self.screen == "intro":
+                self.draw_intro()
+                return
 
 
-        if self.screen == "countdown":
-            self.draw_countdown()
-            return
+            if self.screen == "countdown":
+                self.draw_countdown()
+                return
 
 
-        if self.screen == "quiz":
-            self.draw_quiz()
-            return
+            if self.screen == "quiz":
+                self.draw_quiz()
+                return
 
 
-        if self.screen == "name_guess":
-            self.draw_name_guess()
-            return
+            if self.screen == "name_guess":
+                self.draw_name_guess()
+                return
 
 
-        if self.screen == "decorate":
-            self.draw_decorate()
-            return
+            if self.screen == "decorate":
+                self.draw_decorate()
+                return
 
 
-        if self.screen == "dark":
-            self.draw_dark_challenge()
-            return
+            if self.screen == "dark":
+                self.draw_dark_challenge()
+                return
 
 
-        if self.screen == "game_over":
-            self.draw_game_over()
-            return
+            if self.screen == "game_over":
+                self.draw_game_over()
+                return
 
 
-        if self.screen == "trash_game_over":
-            self.draw_trash_game_over()
-            return
+            if self.screen == "trash_game_over":
+                self.draw_trash_game_over()
+                return
 
 
-        if self.screen == "conclusion":
-            self.draw_conclusion()
-            return
+            if self.screen == "conclusion":
+                self.draw_conclusion()
+                return
 
 
-        if self.screen in {"repair", "visit"}:
-            self.draw_house_interior()
-        else:
-            self.draw_scene()
-        self.draw_hud()
+            if self.screen in {"repair", "visit"}:
+                self.draw_house_interior()
+            else:
+                self.draw_scene()
+            self.draw_hud()
+        except Exception:
+            traceback.print_exc()
+            self.active_minigame = None
+            self.minigame_target_spot = None
 
 
 
@@ -2448,6 +2930,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
 
 
