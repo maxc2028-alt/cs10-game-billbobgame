@@ -1195,12 +1195,14 @@ class GameView(arcade.View):
             self.name_riddle_wrong_answers.add(normalized_guess)
             self.name_riddle_wrong_guesses = len(self.name_riddle_wrong_answers)
         self.message = "Not quite. Try that riddle again."
+        if self.name_riddle_wrong_guesses >= 5:
+            self.hint = f"Full answer: {riddle['answer'].upper()}"
+            return
         clue_steps = [
             f"Length: {len(riddle['answer'])} letters.",
-            "Keep trying different ideas. You’ll get the answer after the fifth miss.",
-            "Almost there. One more wrong guess unlocks the answer.",
-            "Final clue: the answer will be shown next time.",
-            f"Full answer: {riddle['answer'].upper()}",
+            "Keep trying different ideas.",
+            "Almost there. One more unique wrong guess unlocks the answer.",
+            "Final clue coming next.",
         ]
         shown_count = min(self.name_riddle_wrong_guesses, len(clue_steps))
         self.hint = " ".join(clue_steps[:shown_count])
@@ -2399,7 +2401,7 @@ class GameView(arcade.View):
                 "Final clue: the answer will be shown next time.",
                 f"Full answer: {answer.upper()}",
             ]
-            shown_count = min(self.name_riddle_wrong_guesses, len(hint_lines))
+            shown_count = len(hint_lines) if self.name_riddle_wrong_guesses >= 5 else min(self.name_riddle_wrong_guesses, len(hint_lines) - 1)
             y = 124
             for line in hint_lines[:shown_count]:
                 arcade.draw_text(line, 400, y, arcade.color.LIGHT_GRAY, 10, anchor_x="center", width=440, multiline=True)
@@ -2868,3 +2870,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
