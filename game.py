@@ -2358,6 +2358,8 @@ class GameView(arcade.View):
     def draw_name_guess(self) -> None:
         self.draw_background()
 
+        arcade.draw_lrbt_rectangle_filled(120, 680, 90, 420, (20, 20, 30))
+        arcade.draw_lrbt_rectangle_outline(120, 680, 90, 420, arcade.color.WHITE, 3)
         arcade.draw_text("Riddle Name Challenge", 400, 382, arcade.color.GOLD, 26, anchor_x="center")
         if self.guess_friend is not None:
             riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
