@@ -2139,18 +2139,20 @@ class GameView(arcade.View):
         self.draw_player_avatar(self.ball_x, self.ball_y, self.get_player_color())
 
 
-    def draw_trash(self, trash: TrashSpot) -> None:
+    def draw_trash(self, trash: TrashSpot, interior: bool = False) -> None:
         """Draw detailed trash objects instead of simple circles."""
         x, y = trash.x, trash.y
-        glow_color = (255, 240, 170, 35)
+        glow_color = (255, 240, 170, 35) if not interior else (150, 195, 255, 30)
         arcade.draw_circle_filled(x, y, 24, glow_color)
 
         if trash.trash_type == "can":
             # Draw a trash can
-            arcade.draw_lrbt_rectangle_filled(x - 10, x + 10, y - 14, y + 8, (120, 120, 120))
+            body_color = (120, 120, 120) if not interior else (166, 158, 146)
+            lid_color = (100, 100, 100) if not interior else (132, 124, 112)
+            arcade.draw_lrbt_rectangle_filled(x - 10, x + 10, y - 14, y + 8, body_color)
             arcade.draw_lrbt_rectangle_outline(x - 10, x + 10, y - 14, y + 8, arcade.color.BLACK, 2)
             # Lid
-            arcade.draw_circle_filled(x, y + 10, 11, (100, 100, 100))
+            arcade.draw_circle_filled(x, y + 10, 11, lid_color)
             arcade.draw_circle_outline(x, y + 10, 11, arcade.color.BLACK, 1)
             # Dents
             arcade.draw_circle_outline(x - 6, y - 2, 3, arcade.color.BLACK, 1)
@@ -2165,19 +2167,23 @@ class GameView(arcade.View):
                 (x, y + 10),
                 (x - 14, y + 6),
             ]
-            arcade.draw_polygon_filled(points, (80, 80, 80))
+            bag_color = (80, 80, 80) if not interior else (172, 168, 178)
+            arcade.draw_polygon_filled(points, bag_color)
             arcade.draw_polygon_outline(points, arcade.color.BLACK, 2)
             # Wrinkles in bag
-            arcade.draw_line(x - 8, y - 10, x - 6, y + 4, (60, 60, 60), 1)
-            arcade.draw_line(x + 4, y - 12, x + 6, y + 2, (60, 60, 60), 1)
-            arcade.draw_line(x - 2, y - 14, x, y + 3, (60, 60, 60), 1)
+            wrinkle_color = (60, 60, 60) if not interior else (130, 126, 136)
+            arcade.draw_line(x - 8, y - 10, x - 6, y + 4, wrinkle_color, 1)
+            arcade.draw_line(x + 4, y - 12, x + 6, y + 2, wrinkle_color, 1)
+            arcade.draw_line(x - 2, y - 14, x, y + 3, wrinkle_color, 1)
 
         elif trash.trash_type == "box":
             # Draw a cardboard box
-            arcade.draw_lrbt_rectangle_filled(x - 12, x + 12, y - 10, y + 10, (180, 140, 100))
+            box_color = (180, 140, 100) if not interior else (194, 170, 136)
+            tape_color = (180, 50, 50) if not interior else (122, 102, 72)
+            arcade.draw_lrbt_rectangle_filled(x - 12, x + 12, y - 10, y + 10, box_color)
             arcade.draw_lrbt_rectangle_outline(x - 12, x + 12, y - 10, y + 10, arcade.color.BLACK, 2)
             # Tape
-            arcade.draw_line(x - 12, y + 2, x + 12, y + 2, (180, 50, 50), 3)
+            arcade.draw_line(x - 12, y + 2, x + 12, y + 2, tape_color, 3)
             # Flaps
             arcade.draw_line(x - 12, y + 10, x, y + 15, arcade.color.BLACK, 1)
             arcade.draw_line(x + 12, y + 10, x, y + 15, arcade.color.BLACK, 1)
@@ -2186,18 +2192,19 @@ class GameView(arcade.View):
             # Draw scattered rubble/debris
             arcade.draw_polygon_filled(
                 [(x - 14, y - 6), (x - 8, y - 12), (x - 2, y - 8), (x - 8, y)],
-                (100, 90, 80)
+                (100, 90, 80) if not interior else (184, 178, 168)
             )
             arcade.draw_polygon_filled(
                 [(x + 4, y - 10), (x + 12, y - 8), (x + 10, y + 2), (x + 2, y + 1)],
-                (110, 100, 90)
+                (110, 100, 90) if not interior else (198, 188, 176)
             )
             arcade.draw_polygon_filled(
                 [(x - 4, y + 4), (x + 6, y + 2), (x + 8, y + 10), (x, y + 12)],
-                (95, 85, 75)
+                (95, 85, 75) if not interior else (176, 170, 158)
             )
             # Cracks
-            arcade.draw_line(x - 8, y - 2, x + 4, y + 4, (60, 50, 40), 1)
+            crack_color = (60, 50, 40) if not interior else (140, 132, 120)
+            arcade.draw_line(x - 8, y - 2, x + 4, y + 4, crack_color, 1)
 
 
     def update_ball(self, delta_time: float) -> None:
@@ -2756,7 +2763,7 @@ class GameView(arcade.View):
 
 
         for trash in self.interior_trash_spots:
-            self.draw_trash(trash)
+            self.draw_trash(trash, interior=True)
 
 
         if self.screen == "visit":
