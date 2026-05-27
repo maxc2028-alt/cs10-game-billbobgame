@@ -1433,6 +1433,11 @@ class GameView(arcade.View):
             return
 
 
+        if key == arcade.key.T:
+            self.try_befriend()
+            return
+
+
         if key == arcade.key.F:
             if self.door_cooldown > 0:
                 return
