@@ -654,9 +654,9 @@ class GameView(arcade.View):
         self.interior_mode = "repair"
         self.house_styles: dict[int, tuple[tuple[int, int, int], tuple[int, int, int]]] = {}
         self.style_options = [
-            ("Garden green", (54, 77, 69), (86, 112, 98)),
-            ("Warm brick", (89, 52, 48), (121, 76, 65)),
-            ("Soft blue", (53, 68, 92), (86, 103, 126)),
+            ("Crisp white", (190, 198, 206), (245, 243, 235)),
+            ("Soft sage", (96, 126, 104), (221, 232, 219)),
+            ("Blue cottage", (76, 108, 142), (204, 223, 240)),
         ]
         self.neighborhood_state = 0
         self.round_started = False
@@ -952,8 +952,10 @@ class GameView(arcade.View):
         self.interior_upgrade_levels.setdefault(self.inside_building, 0)
         self.interior_spots = []
         self.message = f"The inside of {self.get_building_name(self.inside_building)} is fixed."
-        # Just continue to decorate screen - no limit on buildings
-        self.hint = "Press F by the door to go back outside, then revisit later for interior upgrades."
+        self.screen = "decorate"
+        self.round_started = False
+        self.keys_down.clear()
+        self.hint = "Pick the clean version of this house. Then the next building starts."
 
 
     def finish_interior_upgrade(self) -> None:
@@ -1079,16 +1081,18 @@ class GameView(arcade.View):
 
     def finish_repair(self) -> None:
         self.friendship += 1
-        self.screen = "decorate"
-        self.round_started = False
+        self.screen = "playing"
+        self.round_started = True
         self.keys_down.clear()
-        self.message = "Choose how this repaired house should look."
-        self.hint = "Press 1, 2, or 3 to pick a style. The next cleanup starts after your choice."
+        self.ball_x = self.exit_spawn_x
+        self.ball_y = self.exit_spawn_y
+        self.message = "The outside repair is done."
+        self.hint = "Finish the interior cleanup, then choose the clean house look."
 
 
     def choose_house_style(self, style_index: int) -> None:
         _, roof_color, wall_color = self.style_options[style_index]
-        self.house_styles[self.current_building] = (roof_color, wall_color)
+        self.house_styles[self.inside_building] = (roof_color, wall_color)
         self.next_building()
 
 
@@ -2419,15 +2423,16 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(80, 720, 120, 540, (20, 20, 30))
         arcade.draw_lrbt_rectangle_outline(80, 720, 120, 540, arcade.color.WHITE, 3)
 
-        arcade.draw_text("Choose a finished look", 400, 455, (222, 222, 214), 28, anchor_x="center")
+        arcade.draw_text("Choose the clean house", 400, 455, (222, 222, 214), 28, anchor_x="center")
         arcade.draw_text(
-            self.get_building_name(self.current_building),
+            self.get_building_name(self.inside_building),
             400,
             420,
             (156, 160, 166),
             14,
             anchor_x="center",
         )
+        arcade.draw_text("Pick one of the three clean versions below.", 400, 396, (156, 160, 166), 12, anchor_x="center")
 
 
         for index, (name, roof_color, wall_color) in enumerate(self.style_options):
