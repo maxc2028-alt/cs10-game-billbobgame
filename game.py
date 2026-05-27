@@ -275,7 +275,7 @@ class PipeMinigame:
         if self.started and not self.completed:
             self.time_left -= delta_time
         if self.win_fade is not None:
-            self.win_fade = max(0.0, self.win_fade - delta_time * 0.8)
+            self.win_fade = max(0.0, self.win_fade - delta_time * 0.35)
 
     def draw(self) -> None:
         arcade.draw_lrbt_rectangle_filled(100, 700, 60, 470, (34, 31, 38))
@@ -324,17 +324,18 @@ class PipeMinigame:
             arcade.draw_text("FAILED", 205, 88, arcade.color.RED, 30, anchor_x="center")
         if self.win_fade is not None:
             glow = int(255 * (1.0 - self.win_fade))
-            overlay_alpha = max(0, min(240, glow + 40))
-            burst_size = 1.0 + (1.0 - self.win_fade) * 0.8
+            overlay_alpha = max(0, min(255, glow + 90))
+            burst_size = 1.0 + (1.0 - self.win_fade) * 1.1
             half_w = 400 * burst_size
             half_h = 300 * burst_size
             arcade.draw_lrbt_rectangle_filled(400 - half_w, 400 + half_w, 300 - half_h, 300 + half_h, (255, 255, 255, overlay_alpha))
+            arcade.draw_lrbt_rectangle_filled(0, 800, 0, 600, (255, 255, 255, min(120, overlay_alpha)))
             arcade.draw_text(
                 "CONGRATULATIONS",
                 400,
-                325 + glow * 0.12,
+                325 + glow * 0.14,
                 arcade.color.WHITE,
-                60,
+                68,
                 anchor_x="center",
             )
 
