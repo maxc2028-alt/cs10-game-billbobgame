@@ -671,6 +671,7 @@ class GameView(arcade.View):
         self.hud_collapsed = False
         self.quiz_friend: FriendNPC | None = None
         self.guess_friend: FriendNPC | None = None
+        self.name_guess = ""
         self.name_riddle_index = 0
         self.name_riddle_progress = ""
         self.name_riddle_tries_left = 3
@@ -1132,6 +1133,7 @@ class GameView(arcade.View):
         saved_index, saved_progress, saved_hints = self.friend_riddle_progress.get(friend.name, (0, "", []))
         self.name_riddle_index = saved_index
         self.name_riddle_progress = saved_progress
+        self.name_guess = ""
         self.unlocked_riddle_hints = list(saved_hints)
         self.name_riddle_wrong_guesses = 0
         self.name_riddle_wrong_answers = set()
@@ -1158,6 +1160,7 @@ class GameView(arcade.View):
             list(self.unlocked_riddle_hints),
         )
         self.guess_friend = None
+        self.name_guess = ""
         self.screen = "playing"
         self.message = f"You stepped away from {friend_name}'s riddles."
         self.hint = "Your riddle progress is saved. Come back when you're ready."
@@ -1182,6 +1185,7 @@ class GameView(arcade.View):
                 self.message = f"You revealed {friend.name}."
                 self.hint = f"All 4 riddles are complete. {friend.name} is the full name."
                 self.guess_friend = None
+                self.name_guess = ""
                 self.start_friend_quiz(friend)
                 return
 
@@ -1189,6 +1193,7 @@ class GameView(arcade.View):
             self.friend_riddle_progress[self.guess_friend.name] = (self.name_riddle_index, self.name_riddle_progress, list(self.unlocked_riddle_hints))
             self.message = f"Correct. Letter revealed: {self.name_riddle_progress.upper()}."
             self.hint = f"Riddle {self.name_riddle_index + 1} of 4: {next_riddle['question']}"
+            self.name_guess = ""
             return
 
         normalized_guess = self.name_guess.strip().lower()
