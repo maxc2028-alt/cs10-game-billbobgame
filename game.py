@@ -654,9 +654,9 @@ class GameView(arcade.View):
         self.interior_mode = "repair"
         self.house_styles: dict[int, tuple[tuple[int, int, int], tuple[int, int, int]]] = {}
         self.style_options = [
-            ("Garden green", (54, 77, 69), (86, 112, 98)),
-            ("Warm brick", (89, 52, 48), (121, 76, 65)),
-            ("Soft blue", (53, 68, 92), (86, 103, 126)),
+            ("Fresh white", (186, 196, 205), (244, 241, 232)),
+            ("Garden mint", (92, 126, 104), (213, 233, 219)),
+            ("Blue cottage", (77, 108, 142), (205, 224, 241)),
         ]
         self.neighborhood_state = 0
         self.round_started = False
@@ -1083,7 +1083,7 @@ class GameView(arcade.View):
         self.round_started = False
         self.keys_down.clear()
         self.message = "Choose how this repaired house should look."
-        self.hint = "Press 1, 2, or 3 to pick a style. The next cleanup starts after your choice."
+        self.hint = "Pick one of the three clean house styles. The next cleanup starts after your choice."
 
 
     def choose_house_style(self, style_index: int) -> None:
@@ -2419,7 +2419,7 @@ class GameView(arcade.View):
         arcade.draw_lrbt_rectangle_filled(80, 720, 120, 540, (20, 20, 30))
         arcade.draw_lrbt_rectangle_outline(80, 720, 120, 540, arcade.color.WHITE, 3)
 
-        arcade.draw_text("Choose a finished look", 400, 455, (222, 222, 214), 28, anchor_x="center")
+        arcade.draw_text("Choose a clean finished look", 400, 455, (222, 222, 214), 28, anchor_x="center")
         arcade.draw_text(
             self.get_building_name(self.current_building),
             400,
@@ -2428,6 +2428,7 @@ class GameView(arcade.View):
             14,
             anchor_x="center",
         )
+        arcade.draw_text("Pick one of the three house versions below.", 400, 396, (156, 160, 166), 12, anchor_x="center")
 
 
         for index, (name, roof_color, wall_color) in enumerate(self.style_options):
