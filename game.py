@@ -3044,7 +3044,7 @@ class GameView(arcade.View):
             14,
             anchor_x="center",
         )
-        arcade.draw_text(f"Required name: {self.level_lock_required_name or '???'}", 400, 395, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
+        arcade.draw_text("Passcode: the NPC name from the previous level.", 400, 395, arcade.color.LIGHT_GRAY, 12, anchor_x="center")
 
         arcade.draw_lrbt_rectangle_filled(200, 600, 300, 350, (52, 88, 68))
         arcade.draw_lrbt_rectangle_outline(200, 600, 300, 350, arcade.color.WHITE, 2)
