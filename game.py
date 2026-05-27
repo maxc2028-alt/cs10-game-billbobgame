@@ -1144,6 +1144,7 @@ class GameView(arcade.View):
         self.name_riddle_wrong_guesses = 0
         self.name_riddle_wrong_answers = set()
         self.suppress_next_name_guess_char = False
+        self.menu_open = False
         self.screen = "name_guess"
         self.message = f"Riddle {self.name_riddle_index + 1} of 4 for {friend.name}."
         current_riddle = RIDDLE_QUESTIONS[self.name_riddle_index % len(RIDDLE_QUESTIONS)]
@@ -1172,6 +1173,7 @@ class GameView(arcade.View):
         )
         self.guess_friend = None
         self.name_guess = ""
+        self.menu_open = False
         self.screen = "playing"
         self.message = f"You stepped away from {friend_name}'s riddles."
         self.hint = "Your riddle progress is saved. Come back when you're ready."
@@ -1201,6 +1203,7 @@ class GameView(arcade.View):
                 self.hint = f"All 4 riddles are complete. {friend.name} is the full name."
                 self.guess_friend = None
                 self.name_guess = ""
+                self.menu_open = False
                 self.screen = "playing"
                 return
 
