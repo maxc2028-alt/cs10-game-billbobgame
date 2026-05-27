@@ -43,24 +43,24 @@ HOUSE_WIDTHS = [140, 170, 120]  # Different widths for variety
 HOUSE_HEIGHTS = [220, 235, 195]  # Different heights for variety
 RIDDLE_QUESTIONS = [
     {
-        "question": "I follow you everywhere, but I never speak. I grow bigger when the room is empty. What am I?",
-        "answer": "shadow",
-        "letter": "j",
+        "question": "I am a phone that never rings, a message never sent, and a name no one calls. What am I?",
+        "answer": "isolation",
+        "letter": "i",
     },
     {
-        "question": "I am a crowd of one, a party with no guests, and a song no one hears. What am I?",
+        "question": "I can fill a room without taking up space, and I feel heaviest when no one is there. What am I?",
+        "answer": "silence",
+        "letter": "s",
+    },
+    {
+        "question": "I walk through a crowd but still feel unseen. What am I?",
         "answer": "loneliness",
-        "letter": "a",
+        "letter": "l",
     },
     {
-        "question": "I sit beside you at lunch, but no one sees me. I make silence feel louder. What am I?",
-        "answer": "feelingalone",
-        "letter": "n",
-    },
-    {
-        "question": "I am a house with lights on, but no voices inside. What am I?",
-        "answer": "emptyhome",
-        "letter": "e",
+        "question": "I am an echo with no voice calling back. What am I?",
+        "answer": "being alone",
+        "letter": "b",
     },
 ]
 INTERIOR_REPAIR_SETS = [
@@ -1203,8 +1203,13 @@ class GameView(arcade.View):
 
 
     def append_name_guess_char(self, text: str) -> None:
-        if self.screen == "name_guess" and text.isalpha() and len(self.name_guess) < 16:
+        if self.screen != "name_guess" or len(self.name_guess) >= 16:
+            return
+
+        if text.isalpha():
             self.name_guess += text.lower()
+        elif text == " " and self.name_guess and not self.name_guess.endswith(" "):
+            self.name_guess += " "
 
 
     def delete_name_guess_char(self) -> None:
