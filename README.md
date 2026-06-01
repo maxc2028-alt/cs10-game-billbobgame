@@ -2,6 +2,15 @@
 
 This repository is a template for small student teams building a 2D game with Python and Arcade.
 
+## Download The Game
+
+Use these links to download the game package for your computer:
+
+- [Download for Windows](NeighborhoodCleanup-download.zip)
+- [Download for Mac](NeighborhoodCleanup-mac-download.zip)
+
+The Windows download is a standalone `.exe` inside a zip file. The Mac download is a source package you can run with Python on macOS.
+
 ## Getting Started with Your Team
 
 ### Step 1: One student creates the team repository
