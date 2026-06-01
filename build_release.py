@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -13,35 +14,48 @@ GAME_FILE: Final = PROJECT_ROOT / "game.py"
 DIST_DIR: Final = PROJECT_ROOT / "dist"
 BUILD_DIR: Final = PROJECT_ROOT / "build"
 ASSETS_DIR: Final = PROJECT_ROOT / "assets"
+PYINSTALLER_CACHE_DIR: Final = PROJECT_ROOT / ".pyinstaller-cache"
 
 
 def _data_separator() -> str:
     return ";" if sys.platform.startswith("win") else ":"
 
 
-def _pyinstaller_base_args(bundle_name: str) -> list[str]:
+def _pyinstaller_base_args(bundle_name: str, *, mac_bundle: bool = False) -> list[str]:
     args = [
         "pyinstaller",
         "--noconfirm",
         "--clean",
-        "--onefile",
         "--windowed",
         "--name",
         bundle_name,
     ]
+    if not mac_bundle:
+        args.insert(3, "--onefile")
+    else:
+        args.insert(3, "--onedir")
     if ASSETS_DIR.exists():
         args.extend(["--add-data", f"{ASSETS_DIR}{_data_separator()}assets"])
     args.append(str(GAME_FILE))
     return args
 
 
-def _run_pyinstaller(bundle_name: str) -> None:
+def _run_pyinstaller(bundle_name: str, *, mac_bundle: bool = False) -> None:
     if shutil.which("pyinstaller") is None:
         raise SystemExit(
             "PyInstaller is not installed. Install it with `pip install pyinstaller` and try again."
         )
 
-    subprocess.run(_pyinstaller_base_args(bundle_name), check=True, cwd=PROJECT_ROOT)
+    env = os.environ.copy()
+    PYINSTALLER_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    env["PYINSTALLER_CONFIG_DIR"] = str(PYINSTALLER_CACHE_DIR)
+
+    subprocess.run(
+        _pyinstaller_base_args(bundle_name, mac_bundle=mac_bundle),
+        check=True,
+        cwd=PROJECT_ROOT,
+        env=env,
+    )
 
 
 def _bundle_name(target: str) -> str:
@@ -104,7 +118,7 @@ def main() -> None:
         raise SystemExit("The Mac bundle can only be built on macOS.")
 
     if args.target == "mac-dmg":
-        _run_pyinstaller(_bundle_name("mac"))
+        _run_pyinstaller(_bundle_name("mac"), mac_bundle=True)
         app_path = _bundle_path("mac")
         dmg_path = _bundle_path("mac-dmg")
         if not app_path.exists():
