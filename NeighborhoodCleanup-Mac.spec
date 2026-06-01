@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['/Users/maxcerniglia/cs10-game-billbobgame/game.py'],
+    ['game.py'],
     pathex=[],
     binaries=[],
     datas=[],
