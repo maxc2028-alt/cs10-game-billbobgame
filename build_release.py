@@ -10,7 +10,7 @@ from typing import Final
 
 
 PROJECT_ROOT: Final = Path(__file__).resolve().parent
-GAME_FILE: Final = PROJECT_ROOT / "game.py"
+GAME_FILE: Final = PROJECT_ROOT / "game-max.py"
 DIST_DIR: Final = PROJECT_ROOT / "dist"
 BUILD_DIR: Final = PROJECT_ROOT / "build"
 ASSETS_DIR: Final = PROJECT_ROOT / "assets"

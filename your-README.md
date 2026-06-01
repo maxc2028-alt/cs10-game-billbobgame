@@ -11,7 +11,7 @@ These are direct download links for people who do not have Python installed:
 
 ```bash
 pip install -r requirements.txt
-python game.py
+python game-max.py
 ```
 
 ## Release notes

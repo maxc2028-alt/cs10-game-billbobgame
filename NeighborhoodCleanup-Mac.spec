@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['game.py'],
+    ['game-max.py'],
     pathex=[],
     binaries=[],
     datas=[],
