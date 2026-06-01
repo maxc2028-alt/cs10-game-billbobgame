@@ -14,3 +14,5 @@ A 2D serious game for teenagers in which players clean up trash in abandoned bui
 
 
 ## How to Install & Play
+https://github.com/maxc2028-alt/cs10-game-billbobgame/blob/main/dist/NeighborhoodCleanup-Mac.dmg
+https://github.com/maxc2028-alt/cs10-game-billbobgame/releases/download/V.1/Neighborhoodcleanup.zip.zip
