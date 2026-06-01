@@ -1,26 +1,19 @@
-**Note:** Delete the template README.md file and rename this file to README.md before submitting.
+# Neighborhood Cleanup: South Block
 
----
+## Download the game
 
-# Your Game Title Here
+These are direct download links for people who do not have Python installed:
 
-**Group Members:** [List all group member names here]
+- [Windows build](https://github.com/maxc2028-alt/cs10-game-billbobgame/releases/latest/download/NeighborhoodCleanup-Windows.exe)
+- [Mac build](https://github.com/maxc2028-alt/cs10-game-billbobgame/releases/latest/download/NeighborhoodCleanup-Mac.dmg)
 
-## Description
+## Run from source
 
-[Write a short description of your game here. What is it about? What makes it fun?]
+```bash
+pip install -r requirements.txt
+python game.py
+```
 
-## Screenshots
+## Release notes
 
-[Add 2-3 screenshots of your game in action here. You can embed images using:
-`![Screenshot description](path/to/screenshot.png)`]
-
-## How to Install & Play
- 
-Simply download the game files for your operating system and run the project locally.
-
-Mac:
-[Download the source code](https://github.com/maxc2028-alt/cs10-game-billbobgame/archive/refs/heads/main.zip)
-
-Windows:
-[Download the source code](https://github.com/maxc2028-alt/cs10-game-billbobgame/archive/refs/heads/main.zip)
+The downloadable files are created by GitHub Actions and attached to GitHub Releases. That means anyone can download and play the game without installing Python first.
